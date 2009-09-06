@@ -3,6 +3,10 @@ username = Miguel Sousa Filipe <miguel.filipe@gmail.com>
 merge = vimdiff
 style = default
 
+[diff]
+git=yes
+showfunc=yes
+
 [extensions]
 extdiff = 
 hgext.graphlog =
