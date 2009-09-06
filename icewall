@@ -26,15 +26,15 @@ PROBE="/sbin/modprobe"
 NET_INTERFACE=eth0
 LAN_INTERFACE=eth1
 # mac addresses permitidos na lan de casa
-MAC_ADDR1="00:22:15:2F:81:CD"; # ASUS wl-320ep
-MAC_ADDR2="00:21:bd:f3:3d:47"; # Wii wifi
-MAC_ADDR3="00:19:d2:23:4a:97"; # lucio wifi
-MAC_ADDR4="00:1a:80:7e:96:87"; # vaio ana, wired
-MAC_ADDR5="00:1c:bf:b7:25:1b"; # vaio ana, wifi
-MAC_ADDR8="00:1b:63:20:03:35"; # macbook mario
-MAC_ADDR9="00:16:cb:c9:42:17"; # macbook wired
-MAC_ADDR10="00:1D:E0:CA:07:6D"; # thinkpad sapo wifi
-MAC_ADDR11="00:1E:37:8C:AB:AC"; # thinkpad sapo wired
+MAC_ADDR1="00:00:00:00:00:00"; # ASUS wl-320ep
+MAC_ADDR2="00:00:00:00:00:00"; # Wii wifi
+MAC_ADDR3="00:00:00:00:00:00"; # lucio wifi
+MAC_ADDR4="00:00:00:00:00:00"; # vaio ana, wired
+MAC_ADDR5="00:00:00:00:00:00"; # vaio ana, wifi
+MAC_ADDR8="00:00:00:00:00:00"; # macbook mario
+MAC_ADDR9="00:00:00:00:00:00"; # macbook wired
+MAC_ADDR10="0:00:00:00:00:00"; # thinkpad sapo wifi
+MAC_ADDR11="0:00:00:00:00:00"; # thinkpad sapo wired
 MACS="$MAC_ADDR1 $MAC_ADDR2 $MAC_ADDR3 $MAC_ADDR4 $MAC_ADDR5 $MAC_ADDR6 $MAC_ADDR7 $MAC_ADDR8 $MAC_ADDR9 $MAC_ADDR10 $MAC_ADDR11"
 
  
