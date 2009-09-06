@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# remove bluetooth
+sudo hciconfig hci0 down
+sudo rmmod hci_usb
+
+# usb autosuspend:
+sudo sysctl -w usbcore.autosuspend=1
+
+# sata lowpower:
+sudo sh -c "echo min_power > /sys/class/scsi_host/host0/link_power_management_policy"
+
+# enable laptop mode
+sudo sh -c "echo 5 > /proc/sys/vm/laptop_mode"
+
+# increase writeback time
+sudo sh -c "echo 1500 > /proc/sys/vm/dirty_writeback_centisecs"

@@ -1,0 +1,8 @@
+exec gnome-screensaver &
+
+while :
+do 
+    wmii
+done
+
+

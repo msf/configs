@@ -1,0 +1,23 @@
+[user]
+	name = Miguel Sousa Filipe
+	email = miguel.filipe@caixamagica.pt
+
+[alias]
+ci = commit
+co = checkout
+st = status
+di = diff 	  				
+br = branch
+
+
+[merge]
+    tool = meld
+
+[core]
+    pager = cat
+
+[color]
+    diff = auto
+    status = true
+[gui]
+	fontui = -family \"Liberation Sans\" -size 12 -weight bold -slant roman -underline 0 -overstrike 0

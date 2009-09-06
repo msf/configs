@@ -1,0 +1,48 @@
+# @(#)bashrc 2001/03/22
+umask 007
+
+
+IRCSERVER=netcabo.ptnet.org
+IRCNAME="More human than human"
+IRCUSER="brainstorm"
+IRCNICK="m3thos"
+
+export IRCSERVER IRCNAME IRCUSER IRCNICK PS1
+
+
+# aliases for all shell's
+export LS_OPTIONS="--color-auto"
+alias ls="ls --color=auto"
+alias l='ls -F'
+alias rm='\rm -i'
+alias la='ls -aF'
+alias ll='ls -ihlF'
+alias cp='cp -i'
+alias mv='mv -i'
+alias view='vim -R'
+alias j='jobs'
+alias lbuild=" LOCAL_SOURCES=1 ADWORDS_DEBUG=1 ./build "
+alias mysql1='mysql -h adw-sql1 -u adwords -p adwords'
+alias mysql2='mysql -h adw-sql2 -u adwords -p adwords'
+alias term='xterm -bg black -fg grey -fa Monospace -fs 9 -u8'
+alias dhead='xrandr --output VGA --right-of LVDS'
+alias thead='pkill synergys && synergys && ssh tmig "pkill synergyc && synergyc preto"'
+alias ipy='ipython -nobanner -noconfirm_exit'
+#pacman/arch stuff
+alias pacget='sudo pacman -S'
+alias pacls='sudo pacman -Ss'
+alias pacup='sudo pacman -Syu'
+
+function dsh() {
+    dssh -F 4 -W $*
+}
+
+[ -f ~/.prompt ] && source ~/.prompt
+
+##uncomment the following to activate bash-completion:
+[ -f /etc/profile.d/bash-completion ] && source /etc/profile.d/bash-completion
+
+#--[EOF]--
+#!/bin/bash
+
+
