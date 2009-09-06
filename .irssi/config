@@ -1,0 +1,291 @@
+servers = (
+  { address = "irc.efnet.net"; chatnet = "EFNet"; port = "6667"; },
+  {
+    address = "im.bitlbee.org";
+    chatnet = "bitlbee";
+    port = "6667";
+    autoconnect = "no";
+  },
+  {
+    address = "irc.oftc.net";
+    chatnet = "oftc";
+    port = "6667";
+    autoconnect = "yes";
+  },
+  {
+    address = "irc.freenode.org";
+    chatnet = "freenode";
+    port = "6667";
+    autoconnect = "yes";
+  }
+);
+
+chatnets = {
+  PTLink = {
+    type = "IRC";
+    autosendcmd = "/^nickserv identify uberl33t;wait -ptlink 2000";
+    max_kicks = "1";
+    max_msgs = "100";
+    max_modes = "6";
+  };
+  SILC = { type = "SILC"; };
+  ptnet = {
+    type = "IRC";
+    autosendcmd = "/^nickserv identify uberl33t;wait -ptnet 2000";
+  };
+  freenode = {
+    type = "IRC";
+    autosendcmd = "/^msg nickserv identify uberl33t;wait -freenode 2000";
+  };
+
+  oftc = {
+    type = "IRC";
+    autosendcmd = "/^msg nickserv identify uberl33t;wait -oftc 2000";
+  };
+  EFNet = { type = "IRC"; };
+  Undernet = { type = "IRC"; };
+  bitlbee = { type = "IRC"; };
+};
+
+channels = (
+  { name = "#irssi"; chatnet = "ircnet"; autojoin = "No"; },
+  { name = "#irssi"; chatnet = "opn"; autojoin = "No"; },
+  { name = "#gentoo"; chatnet = "opn"; autojoin = "yes"; },
+  { name = "#kernelnewbies"; chatnet = "opn"; autojoin = "yes"; },
+  { name = "#kernelnewbies"; chatnet = "oftc"; autojoin = "yes"; },
+  {
+    name = "#warez";
+    chatnet = "ptlink";
+    autojoin = "yes";
+    botmasks = "NickServ!Services@PTlink.net";
+    autosendcmd = "/^quote nickserv identify uberl33t";
+  },
+  {
+    name = "#linuxhelp";
+    chatnet = "ptnet";
+    autojoin = "yes";
+    botmasks = "NickServ!Services@*";
+    autosendcmd = "/^quote nickserv identify uberl33t";
+  },
+  {
+    name = "#linuxgeeks";
+    chatnet = "ptnet";
+    autojoin = "no";
+    botmasks = "NickServ!suporte@PTnet.org";
+    autosendcmd = "/^quote nickserv identify uberl33t";
+  },
+
+);
+
+aliases = {
+  J = "join";
+  WJOIN = "join -window";
+  WQUERY = "query -window";
+  LEAVE = "part";
+  BYE = "quit";
+  EXIT = "quit";
+  SIGNOFF = "quit";
+  DESCRIBE = "action";
+  DATE = "time";
+  HOST = "userhost";
+  LAST = "lastlog";
+  SAY = "msg *";
+  WI = "whois";
+  WII = "whois $0 $0";
+  WW = "whowas";
+  W = "who";
+  N = "names";
+  M = "msg";
+  T = "topic";
+  C = "clear";
+  CL = "clear";
+  K = "kick";
+  KB = "kickban";
+  KN = "knockout";
+  BANS = "ban";
+  B = "ban";
+  MUB = "unban *";
+  UB = "unban";
+  IG = "ignore";
+  UNIG = "unignore";
+  SB = "scrollback";
+  UMODE = "mode $N";
+  WC = "window close";
+  WN = "window new hide";
+  SV = "say Irssi $J ($V) - http://irssi.org/";
+  GOTO = "sb goto";
+  CHAT = "dcc chat";
+  RUN = "SCRIPT LOAD";
+  UPTIME = "eval exec - expr `date +%s` - \\$F | awk '{print \"Irssi uptime: \"int(\\\\\\$1/3600/24)\"d \"int(\\\\\\$1/3600%24)\"h \"int(\\\\\\$1/60%60)\"m \"int(\\\\\\$1%60)\"s\" }'";
+  CALC = "exec - if which bc &>/dev/null\\; then echo '$*' | bc | awk '{print \"$*=\"$$1}'\\; else echo bc was not found\\; fi";
+  SBAR = "STATUSBAR";
+  INVITELIST = "mode $C +I";
+  ident = "quote nickserv identify uberl33t";
+  nickserv = "quote nickserv";
+  memoserv = "quote memoserv";
+  mrl = "quote memoserv read last";
+  chanserv = "quote chanserv ";
+  1 = "window 1";
+  2 = "window 2";
+  3 = "window 3";
+  4 = "window 4";
+  5 = "window 5";
+  6 = "window 6";
+  7 = "window 7";
+  chaninv = "chanserv invite #$0-";
+  w4 = "window 4";
+  w5 = "window 5";
+  w6 = "window 6";
+  w3 = "window 3";
+  w2 = "window 2";
+  w1 = "window 1";
+};
+
+statusbar = {
+  # formats:
+  # when using {templates}, the template is shown only if it's argument isn't
+  # empty unless no argument is given. for example {sb} is printed always,
+  # but {sb $T} is printed only if $T isn't empty.
+
+  items = {
+    # start/end text in statusbars
+    barstart = "{sbstart}";
+    barend = "{sbend}";
+
+    # treated "normally", you could change the time/user name to whatever
+    time = "{sb $Z}";
+    user = "{sb $cumode$N{sbmode $usermode}{sbaway $A}}";
+    topic = " $topic";
+
+    # treated specially .. window is printed with non-empty windows,
+    # window_empty is printed with empty windows
+    window = "{sb $winref:$T{sbmode $M}}";
+    window_empty = "{sb $winref{sbservertag $tag}}";
+    prompt = "{prompt $[.15]T}";
+    prompt_empty = "{prompt $winname}";
+
+    # all of these treated specially, they're only displayed when needed
+    lag = "{sb Lag: $0-}";
+    act = "{sb Act: $0-}";
+    more = "-- more --";
+  };
+
+  # there's two type of statusbars. root statusbars are either at the top
+  # of the screen or at the bottom of the screen. window statusbars are at
+  # the top/bottom of each split window in screen.
+  default = {
+    # the "default statusbar" to be displayed at the bottom of the window.
+    # contains all the normal items.
+    window = {
+      disabled = "no";
+
+      # window, root
+      type = "window";
+      # top, bottom
+      placement = "bottom";
+      # number
+      position = "1";
+      # active, inactive, always
+      visible = "active";
+
+      # list of items in statusbar in the display order
+      items = {
+        barstart = { priority = "100"; };
+        time = { };
+        user = { };
+        window = { };
+        window_empty = { };
+        lag = { priority = "-1"; };
+        act = { priority = "10"; };
+        more = { priority = "-1"; alignment = "right"; };
+        barend = { priority = "100"; alignment = "right"; };
+      };
+    };
+
+    # statusbar to use in inactive split windows
+    window_inact = {
+      type = "window";
+      placement = "bottom";
+      position = "1";
+      visible = "inactive";
+      items = {
+        barstart = { priority = "100"; };
+        window = { };
+        window_empty = { };
+        more = { priority = "-1"; alignment = "right"; };
+        barend = { priority = "100"; alignment = "right"; };
+      };
+    };
+
+    # (annoying) infobar requesting new users to visit irssi.org and read
+    # a bit of documentation :)
+    info = {
+      type = "root";
+      placement = "bottom";
+      position = "1";
+      visible = "always";
+      items = { info = { }; };
+      disabled = "yes";
+    };
+
+    # we treat input line as yet another statusbar :) It's possible to
+    # add other items before or after the input line item.
+    prompt = {
+      type = "root";
+      placement = "bottom";
+      # we want to be at the bottom always
+      position = "100";
+      visible = "always";
+      items = {
+        prompt = { priority = "-1"; };
+        prompt_empty = { priority = "-1"; };
+        # treated specially, this is the real input line.
+        input = { priority = "10"; };
+      };
+    };
+
+    # topicbar
+    topic = {
+      type = "root";
+      placement = "top";
+      position = "1";
+      visible = "always";
+      items = {
+        barstart = { priority = "100"; };
+        topic = { };
+        barend = { priority = "100"; alignment = "right"; };
+      };
+    };
+  };
+};
+settings = {
+  core = {
+    real_name = "more human than human";
+    user_name = "mindblast";
+    nick = "m3thos";
+    quit_message = "comming back to reality";
+  };
+  "irc/core" = {
+    ctcp_version_reply = "telnet session";
+    alternate_nick = "m3th0s";
+  };
+  "irc/dcc" = {
+    dcc_autoresume = "yes";
+    dcc_autoget = "yes";
+    dcc_autoget_max_size = "9999999k";
+  };
+  "fe-common/core" = {
+    theme = "default.theme";
+    completion_nicks_lowercase = "no";
+  };
+  "fe-text" = { actlist_sort = "refnum"; };
+};
+notifies = {
+  cantona = { ircnets = ( "ptnet", "ptlink" ); };
+  badas = { };
+  stigmelidae = { };
+  "mi[ron" = { };
+  guzzie = { };
+  zpektral = { };
+};
+logs = { };
