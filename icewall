@@ -1,0 +1,280 @@
+#!/bin/bash
+#Icewall 2.0 2005.03.16 (Miguel Sousa Filipe)
+#
+# Firewall rules extremely simple and effective
+# They follow a "secure by default" aproach
+# since we specify what's permitted and everything else isn't.
+# Logs will show up in the "info" level logs in your sysloger
+#
+# sponsored by KISS filosophy (keep it simple, stupid)
+
+# TODO:
+# separe:
+#	configuration of interfaces
+#   configuration of each table rules
+# 	proc settings, module loading
+# 	load iptable rules from separate file.
+
+# Lay out a system for independant, variable, noumerous NICs.
+# prepare it for more complex/heterogenous networks.
+# and also smaller, one NIC, host based firewalls.
+
+
+IPT="/sbin/iptables"
+IPTABLES_SAVE="/var/lib/iptables/rules-save"
+PROBE="/sbin/modprobe"
+NET_INTERFACE=eth0
+LAN_INTERFACE=eth1
+# mac addresses permitidos na lan de casa
+MAC_ADDR1="00:22:15:2F:81:CD"; # ASUS wl-320ep
+MAC_ADDR2="00:21:bd:f3:3d:47"; # Wii wifi
+MAC_ADDR3="00:19:d2:23:4a:97"; # lucio wifi
+MAC_ADDR4="00:1a:80:7e:96:87"; # vaio ana, wired
+MAC_ADDR5="00:1c:bf:b7:25:1b"; # vaio ana, wifi
+MAC_ADDR8="00:1b:63:20:03:35"; # macbook mario
+MAC_ADDR9="00:16:cb:c9:42:17"; # macbook wired
+MAC_ADDR10="00:1D:E0:CA:07:6D"; # thinkpad sapo wifi
+MAC_ADDR11="00:1E:37:8C:AB:AC"; # thinkpad sapo wired
+MACS="$MAC_ADDR1 $MAC_ADDR2 $MAC_ADDR3 $MAC_ADDR4 $MAC_ADDR5 $MAC_ADDR6 $MAC_ADDR7 $MAC_ADDR8 $MAC_ADDR9 $MAC_ADDR10 $MAC_ADDR11"
+
+ 
+# allowed ports ssh,messenger,messengerTransfers,eMule/Kad,bittorrent,bittorrent
+tcpPORTS="22,1863,4662,26881,26882,26889";
+udpPORTS="139,1863,26891,4665,4672,1194"; #last one is openvpn
+
+
+
+if [ $UID != '0' ];then
+    echo "Quiting, you are NOT root!"
+    exit
+fi
+
+save() {
+        # This saves the current rules so we don't forget to save changes
+        echo "Saving firewall rules"
+        $IPT-save > ${IPTABLES_SAVE}
+}
+
+kernel_setup() {
+        # This sets UP kernel paremeters needed
+        # for the correct funcioning of the firewall.
+        
+        # Enabling Spoof-protection trought rp_filter
+        for i in /proc/sys/net/ipv4/conf/*/rp_filter; do
+                echo "1" > $i
+        done
+
+        # syncookies, synflood protection.
+        if [ -f /proc/sys/net/ipv4/tcp_syncookies ]; then
+                echo "1"> /proc/sys/net/ipv4/tcp_syncookies
+        fi
+
+        # Logging martians (impossible packets)
+        echo "1" > /proc/sys/net/ipv4/conf/all/log_martians
+
+        # Enablig ip forwarding for IPv4 and IPv6
+        echo "1" > /proc/sys/net/ipv4/conf/all/forwarding
+	echo "1" > /proc/sys/net/ipv4/ip_dynaddr
+        if [ -f /proc/sys/net/ipv6/conf/all/forwarding ]; then
+        	echo "1" > /proc/sys/net/ipv6/conf/all/forwarding
+	fi
+        
+        #Load the kernel modules.
+        $PROBE ip_tables
+        $PROBE iptable_filter
+        $PROBE iptable_nat
+        $PROBE ip_conntrack
+        $PROBE ip_conntrack_irc
+        $PROBE ip_nat_irc
+        $PROBE ipt_tcpmss
+        $PROBE ipt_limit
+        $PROBE ipt_state
+        #$PROBE ipt_stealth
+}
+
+disable() {
+        # This flushes the firewall rules, stopping it 
+        # and disables IP forwarding
+        echo -n "Stopping firewall ->"
+        # set sane defaults that disable forwarding
+        if [ -f /proc/sys/net/ipv4/conf/all/forwarding ] ; then
+                echo "0" > /proc/sys/net/ipv4/conf/all/forwarding
+        fi
+
+        if [ -f /proc/sys/net/ipv6/conf/all/forwarding ] ; then
+                echo "0" > /proc/sys/net/ipv6/conf/all/forwarding
+        fi
+
+        for a in `cat /proc/net/ip_tables_names`; do
+                $IPT -F -t $a
+                $IPT -X -t $a
+
+                if [ $a == nat ]; then
+                        $IPT -t nat -P PREROUTING ACCEPT
+                        $IPT -t nat -P POSTROUTING ACCEPT
+                        $IPT -t nat -P OUTPUT ACCEPT
+                elif [ $a == mangle ]; then
+                        $IPT -t mangle -P PREROUTING ACCEPT
+                        $IPT -t mangle -P INPUT ACCEPT
+                        $IPT -t mangle -P FORWARD ACCEPT
+                        $IPT -t mangle -P OUTPUT ACCEPT
+                        $IPT -t mangle -P POSTROUTING ACCEPT
+                elif [ $a == filter ]; then
+                        $IPT -t filter -P INPUT ACCEPT
+                        $IPT -t filter -P FORWARD ACCEPT
+                        $IPT -t filter -P OUTPUT ACCEPT
+                fi
+        done
+        echo "          Done!"
+}
+
+# Sets UP the iptables rule set defined in this section
+setup() {
+        echo -n "Starting firewall ->"
+        kernel_setup
+
+        # --- the $IPT ruleset starts here ---
+        # Setting up a "Deny by Default" policy
+        $IPT -P FORWARD DROP 
+        $IPT -t filter -P FORWARD DROP
+		# we don't alter INPUT default policy so that we don't mess other interfaces.
+
+        #Set up the LOCAL and NET chains (default policy: drop)
+        $IPT -N LOCAL
+        $IPT -A INPUT -i $LAN_INTERFACE -j LOCAL
+        $IPT -N NET
+        $IPT -A INPUT -i $NET_INTERFACE -j NET
+       
+        # all the "evil" packets, so we log them and drop them.
+        #Set up the icewall chain
+        $IPT -N icewall
+        #$IPT -A icewall -j LOG --log-level debug --log-prefix "IceWall:"
+        $IPT -A icewall -j DROP
+                
+        #Setup Masquerading. Change the IP to your internal network 
+        # and uncomment this in order to enable it.
+        $IPT -A POSTROUTING -t nat -s 192.168.0.0/24 -o $NET_INTERFACE -j MASQUERADE
+	# MAC address locking!
+	for i in $MACS
+	do
+		$IPT -A FORWARD -t filter -m mac --mac-source $i -j ACCEPT
+	done
+
+		
+       # Hack to circunvent some brocken firewalls/routers.. (found in man page)
+        # This  target is used to overcome criminally braindead ISPs or servers 
+        # which block ICMP Fragmentation Needed packets.  
+        # The symptoms of this problem are that everything works fine  from
+        # your Linux firewall/router, but machines behind it can never exchange 
+        # large packets:
+        # 1) Web browsers connect, then hang with no data received.
+        # 2) Small mail works fine, but large emails hang.
+        # 3) ssh works fine, but scp hangs after initial handshaking.
+        # Workaround: activate this option and add a rule to your firewall 
+        # configuration like:
+        $IPT -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+	$IPT -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+	$IPT -A FORWARD -j icewall
+
+        #Accept ourselves
+        $IPT -A INPUT -i lo -s 127.0.0.0/8 -d 127.0.0.0/8 -j ACCEPT
+        
+
+        #----------------------------------[inSIDE NETWORK INTERFACE RULES]
+	# on the internal network only the registerd MAC's inidicated in
+	# MAC_ADDR? are allowed.
+	# this isn't fullproof, one can allays fake MAC addresses.. 
+	# but it complicates things a bit more.
+	for i in $MACS
+	do 
+		$IPT -A LOCAL -m mac --mac-source $i -j ACCEPT
+	done	
+
+	# Lets be shure that the source addresses are correct.
+        $IPT -A LOCAL -s ! 192.168.0.0/24 -j icewall
+        # if we have packets in the LOCAL net that are not from above, drop.
+        $IPT -A LOCAL -j icewall
+
+        #----------------------------------[outSIDE NETWORK INTERFACE RULES]
+        # rules are laid out in order of "popularity" for better performance.
+		
+        # Use state for accepting "good" incomming traffic
+        $IPT -A NET -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+        # -------------[Drawbacks of DENY by DEFAULT];
+	#Accept connection on defined ports.
+	$IPT -A NET -p tcp -m multiport --dports $tcpPORTS -m state --state NEW -j ACCEPT
+	$IPT -A NET -p udp -m multiport --dports $udpPORTS -m state --state NEW -j ACCEPT
+        #Accept DNS.(rfc specifies use of udp AND in some cases tcp)
+        $IPT -A NET -p udp --sport 53 -m state --state NEW -j ACCEPT
+        $IPT -A NET -p tcp --sport 53 -m state --state NEW -j ACCEPT
+
+
+        # Accept these types of ICMP, they are usefull
+        $IPT -A NET -p icmp --icmp-type echo-request 	-j ACCEPT
+        $IPT -A NET -p icmp --icmp-type echo-reply 	-j ACCEPT
+        $IPT -A NET -p icmp --icmp-type port-unreachable 	-j ACCEPT
+        $IPT -A NET -p icmp --icmp-type destination-unreachable -j ACCEPT
+        #Send everything else to the icewall.
+        $IPT -A NET -p icmp -j icewall
+        $IPT -A NET -m state --state NEW,INVALID  -j icewall
+        # --- the fire(/ice)wall ruleset ends here ---
+        echo "          Done!"
+}
+
+activate() {
+        echo -n "Loading $IPT state and starting firewall ->"
+        # This variable is set in /etc/conf.d/$IPT
+        if [ ! -f ${IPTABLES_SAVE} ]
+        then
+                echo "Not starting $IPT. First create some rules then run"
+                echo "$IPT-save > ${IPTABLES_SAVE}"
+        else
+                # kernel setup for firewall
+                kernel_setup
+                        
+                echo "Restoring $IPT ruleset"
+                $IPT-restore < ${IPTABLES_SAVE}
+        fi
+        echo "          Done!"
+}
+
+case $1 in
+        start)
+                kernel_setup
+                setup
+                ;;
+        stop)
+                save
+                disable
+                ;;
+        restart)
+                save
+                disable
+                kernel_setup
+                setup
+                ;;
+        load)
+                activate
+                ;;
+        reload)
+                save
+                disable
+                activate
+                ;;
+        abort)
+                disable
+                ;;
+	save)	
+		save
+		;;
+        *)
+                echo "usage: $0 {start|stop|restart|load|reload|abort|save}
+                start: starts new firewall rule set.
+                load: starts saved firewall rule set (faster).
+                stop: saves firewall rule set, and stops it.
+                abort: stops firewall."
+                ;;
+esac                
+
+# vim:ts=4
