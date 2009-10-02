@@ -1,143 +1,135 @@
+# My ZSH prompt theme to match the 88_madcows.theme for Irssi
+# Author: Aaron Toponce
+# License: Public Domain
 function precmd {
+    # let's get the current get branch that we are under
+    # ripped from /etc/bash_completion.d/git from the git devs
+    git_ps1 () {
+        if which git > /dev/null; then
+            local g="$(git rev-parse --git-dir 2>/dev/null)"
+            if [ -n "$g" ]; then
+                local r
+                local b
+                if [ -d "$g/rebase-apply" ]; then
+                    if test -f "$g/rebase-apply/rebasing"; then
+                        r="|REBASE"
+                    elif test -f "$g/rebase-apply/applying"; then
+                        r="|AM"
+                    else
+                        r="|AM/REBASE"
+                    fi
+                    b="$(git symbolic-ref HEAD 2>/dev/null)"
+                elif [ -f "$g/rebase-merge/interactive" ]; then
+                    r="|REBASE-i"
+                    b="$(cat "$g/rebase-merge/head-name")"
+                elif [ -d "$g/rebase-merge" ]; then
+                    r="|REBASE-m"
+                    b="$(cat "$g/rebase-merge/head-name")"
+                elif [ -f "$g/MERGE_HEAD" ]; then
+                    r="|MERGING"
+                    b="$(git symbolic-ref HEAD 2>/dev/null)"
+                else
+                    if [ -f "$g/BISECT_LOG" ]; then
+                        r="|BISECTING"
+                    fi
+                    if ! b="$(git symbolic-ref HEAD 2>/dev/null)"; then
+                       if ! b="$(git describe --exact-match HEAD 2>/dev/null)"; then
+                          b="$(cut -c1-7 "$g/HEAD")..."
+                       fi
+                    fi
+                fi
+                if [ -n "$1" ]; then
+                     printf "$1" "${b##refs/heads/}$r"
+                else
+                     printf "%s" "${b##refs/heads/}$r"
+                fi
+            fi
+        else
+            printf ""
+        fi
+    }
 
+    GITBRANCH=" $(git_ps1)"
+
+    # The following 9 lines of code comes directly from Phil!'s ZSH prompt
+    # http://aperiodic.net/phil/prompt/
     local TERMWIDTH
     (( TERMWIDTH = ${COLUMNS} - 1 ))
 
+    local PROMPTSIZE=${#${(%):--- %D{%R.%S %a %b %d %Y}\! }}
+    local PWDSIZE=${#${(%):-%~}}
 
-    ###
-    # Truncate the path if it's too long.
-    
-    PR_FILLBAR=""
-    PR_PWDLEN=""
-    
-    local promptsize=${#${(%):---(%n@%m:%l)---()--}}
-    local pwdsize=${#${(%):-%~}}
-    
-    if [[ "$promptsize + $pwdsize" -gt $TERMWIDTH ]]; then
-	    ((PR_PWDLEN=$TERMWIDTH - $promptsize))
+    if [[ "$PROMPTSIZE + $PWDSIZE" -gt $TERMWIDTH ]]; then
+	(( PR_PWDLEN = $TERMWIDTH - $PROMPTSIZE ))
+    fi
+
+    # set a simple variable to show when in screen
+    if [[ -n "${WINDOW}" ]]; then
+        SCREEN=" S:${WINDOW}"
     else
-	PR_FILLBAR="\${(l.(($TERMWIDTH - ($promptsize + $pwdsize)))..${PR_HBAR}.)}"
+        SCREEN=""
     fi
 
+    # check if jobs are executing
+    if [[ $(jobs | wc -l) -gt 0 ]]; then
+        JOBS=" J:%j"
+    else
+        JOBS=""
+    fi
 
-    ###
-    # Get APM info.
-
-    if which ibam > /dev/null; then
-	PR_APM_RESULT=`ibam --percentbattery`
-    elif which acpi > /dev/null; then
-	PR_APM_RESULT=`acpi`
+    # I want to know my battery percentage when running on battery power
+    if which ibam &> /dev/null; then
+        BATTSTATE="$(ibam --percentbattery)"
+        BATTPRCNT="${BATTSTATE[(f)1][(w)-2]}"
+        BATTTIME="${BATTSTATE[(f)2][(w)-1]}"
+        PR_BATTERY=" B:${BATTPRCNT}%% (${BATTTIME})"
+        if [[ "${BATTPRCNT}" -lt 15 ]]; then
+            PR_BATTERY="${PR_BRIGHT_RED}${PR_BATTERY}"
+        elif [[ "${BATTPRCNT}" -lt 50 ]]; then
+            PR_BATTERY="${PR_BRIGHT_YELLOW}${PR_BATTERY}"
+        elif [[ "${BATTPRCNT}" -lt 100 ]]; then
+            PR_BATTERY="${PR_RESET}${PR_BATTERY}"
+        else
+            PR_BATTERY=""
+        fi
     fi
 }
-
-
-setopt extended_glob
-preexec () {
-    if [[ "$TERM" == "screen" ]]; then
-	local CMD=${1[(wr)^(*=*|sudo|-*)]}
-	echo -n "\ek$CMD\e\\"
-    fi
-}
-
 
 setprompt () {
-    ###
-    # Need this so the prompt will work.
-
+    # Need this, so the prompt will work
     setopt prompt_subst
 
-
-    ###
-    # See if we can use colors.
-
+    # let's load colors into our environment, then set them
     autoload colors zsh/terminfo
+
     if [[ "$terminfo[colors]" -ge 8 ]]; then
-	colors
+        colors
     fi
-    for color in RED GREEN YELLOW BLUE MAGENTA CYAN WHITE; do
-	eval PR_$color='%{$terminfo[bold]$fg[${(L)color}]%}'
-	eval PR_LIGHT_$color='%{$fg[${(L)color}]%}'
-	(( count = $count + 1 ))
+
+    for COLOR in RED GREEN YELLOW WHITE BLACK; do
+        eval PR_$COLOR='%{$fg[${(L)COLOR}]%}'
+        eval PR_BRIGHT_$COLOR='%{$fg_bold[${(L)COLOR}]%}'
     done
-    PR_NO_COLOUR="%{$terminfo[sgr0]%}"
 
+    PR_RESET="%{$reset_color%}"
 
-    ###
-    # See if we can use extended characters to look nicer.
-    
-    typeset -A altchar
-    set -A altchar ${(s..)terminfo[acsc]}
-    PR_SET_CHARSET="%{$terminfo[enacs]%}"
-    PR_SHIFT_IN="%{$terminfo[smacs]%}"
-    PR_SHIFT_OUT="%{$terminfo[rmacs]%}"
-    PR_HBAR=${altchar[q]:--}
-    PR_ULCORNER=${altchar[l]:--}
-    PR_LLCORNER=${altchar[m]:--}
-    PR_LRCORNER=${altchar[j]:--}
-    PR_URCORNER=${altchar[k]:--}
+    # Finally, let's set the prompt
+    PROMPT='\
+${PR_BRIGHT_BLACK}<${PR_RESET}${PR_RED}<${PR_BRIGHT_RED}<${PR_RESET} \
+%D{%R.%S %a %b %d %Y}${PR_RED}!${PR_RESET}%$PR_PWDLEN<...<%~%<< \
 
-    
-    ###
-    # Decide if we need to set titlebar text.
-    
-    case $TERM in
-	xterm*)
-	    PR_TITLEBAR=$'%{\e]0;%(!.-=*[ROOT]*=- | .)%n@%m:%~ | ${COLUMNS}x${LINES} | %y\a%}'
-	    ;;
-	screen)
-	    PR_TITLEBAR=$'%{\e_screen \005 (\005t) | %(!.-=[ROOT]=- | .)%n@%m:%~ | ${COLUMNS}x${LINES} | %y\e\\%}'
-	    ;;
-	*)
-	    PR_TITLEBAR=''
-	    ;;
-    esac
-    
-    
-    ###
-    # Decide whether to set a screen title
-    if [[ "$TERM" == "screen" ]]; then
-	PR_STITLE=$'%{\ekzsh\e\\%}'
-    else
-	PR_STITLE=''
-    fi
-    
-    
-    ###
-    # APM detection
-    
-    if which ibam > /dev/null; then
-	PR_APM='$PR_RED${${PR_APM_RESULT[(f)1]}[(w)-2]}%%(${${PR_APM_RESULT[(f)3]}[(w)-1]})$PR_LIGHT_BLUE:'
-    elif which apm > /dev/null; then
-	PR_APM='$PR_RED${PR_APM_RESULT[(w)5,(w)6]/\% /%%}$PR_LIGHT_BLUE:'
-    else
-	PR_APM=''
-    fi
-    
-    
-    ###
-    # Finally, the prompt.
+${PR_BRIGHT_BLACK}<${PR_RESET}${PR_RED}<${PR_BRIGHT_RED}<\
+${PR_RESET} %n@%m${PR_RED}!${PR_RESET}H:%h${SCREEN}${JOBS}%(?.. E:%?)\
+${PR_BATTERY}${GITBRANCH}\
 
-    PROMPT='$PR_SET_CHARSET$PR_STITLE${(e)PR_TITLEBAR}\
-$PR_CYAN$PR_SHIFT_IN$PR_ULCORNER$PR_BLUE$PR_HBAR$PR_SHIFT_OUT(\
-$PR_GREEN%(!.%SROOT%s.%n)$PR_GREEN@%m:%l\
-$PR_BLUE)$PR_SHIFT_IN$PR_HBAR$PR_CYAN$PR_HBAR${(e)PR_FILLBAR}$PR_BLUE$PR_HBAR$PR_SHIFT_OUT(\
-$PR_MAGENTA%$PR_PWDLEN<...<%<<\
-$PR_BLUE)$PR_SHIFT_IN$PR_HBAR$PR_CYAN$PR_URCORNER$PR_SHIFT_OUT\
+${PR_BRIGHT_BLACK}>${PR_RESET}${PR_GREEN}>${PR_BRIGHT_GREEN}>\
+${PR_BRIGHT_WHITE} '
 
-$PR_CYAN$PR_SHIFT_IN$PR_LLCORNER$PR_BLUE$PR_HBAR$PR_SHIFT_OUT(\
-%(?..$PR_LIGHT_RED%?$PR_BLUE:)\
-${(e)PR_APM}$PR_YELLOW%D{%H:%M}\
-$PR_LIGHT_BLUE:%(!.$PR_RED.$PR_WHITE)%#$PR_BLUE)$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
-$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
-$PR_NO_COLOUR '
-
-    RPROMPT=' $PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_BLUE$PR_HBAR$PR_SHIFT_OUT\
-($PR_YELLOW%D{%a,%b%d}$PR_BLUE)$PR_SHIFT_IN$PR_HBAR$PR_CYAN$PR_LRCORNER$PR_SHIFT_OUT$PR_NO_COLOUR'
-
-    PS2='$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
-$PR_BLUE$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT(\
-$PR_LIGHT_GREEN%_$PR_BLUE)$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT\
-$PR_CYAN$PR_SHIFT_IN$PR_HBAR$PR_SHIFT_OUT$PR_NO_COLOUR '
+    # Of course we need a matching continuation prompt
+    PROMPT2='\
+${PR_BRIGHT_BLACK}>${PR_RESET}${PR_GREEN}>${PR_BRIGHT_GREEN}>\
+${PR_RESET} %_ ${PR_BRIGHT_BLACK}>${PR_RESET}${PR_GREEN}>\
+${PR_BRIGHT_GREEN}>${PR_BRIGHT_WHITE} '
 }
 
 setprompt

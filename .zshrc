@@ -17,7 +17,6 @@ compinit
 umask 007
 
 
-IRCSERVER=netcabo.ptnet.org
 IRCNAME="More human than human"
 IRCUSER="brainstorm"
 IRCNICK="m3thos"
@@ -37,6 +36,21 @@ alias view='vim -R'
 alias grep='grep --color'
 alias lock='gnome-screensaver-command -l'
 alias google-chrome='google-chrome --enable-plugins'
+alias ipy='ipython -nobanner -noconfirm_exit'
+alias term='xterm -bg black -fg grey -fa Monospace -fs 9 -u8'
+#pacman/arch stuff
+alias pacget='sudo pacman -S'
+alias pacls='sudo pacman -Ss'
+alias pacup='sudo pacman -Syu'
+
+# keychain
+if [ -x /usr/bin/keychain ]; then
+    /usr/bin/keychain -q ~/.ssh/id_rsa
+    source ~/.keychain/${HOST}-sh  > /dev/null
+fi
 
 
 [ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
+
+
+export PATH=$PATH:~/bin
