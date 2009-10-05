@@ -20,8 +20,9 @@ umask 007
 IRCNAME="More human than human"
 IRCUSER="brainstorm"
 IRCNICK="m3thos"
+EDITOR="vim"
 
-export IRCSERVER IRCNAME IRCUSER IRCNICK PS1
+export IRCSERVER IRCNAME IRCUSER IRCNICK EDITOR
 # aliases for all shell's
 
 alias ls="ls --color=auto"
