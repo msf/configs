@@ -49,7 +49,7 @@ function precmd {
         fi
     }
 
-    GITBRANCH=" $(git_ps1)"
+    #GITBRANCH=" $(git_ps1)"
 
     # The following 9 lines of code comes directly from Phil!'s ZSH prompt
     # http://aperiodic.net/phil/prompt/

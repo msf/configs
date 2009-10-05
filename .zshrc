@@ -53,4 +53,12 @@ fi
 [ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
 
 
-export PATH=$PATH:~/bin
+if [ -d ~/bin ] ; then
+    PATH="~/bin:${PATH}"
+fi
+PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+#PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
+#CLASSPATH="/usr/share/junit/lib/junit.jar:${CLASSPATH}"
+PYTHONPATH="${HOME}/work/libsapo-broker-python/:${HOME}/code/pysmell:.:${HOME}/work/v3.git/sawpy/py-libsaw/"
+
+export PATH CLASSPATH PYTHONPATH
