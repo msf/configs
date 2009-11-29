@@ -43,6 +43,8 @@ alias term='xterm -bg black -fg grey -fa Monospace -fs 9 -u8'
 alias pacget='sudo pacman -S'
 alias pacls='sudo pacman -Ss'
 alias pacup='sudo pacman -Syu'
+alias pacrm='sudo pacman -R'
+alias pacup2='yaourt -Syu --aur'
 
 # keychain
 if [ -x /usr/bin/keychain ]; then
@@ -55,7 +57,7 @@ fi
 
 
 if [ -d ~/bin ] ; then
-    PATH="~/bin:${PATH}"
+    PATH="$HOME/bin:${PATH}"
 fi
 PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 #PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
