@@ -14,7 +14,8 @@ autoload -Uz compinit
 compinit
 # End of lines added by compinstall
 
-umask 007
+umask 027
+ulimit -c unlimited
 
 
 IRCNAME="More human than human"
@@ -58,10 +59,8 @@ fi
 
 [ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
 
+[ -d ~/bin ] && PATH="~/bin:${PATH}"
 
-if [ -d ~/bin ] ; then
-    PATH="~/bin:${PATH}"
-fi
 PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 #PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
 #CLASSPATH="/usr/share/junit/lib/junit.jar:${CLASSPATH}"

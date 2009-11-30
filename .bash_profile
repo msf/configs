@@ -2,7 +2,6 @@
 # ~/.bash_profile: executed by bash(1) for login shells.
 # see /usr/share/doc/bash/examples/startup-files for examples
 
-
 HISTSIZE=10000
 HISTFILESIZE=10000
 export HISTSIZE HISTFILESIZE

@@ -1,6 +1,8 @@
 # @(#)bashrc 2001/03/22
-umask 007
 
+umask 027
+
+ulimit -c unlimited
 
 IRCNAME="More human than human"
 IRCUSER="brainstorm"
