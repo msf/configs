@@ -134,16 +134,20 @@ setprompt () {
 }
 
 # get the name of the branch we are on
-git_branch_info() {
-    ref=$(git symbolic-ref HEAD 2> /dev/null) || return
-        echo "(${ref#refs/heads/})"
+my_vcs_info() {
+    vcs_info
+    echo "$vcs_info_msg_0_"
 }
 
 setprompt_simple() {
     autoload -U colors
     colors
+    autoload -Uz vcs_info
+    vcs_info
+    zstyle ':vcs_info:*' formats "(%s)[%b]"
+    zstyle ':vcs_info:*' actionformats "(%s)[%b|%a]"
     setopt prompt_subst
-    PROMPT='%{$fg_bold[green]%}%n@%m %{$fg[blue]%}%c %{$fg[grey]%}$(git_branch_info)%{$fg[blue]%} %% %{$reset_color%}'
+    PROMPT='%{$fg_bold[green]%}%n@%m %{$fg[blue]%}%c %{$fg[grey]%}$(my_vcs_info)%{$fg[blue]%} %% %{$reset_color%}'
 }
 
 
