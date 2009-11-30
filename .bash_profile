@@ -36,4 +36,5 @@ PYTHONPATH="${HOME}/work/libsapo-broker-python/:${HOME}/code/pysmell:.:${HOME}/w
 
 export PATH CLASSPATH PYTHONPATH
 
-
+# ubuntu screen magic
+`echo $- | grep -qs i` && which byobu-launcher > /dev/null && byobu-launcher
