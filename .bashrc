@@ -2,11 +2,10 @@
 umask 007
 
 
-IRCSERVER=netcabo.ptnet.org
 IRCNAME="More human than human"
 IRCUSER="brainstorm"
 IRCNICK="m3thos"
-export IRCSERVER IRCNAME IRCUSER IRCNICK PS1
+export IRCNAME IRCUSER IRCNICK
 
 # aliases for all shell's
 alias ls="ls --color=auto"
@@ -28,12 +27,15 @@ alias term='xterm -bg black -fg grey -fa Monospace -fs 9 -u8'
 alias dhead='xrandr --output VGA --right-of LVDS'
 alias thead='pkill synergys && synergys && ssh tmig "pkill synergyc && synergyc preto"'
 alias ipy='ipython -nobanner -noconfirm_exit'
+alias ack='ack-grep'
+alias dstat='dstat -c -d -n -m -s -y'
 #pacman/arch stuff
 alias pacget='sudo pacman -S'
 alias pacls='sudo pacman -Ss'
 alias pacup='sudo pacman -Syu'
 alias aptget='sudo aptitude install'
-alias aptls='sudo aptitude search'
+alias aptls='aptitude search'
+alias aptrm='sudo aptitude remove'
 alias aptup='sudo aptitude update && sudo aptitude upgrade'
 
 
