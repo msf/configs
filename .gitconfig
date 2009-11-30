@@ -1,6 +1,6 @@
 [user]
 	name = Miguel Sousa Filipe
-	email = miguel.filipe@caixamagica.pt
+	email = miguel.filipe@gmail.com
 
 [alias]
 ci = commit
@@ -15,6 +15,7 @@ br = branch
 
 [core]
     pager = cat
+	editor = vim
 
 [color]
     diff = auto
