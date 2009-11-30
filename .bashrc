@@ -45,7 +45,7 @@ function dsh() {
 
 
 # carregar prompt bonita
-[ -f ~/.prompt ] && source ~/.prompt
+[ -f ~/.prompt_bash ] && source ~/.prompt_bash
 
 ##uncomment the following to activate bash-completion:
 [ -f /etc/profile.d/bash-completion ] && source /etc/profile.d/bash-completion
