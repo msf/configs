@@ -1,0 +1,10 @@
+
+export OOO_FORCE_DESKTOP=gnome
+
+xsetroot -solid black -cursor_name top_left_arrow
+
+exec gnome-screensaver &
+exec gnome-settings-daemon &
+exec gnome-power-manager &
+
+exec xmonad

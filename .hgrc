@@ -1,6 +1,6 @@
 [ui]
 username = Miguel Sousa Filipe <miguel.filipe@gmail.com>
-merge = vimdiff
+merge = meld
 style = default
 
 [diff]
@@ -12,6 +12,9 @@ extdiff =
 hgext.graphlog =
 color =
 hgk=
+transplant=
+rebase=
+hgext.convert=
 
 [extdiff]
 cmd.vimdiff = vim 

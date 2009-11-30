@@ -6,18 +6,24 @@
 ci = commit
 co = checkout
 st = status
-di = diff 	  				
+di = diff
 br = branch
+lg = log --graph --pretty=format:\"%Cred%h%Creset — %s %Cgreen(%cr)%Creset\" --abbrev-commit --date=relative
 
 
 [merge]
     tool = meld
 
 [core]
-    pager = cat
+    pager = less -R
 
 [color]
     diff = auto
     status = true
+    diff-tree = true
+    branch = auto
 [gui]
 	fontui = -family \"Liberation Sans\" -size 12 -weight bold -slant roman -underline 0 -overstrike 0
+
+[push]
+    default = tracking
