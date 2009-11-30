@@ -35,6 +35,7 @@ main = do
         , modMask = mod4Mask
         , normalBorderColor = "#000000"
         , focusedBorderColor = focusColor
+        , focusFollowsMouse = True
         , logHook = ewmhDesktopsLogHook
             >> (dynamicLogWithPP $ xmobarPP
                 { ppLayout = const ""
