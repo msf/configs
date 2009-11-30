@@ -14,7 +14,7 @@ br = branch
     tool = meld
 
 [core]
-    pager = cat
+    pager = less
 	editor = vim
 
 [color]
