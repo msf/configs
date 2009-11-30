@@ -22,3 +22,6 @@ br = branch
     status = true
 [gui]
 	fontui = -family \"Liberation Sans\" -size 12 -weight bold -slant roman -underline 0 -overstrike 0
+
+[push]
+    default = tracking
