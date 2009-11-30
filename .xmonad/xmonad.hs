@@ -30,7 +30,7 @@ main = do
     xmobar <- spawnPipe "xmobar"
     gsd <- spawnPipe "gnome-settings-daemon"
     xmonad $ defaultConfig
-        { terminal = "/usr/bin/xterm +sb -sl 4000 -bg black -fg grey -fa Monospace -fs 9 -u8"
+        { terminal = "/usr/bin/xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8"
         , borderWidth = 1
         , modMask = mod4Mask
         , normalBorderColor = "#000000"
@@ -69,7 +69,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     {- , ((modm .|. shiftMask, xK_p ), spawn "gmrun") -}
     , ((modm .|. shiftMask, xK_p ), spawn "/usr/bin/setxkbmap pt")
     , ((modm .|. shiftMask, xK_d ), spawn "/usr/bin/setxkbmap dvorak")
-    , ((modm .|. shiftMask, xK_l ), spawn "/usr/bin/xscreensaver-command -lock")
+    , ((modm .|. shiftMask, xK_l ), spawn "/usr/bin/gnome-screensaver-command --lock")
     , ((modm .|. shiftMask, xK_c ), kill)
     , ((modm, xK_space ), sendMessage NextLayout)
     , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
