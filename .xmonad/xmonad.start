@@ -25,7 +25,10 @@ if [ -x /usr/bin/gnome-power-manager ] ; then
    run_daemon gnome-power-manager
 fi
 
+if [ -x /usr/bin/nm-applet ] ; then
+    run_daemon nm-applet --sm-disbable
+fi
 
-feh  --bg-scale ~/Imagens/boston.jpg
+feh  --bg-scale ~/Pictures/boston.jpg
 
 

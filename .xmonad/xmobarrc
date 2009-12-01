@@ -3,7 +3,7 @@ Config { font = "-*-Fixed-Bold-R-Normal-*-13-*-*-*-*-*-*-*"
 	, fgColor = "gray"
 	, position = Top
 	, lowerOnStart = False
-	, commands = [ Run Network "eth0" ["-L","0","-H","32","--normal","green","--high","red"] 10
+	, commands = [ Run Network "eth1" ["-L","0","-H","32","--normal","green","--high","red"] 10
 		, Run Cpu ["-L","3","-H","50","--normal","green","--high","red"] 10
 		, Run CpuFreq ["-t","Freq:<cpu0>|<cpu1>GHz","-L","0","-H","2","-l","lightblue","-n","white","-h","red"] 50
 		, Run Memory ["-t","M: <usedratio>%"] 10
@@ -15,5 +15,5 @@ Config { font = "-*-Fixed-Bold-R-Normal-*-13-*-*-*-*-*-*-*"
 		]
 	, sepChar = "%"
 	, alignSep = "}{"
-	, template = "%StdinReader%} {%cpu% | %cpufreq% | %coretemp% | %memory% | %eth0% | %LPPT% <fc=#ee9a00>%date%</fc> "
+	, template = "%StdinReader%} {%cpu% | %cpufreq% | %coretemp% | %memory% | %eth1% | %LPPT% <fc=#ee9a00>%date%</fc> "
 }
