@@ -29,10 +29,6 @@ urgentColor = "#ffc000"
 -- TODO: kb shortcuts for sound: raise and lower volume
 main = do
     xmobar <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
-    trayer <- spawnPipe "trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --height 12 --transparent true --tint 0x191970"
-    gss <- spawnPipe "gnome-screensaver"
-    gsd <- spawnPipe "gnome-settings-daemon"
-
     xmonad $ defaultConfig
         { terminal = "/usr/bin/xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8"
         , borderWidth = 1
@@ -46,7 +42,7 @@ main = do
                 , ppTitle = xmobarColor "lightblue" "" . shorten 50
                 , ppOutput = hPutStrLn xmobar}
                 )
-        , startupHook = setWMName "LG3D"
+        , startupHook = spawn "~/.xmonad/xmonad.start" >> setWMName "LG3D"
         , layoutHook = avoidStruts $ smartBorders (myLayout)
         , manageHook = manageDocks <+> manageHook defaultConfig <+> myManageHook
         , workspaces = [ "1:adm+pvt", "2:mail", "3:web1", "4:webwork", "5:terms","6:misc","7:rand","8:rand2" ]
