@@ -4,6 +4,7 @@ import XMonad.Hooks.SetWMName
 import XMonad.Util.Run
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers
 import XMonad.Layout.NoBorders
 import System.IO
 import Data.List(isPrefixOf)
@@ -17,8 +18,7 @@ import XMonad.Prompt
 import XMonad.Prompt.Shell
 import System.Exit
 
-
-myFont = "-xos4-terminus-bold-r-normal-*-12-*-*-*-*-*-*-*"
+myFont = "-xos4-terminus-*-r-normal-*-12-*-*-*-*-*-*-*"
 focusColor = "#ff5045"
 textColor = "#c0c0a0"
 lightTextColor = "#fffff0"
@@ -30,7 +30,7 @@ urgentColor = "#ffc000"
 main = do
     xmobar <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
     xmonad $ defaultConfig
-        { terminal = "/usr/bin/xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8"
+        { terminal = "gnome-terminal"
         , borderWidth = 1
         , modMask = mod4Mask
         , normalBorderColor = "#000000"
@@ -56,12 +56,13 @@ myLayout = hintedTile Tall ||| hintedTile Wide ||| noBorders Full
         ratio = 1/2
         delta = 3/100
 
-myManageHook = composeAll . concat $
-    [[ className =? c --> doFloat | c <- [ "Git-gui"
-                                         , "Gitk"
-                                         , "Gimp"
-                                         , "Terminator"
-                                         , "Update-manager"]]]
+myManageHook = composeAll
+    [ className =? "Git-gui"           --> doFloat,
+      className =? "Gitk"              --> doFloat,
+      className =? "Gimp"              --> doFloat,
+      className =? "Update-manager"    --> doFloat,
+      isFullscreen                     --> doFullFloat
+    ]
 
 
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
