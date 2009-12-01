@@ -39,11 +39,8 @@ alias grep='grep --color'
 alias lock='gnome-screensaver-command -l'
 alias google-chrome='google-chrome --enable-plugins'
 alias ipy='ipython -nobanner -noconfirm_exit'
-alias term='xterm -bg black -fg grey -fa Monospace -fs 9 -u8'
-<<<<<<< HEAD
-=======
+alias term='xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8'
 alias eve='wine explorer /desktop=0,1680x1050 "C:\Program Files\CCP\EVE\eve.exe"'
->>>>>>> 78397d8fa59b1e4e930e943f149564fba13a84dd
 #pacman/arch stuff
 alias pacget='sudo pacman -S'
 alias pacls='sudo pacman -Ss'
