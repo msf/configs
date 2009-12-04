@@ -23,7 +23,7 @@ servers = (
 chatnets = {
   PTLink = {
     type = "IRC";
-    autosendcmd = "/^nickserv identify uberl33t;wait -ptlink 2000";
+    autosendcmd = "/^nickserv identify XXXX;wait -ptlink 2000";
     max_kicks = "1";
     max_msgs = "100";
     max_modes = "6";
@@ -31,16 +31,16 @@ chatnets = {
   SILC = { type = "SILC"; };
   ptnet = {
     type = "IRC";
-    autosendcmd = "/^nickserv identify uberl33t;wait -ptnet 2000";
+    autosendcmd = "/^nickserv identify XXXX;wait -ptnet 2000";
   };
   freenode = {
     type = "IRC";
-    autosendcmd = "/^msg nickserv identify uberl33t;wait -freenode 2000";
+    autosendcmd = "/^msg nickserv identify XXXX;wait -freenode 2000";
   };
 
   oftc = {
     type = "IRC";
-    autosendcmd = "/^msg nickserv identify uberl33t;wait -oftc 2000";
+    autosendcmd = "/^msg nickserv identify XXXX;wait -oftc 2000";
   };
   EFNet = { type = "IRC"; };
   Undernet = { type = "IRC"; };
@@ -58,21 +58,21 @@ channels = (
     chatnet = "ptlink";
     autojoin = "yes";
     botmasks = "NickServ!Services@PTlink.net";
-    autosendcmd = "/^quote nickserv identify uberl33t";
+    autosendcmd = "/^quote nickserv identify XXXX";
   },
   {
     name = "#linuxhelp";
     chatnet = "ptnet";
     autojoin = "yes";
     botmasks = "NickServ!Services@*";
-    autosendcmd = "/^quote nickserv identify uberl33t";
+    autosendcmd = "/^quote nickserv identify XXXX";
   },
   {
     name = "#linuxgeeks";
     chatnet = "ptnet";
     autojoin = "no";
     botmasks = "NickServ!suporte@PTnet.org";
-    autosendcmd = "/^quote nickserv identify uberl33t";
+    autosendcmd = "/^quote nickserv identify XXXX";
   },
 
 );
@@ -120,7 +120,7 @@ aliases = {
   CALC = "exec - if which bc &>/dev/null\\; then echo '$*' | bc | awk '{print \"$*=\"$$1}'\\; else echo bc was not found\\; fi";
   SBAR = "STATUSBAR";
   INVITELIST = "mode $C +I";
-  ident = "quote nickserv identify uberl33t";
+  ident = "quote nickserv identify XXXX";
   nickserv = "quote nickserv";
   memoserv = "quote memoserv";
   mrl = "quote memoserv read last";
