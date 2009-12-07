@@ -14,7 +14,7 @@ run_daemon() {
 xrdb -merge ~/.Xresources &
 xsetroot -cursor_name X_cursor &
 
-run_daemon trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --height 12 --transparent true --tint 0x191970
+run_daemon trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --height 15 --transparent true --tint 0x191970
 
 run_daemon gnome-screensaver
 
@@ -29,6 +29,6 @@ if [ -x /usr/bin/nm-applet ] ; then
     run_daemon nm-applet --sm-disbable
 fi
 
-feh  --bg-scale ~/Pictures/boston.jpg
+feh  --bg-scale ~/Imagens/boston.jpg
 
 
