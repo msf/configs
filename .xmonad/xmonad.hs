@@ -45,7 +45,7 @@ main = do
         , startupHook = spawn "~/.xmonad/xmonad.start" >> setWMName "LG3D"
         , layoutHook = avoidStruts $ smartBorders (myLayout)
         , manageHook = manageDocks <+> manageHook defaultConfig <+> myManageHook
-        , workspaces = [ "1:adm+pvt", "2:mail", "3:web1", "4:webwork", "5:terms","6:misc","7:rand","8:rand2" ]
+        , workspaces = [ "1:alfa", "2:bravo", "3:charlie", "4:delta", "5:echo", "6:foxtrot", "7:golf", "8:hotel", "9:india" ]
         , keys = myKeys
         }
 
