@@ -49,7 +49,7 @@ alias pacrm='sudo pacman -R'
 alias pacup2='yaourt -Syu --aur'
 alias aptls='aptitude search'
 alias aptget='sudo aptitude install'
-alias aptup='sudo aptitude update'
+alias aptup='sudo aptitude update; sudo aptitude safe-upgrade'
 alias aptrm='sudo aptitude remove'
 alias rdpvivo='rdesktop -g 1024x768 -z -x m -P elchapelon.no-ip.info:8888 &'
 
