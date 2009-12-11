@@ -51,6 +51,7 @@ alias aptls='aptitude search'
 alias aptget='sudo aptitude install'
 alias aptup='sudo aptitude update'
 alias aptrm='sudo aptitude remove'
+alias rdpvivo='rdesktop -g 1024x768 -z -x m -P elchapelon.no-ip.info:8888 &'
 
 # keychain
 if [ -x /usr/bin/keychain ]; then
