@@ -1,3 +1,4 @@
-background "#000000"
-geometry 120x24-0+0
+transparent true
+geometry 16x16-0+0
 sticky true
+grow_gravity E

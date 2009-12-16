@@ -1,32 +1,34 @@
-#!/bin/sh
+#!/bin/bash
 
 run_daemon() {
     run=`which $1`
     pid=`pidof $1`
     if [ $pid ]; then
         kill $pid
+        echo "killed $1 -> $pid"
     fi
     shift
     $run $* 2>&1 >/tmp/xxx &
 }
 
+exec 1>/tmp/xmonad.start.log
+date
 
 xrdb -merge ~/.Xresources &
 xsetroot -cursor_name X_cursor &
 
-run_daemon trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --height 15 --transparent true --tint 0x191970
+#run_daemon trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 10 --height 15 --transparent true --tint 0x191970
+run_daemon stalonetray -c ~/.xmonad/stalonetrayrc
 
 run_daemon gnome-screensaver
-
+run_daemon nm-applet --sm-disable
 run_daemon gnome-settings-daemon
 
-if [ -x /usr/bin/gnome-power-manager ] ; then
-   sleep 1
-   run_daemon gnome-power-manager
-fi
-
-run_daemon nm-applet --sm-disable
-
 feh  --bg-scale ~/Imagens/boston.jpg
+
+if [ -x /usr/bin/gnome-power-manager ] ; then
+    sleep 1
+    run_daemon gnome-power-manager
+fi
 
 

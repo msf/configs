@@ -61,7 +61,8 @@ myManageHook = composeAll
       className =? "Gitk"              --> doFloat,
       className =? "Gimp"              --> doFloat,
       className =? "Update-manager"    --> doFloat,
-      isFullscreen                     --> doFullFloat
+      isFullscreen                     --> doFullFloat,
+      className =? "stalonetray"       --> doIgnore
     ]
 
 
