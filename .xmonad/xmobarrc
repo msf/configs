@@ -1,4 +1,4 @@
-Config { font = "-*-Fixed-Bold-R-Normal-*-13-*-*-*-*-*-*-*"
+Config { font = "-*-Fixed-Bold-R-Normal-*-14-*-*-*-*-*-*-*"
 	, bgColor = "black"
 	, fgColor = "gray"
 	, position = Top
@@ -10,7 +10,7 @@ Config { font = "-*-Fixed-Bold-R-Normal-*-13-*-*-*-*-*-*-*"
 		, Run CoreTemp ["-t","Temp:<core0>|<core1>C","-L","40","-H","60","-l","lightblue","-n","gray90","-h","red"] 50
 		, Run Date "%r" "date" 10
 		, Run Battery [] 10
-		, Run Weather "LPPT" ["-t","<station>: <tempC>C, rh <rh>% (<hour>)"] 10
+		, Run Weather "LPPT" ["-t","<station>: <tempC>ºC"] 10
 		, Run StdinReader
 		]
 	, sepChar = "%"
