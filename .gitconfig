@@ -9,6 +9,7 @@ st = status
 di = diff
 br = branch
 lg = log --graph --pretty=format:\"%Cred%h%Creset — %s %Cgreen(%cr)%Creset\" --abbrev-commit --date=relative
+dt = diff-tree -p --color
 
 
 [merge]

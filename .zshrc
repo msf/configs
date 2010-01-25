@@ -52,7 +52,7 @@ alias aptls='aptitude search'
 alias aptget='sudo aptitude install'
 alias aptup='sudo aptitude update; sudo aptitude safe-upgrade'
 alias aptrm='sudo aptitude remove'
-alias rdpvivo='rdesktop -g 1024x768 -z -x m -P elchapelon.no-ip.info:8888 &'
+alias rdpvivo='rdesktop -g 1024x768 -k pt-pt -z -x m -P elchapelon.no-ip.info:8888 &'
 
 # keychain
 if [ -x /usr/bin/keychain ]; then
@@ -68,6 +68,6 @@ fi
 PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 #PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
 #CLASSPATH="/usr/share/junit/lib/junit.jar:${CLASSPATH}"
-PYTHONPATH="${HOME}/work/libsapo-broker-python/:${HOME}/code/pysmell:.:${HOME}/work/v3.git/sawpy/py-libsaw/"
+PYTHONPATH="${HOME}/sapo/libsapo-broker-python/:${HOME}/code/pysmell:.:${HOME}/sapo/v3.git/trunk/sawpy/py-libsaw"
 
 export PATH CLASSPATH PYTHONPATH
