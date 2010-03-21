@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # stolen shamelessly from http://github.com/htr/dotfiles/blob/master/install.py
 
-
 from glob import glob
 import os
 import shutil
