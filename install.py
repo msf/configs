@@ -10,6 +10,7 @@ config_files = glob('*')
 config_files.extend( glob('.*') )
 config_files.remove('install.py') #or should I use __file__ ?
 config_files.remove('README')
+config_files.remove('.git')
 
 HOME = os.path.expanduser('~/')
 CWD = os.path.abspath('.') + '/'
