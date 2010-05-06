@@ -10,6 +10,7 @@ bindkey -e
 zstyle :compinstall filename '/home/miguel/.zshrc'
 
 
+# tab completion
 autoload -Uz compinit
 compinit
 # End of lines added by compinstall
@@ -36,6 +37,7 @@ alias mv='mv -i'
 alias df='df -h'
 alias view='vim -R'
 alias grep='grep --color'
+alias gvim='gvim 2>/dev/null' #gvim is printing asserts to stderr, dirties the console.
 alias lock='gnome-screensaver-command -l'
 alias google-chrome='google-chrome --enable-plugins'
 alias ipy='ipython -nobanner -noconfirm_exit'
@@ -52,7 +54,7 @@ alias aptls='aptitude search'
 alias aptget='sudo aptitude install'
 alias aptup='sudo aptitude update; sudo aptitude safe-upgrade'
 alias aptrm='sudo aptitude remove'
-alias rdpvivo='rdesktop -g 1024x768 -k pt-pt -z -x m -P elchapelon.no-ip.info:8888 &'
+alias rdpvivo='rdesktop -g 1024x768 -z -x m -P elchapelon.no-ip.info:8888 &>/dev/null &'
 
 # keychain
 if [ -x /usr/bin/keychain ]; then
@@ -69,5 +71,5 @@ PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 #PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
 #CLASSPATH="/usr/share/junit/lib/junit.jar:${CLASSPATH}"
 PYTHONPATH="${HOME}/sapo/libsapo-broker-python/:${HOME}/code/pysmell:.:${HOME}/sapo/v3.git/trunk/sawpy/py-libsaw"
-
-export PATH CLASSPATH PYTHONPATH
+LD_LIBRARY_PATH=${HOME}/sapo/v3.trunk/.build/default/libsaw
+export PATH CLASSPATH PYTHONPATH LD_LIBRARY_PATH

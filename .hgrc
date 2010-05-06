@@ -7,8 +7,13 @@ style = default
 git=yes
 showfunc=yes
 
+[alias]
+lg = log --limit 10
+info = paths
+
 [extensions]
-extdiff = 
+pager =
+extdiff =
 hgext.graphlog =
 color =
 hgk=
@@ -16,7 +21,10 @@ transplant=
 rebase=
 hgext.convert=
 
+[pager]
+pager = less -R
+
 [extdiff]
-cmd.vimdiff = vim 
-opts.vimdiff = -f '+next' '+execute "DirDiff" argv(0) argv(1)' 
+cmd.vimdiff = vim
+opts.vimdiff = -f '+next' '+execute "DirDiff" argv(0) argv(1)'
 
