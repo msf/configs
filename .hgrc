@@ -10,6 +10,7 @@ showfunc=yes
 [alias]
 lg = log --limit 10
 info = paths
+br = branch
 
 [extensions]
 pager =
@@ -20,6 +21,7 @@ hgk=
 transplant=
 rebase=
 hgext.convert=
+#info = /home/miguel/.hg/info.py
 
 [pager]
 pager = less -R
