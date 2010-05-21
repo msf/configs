@@ -2,7 +2,7 @@
 
 import sys
 
-good_words_list = '/var/tmp/twl06.txt'
+#good_words_list = '/var/tmp/twl06.txt'
 good_words_list = 'twl06.txt'
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'.upper()
@@ -15,7 +15,7 @@ def edits1(word):
                [word[0:i]+c+word[i:] for i in range(n+1) for c in alphabet]) # insertion
 
 
-def damlev_distance( word1, word2 ):
+def damlev_distance( word1, word2, max_cost ):
     """ Damerau-Levenshtein Distance is a "distance" (string metric) between two strings,
     i.e., finite sequence of symbols, given by counting the minimum number of operations
     needed to transform one string into the other, where an operation is defined as an
@@ -42,10 +42,13 @@ def damlev_distance( word1, word2 ):
             deletion     = d[i-1][j] +1
             insertion    = d[i][j-1] +1
             substitution = d[i-1][j-1] + cost
-            transposition= d[i-2][j-2] + cost
-            d[i][j] = min(deletion, insertion, substitution)
+#            transposition= d[i-2][j-2] + cost
+            cost = min(deletion, insertion, substitution)
 #            if i > 0 and j > 0 and word1[i] == word2[j-1] and word[i-1] == word2[j]:
 #                 d[i][j] = min( d[i][j], transposition )
+            if i == j and cost > max_cost:
+                return cost
+            d[i][j] = cost
     return d[len1-1][len2-1]
 
 
@@ -72,17 +75,15 @@ def breathalizer(good_words, words):
                 break
         if stop_word:
             total_score += cache[w]
-            print("%r = %r"% (w, cache[w]))
             continue
 
         # minimum damerau-levenshtein distance from list of good words
         best = len(w)
         for gw in good_words.keys():
-            best = min(damlev_distance(w, gw), best)
+            best = min(damlev_distance(w, gw, best), best)
             if best == 1:
                 break
         cache[w] = best
-        print("%r = %r"% (w, cache[w]))
         total_score += best
 
     return total_score
@@ -91,15 +92,11 @@ def breathalizer(good_words, words):
 file = open(sys.argv[1],"r")
 
 words = [ w for w in file.read().strip().upper().split() ]
-print("Words found: %r"% words)
 
 good_file = open(good_words_list, "r")
 good_words = {}
 for w in good_file.read().split():
     good_words[w] = 1
-
-print("gw: ", len(good_words))
-print("Done processing good words, checking phrase score:")
 
 print(breathalizer(good_words, words))
 
