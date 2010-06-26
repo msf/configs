@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+from time import time
 
 #good_words_list = '/var/tmp/twl06.txt'
 good_words_list = 'twl06.txt'
@@ -46,13 +47,22 @@ def damlev_distance( word1, word2, max_cost ):
             cost = min(deletion, insertion, substitution)
 #            if i > 0 and j > 0 and word1[i] == word2[j-1] and word[i-1] == word2[j]:
 #                 d[i][j] = min( d[i][j], transposition )
+            # speed hack
             if i == j and cost > max_cost:
                 return cost
             d[i][j] = cost
     return d[len1-1][len2-1]
 
+def match_dist(word, wedits, good_words, cache, dist):
+    # distance of dist from a good word ?
+    for edit in wedits:
+        if edit in good_words:
+            cache[word] = dist
+            return True
+    return False
 
-def breathalizer(good_words, words):
+
+def breathalizer(good_words, words, word_edits, edits2):
     total_score = 0
     cache = {}
     for w in words:
@@ -67,13 +77,11 @@ def breathalizer(good_words, words):
             total_score += cache[w]
             continue
 
-        # distance of 1 from a good word ?
-        for edit1 in edits1(w):
-            if edit1 in good_words:
-                cache[w] = 1
-                stop_word = True
-                break
-        if stop_word:
+        if match_dist(w, word_edits[w], good_words, cache, 1):
+            total_score += cache[w]
+            continue
+
+        if match_dist(w, edits2[w], good_words, cache, 2):
             total_score += cache[w]
             continue
 
@@ -81,22 +89,52 @@ def breathalizer(good_words, words):
         best = len(w)
         for gw in good_words.keys():
             best = min(damlev_distance(w, gw, best), best)
-            if best == 1:
+            if best == 3:
                 break
         cache[w] = best
         total_score += best
 
     return total_score
 
+def print_times(times):
+    l = len(times)
+    i = 2
+    while( i <= l):
+        print("step %r: %f secs"% ( i-1, times[i] - times[i-1]) )
+        i += 1
+    total = times[l] - times[1]
+    print("total: %f secs" % ( total ))
+
+def create_edits_of_words(words):
+    word_edits = {}
+    for w in words:
+        word_edits.setdefault(w, edits1(w))
+    word_edits2 = {}
+    for w, edits in word_edits.iteritems():
+        dist2  = []
+        [ dist2.extend(edits1(wrd)) for wrd in edits ]
+        word_edits2[w] = dist2
+    return (word_edits, word_edits2)
+
+
+times = {}
 
 file = open(sys.argv[1],"r")
 
+times[1] = time()
 words = [ w for w in file.read().strip().upper().split() ]
+times[2] = time()
+word_edits, word_edits2 = create_edits_of_words(words)
+times[3] = time()
 
 good_file = open(good_words_list, "r")
 good_words = {}
 for w in good_file.read().split():
     good_words[w] = 1
+times[4] = time()
 
-print(breathalizer(good_words, words))
+print(breathalizer(good_words, words, word_edits, word_edits2))
+times[5] = time()
 
+
+print_times(times)
