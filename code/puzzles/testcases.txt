@@ -1,0 +1,68 @@
+
+$ cat 187.in
+orem ipsum dolor sit amet consectetur adipiscing elit nteger imperdiet elit et libero commodo et convallis est ultrices raesent faucibus ligula ullamcorper urna pellentesque faucibus liquam ultrices purus sit amet tellus malesuada malesuada hasellus varius faucibus nisl congue placerat mi suscipit vitae ivamus eu lorem mauris a elementum erat nteger a nisl sollicitudin mauris facilisis vehicula quis non erat tiam sit amet porta justo usce eget nisl ipsum am a ante neque egestas rhoncus urna orbi lectus lorem vehicula quis commodo sed scelerisque non diam enean enim quam sollicitudin vel dignissim et feugiat in risus orbi gravida urna in neque sollicitudin elementum nteger ut tortor lacus sed aliquam ipsum usce convallis purus at lobortis accumsan magna odio blandit orci sit amet semper ligula tortor sit amet nisi ellentesque luctus nisi ut placerat dictum massa libero suscipit mi id ullamcorper purus arcu at nunc t ut arcu orci
+
+$ md5sum 187.in
+c95a3a404b21207bfb80d7f4bbd545a5 187.in
+
+$ time ./breathalyzer 187.in
+187
+
+real 0m13.414s
+user 0m13.385s
+sys 0m0.032s
+
+
+$ cat 63.in
+rem ipsum omnium vivendum eu nam vel rebum paulo ut bique epicurei mandamus nec ea odio saepe propriae at sit uod legere petentium eum ex ex soluta accommodare definitionem vim eam sensibus inimicus in el mutat inermis incorrupte ea has eu adhuc homero habemus invidunt aliquando no sea t idque insolens voluptaria eos pri ei nullam nostrud aliquando
+
+$ md5sum 63.in
+41ff40e33949652c29c2aac8ade4dad4 63.in
+
+$ time ./breathalyzer 63.in
+63
+
+real 0m4.834s
+user 0m4.808s
+sys 0m0.024s
+
+
+$ cat 12.in
+s a service to its users acebook would like to detect when wall posts are so besotted with errors that they cannot possibly be what the user meant to express he aforementioned wall post would be carefully preserved in a jar for future reference and its author requested to perform an online breathalyzer test for sobriety ou are challenged to write a program that can take a body of text and determine how many mistakes have been made in its composition peed and efficiency are paramount as this puzzle has restrictive bounds that may be narrower than prior puzzles
+
+$ md5sum 12.in
+07413e09f167b8d9bd8d40d8c3e96e8e 12.in
+
+$ time ./breathalyzer 12.in
+12
+
+real 0m0.873s
+user 0m0.856s
+sys 0m0.016s
+
+
+$ cat 4.in
+xthis xsentence xis xperfectly xgood
+
+$ md5sum 4.in
+df631952b1ed2bd1928588e8ce674719 4.in
+
+$ time ./breathalyzer 4.in
+4
+
+real 0m0.883s
+user 0m0.856s
+sys 0m0.028s
+
+$ cat lol.in
+az a serviec ta eets uzrz facebook wud lieks ta detect wehn wall postz iz sow besotteded wif errorz dat dey noes kan possibly b whut teh uzr meaned ta express teh aforementioneded wall post wud b kaerfoolly preserveded in a jar foar futurz reference adn eets author requesteded ta perform a onlien brefalyzah test foar sobriety ur challengeded ta riet a program dat kan taek a body uv text adn deturmien hao menny mistakez haz bein maeded in eets composishun speed adn efficiency iz paramount az dis puzzle haz restrictiev boundz dat may b narrowah than prior puzzlez
+
+$ md5sum lol.in
+e6cffd5f1d8df2a265d73683eed6b3e6 lol.in
+
+$ time ./breathalyzer lol.in
+86
+
+real 0m5.060s
+user 0m5.048s
+sys 0m0.004s
