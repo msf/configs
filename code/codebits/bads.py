@@ -24,17 +24,18 @@ l = ''
 s = ''
 full = ''
 while (i < stop ):
-	num = chr(bstr[i:i+1:8].uint)
+	num = bstr[i:i+1:8].uint
 	dist[num] = dist.setdefault(num, 0) + 1
 	i += 1
-	l += num
+	l += chr(num)
 	if len(l) == 78:
 		s += l + "\n"
 		full += l
 		l = ''
 
+distr = open('freq_words.txt', 'w')
 for w,c in dist.iteritems():
-	print(" %r: %r" % (w, c) )
+	distr.write(" %r, %r\n" % (w, c) )
 
 print "\n\n\n"
 print s
