@@ -10,11 +10,11 @@ IRCNICK="m3thos"
 export IRCNAME IRCUSER IRCNICK
 
 # aliases for all shell's
-alias ls="ls --color=auto"
-alias l='ls -F'
+alias ls="ls --color=auto -n"
+alias l='ls -Fn'
 alias rm='\rm -i'
-alias la='ls -aF'
-alias ll='ls -ihlF'
+alias la='ls -aFn'
+alias ll='ls -ihlFn'
 alias cp='cp -i'
 alias mv='mv -i'
 alias df='df -h'
@@ -39,6 +39,8 @@ alias aptget='sudo aptitude install'
 alias aptls='aptitude search'
 alias aptrm='sudo aptitude remove'
 alias aptup='sudo aptitude update && sudo aptitude upgrade'
+alias sapo-vpn='sudo pppd call VPN-W'
+alias mpirun='mpirun --mca mpi_paffinity_alone 1'
 
 
 function dsh() {

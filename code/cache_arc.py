@@ -20,7 +20,7 @@ def cache_arc(max_size):
         maxsize = max_size
         p = 0
         cache = {}
-        
+
         def replace( id, len):
             if len(top_LRU1) > 1 and (( id in bottom_LRU2 and len(top_LRU1) == len) or len(top_LRU1) > len ):
                 key = top_LRU1.pop(0)
@@ -29,8 +29,8 @@ def cache_arc(max_size):
                 key = top_LRU2.pop(0)
                 bottom_LRU2.append(key)
             cache.remove(key)    # remove item from cache.
-            
-        
+
+
         def wrapper(*args):
 
             #localize variables.
@@ -42,7 +42,7 @@ def cache_arc(max_size):
             lru2_len = L2_len
             _cache = cache
 
-            
+
             if (args in _head1) or (args in _head2):
                 wrapper.hits += 1
                 if args in _head2:
@@ -52,7 +52,7 @@ def cache_arc(max_size):
                     _head1.remove(args)
                     _head2.append(args)
                 result = _cache[args]
-            
+
             elif (args in _tail1) or (args in _tail2):
                 if args in _tail2:
                     p = max(0, p - max( len(_tail1)//len(_tail2), 1))
@@ -79,13 +79,13 @@ def cache_arc(max_size):
                 wrapper.misses += 1
                 _head1.append(args)
                 result = _cache[args] = f(*args)
-                
+
             # update L1 and L2 LRUs
             lru1_len = len(_tail1) + len(_head1)
             lru2_len = len(_tail2) + len(_head2)
-            
+
             return result
-            
+
         wrapper.__doc__ = f.__doc__
         wrapper.__name__ = f.__name__
         wrapper.hits = wrapper.misses = 0
@@ -94,7 +94,7 @@ def cache_arc(max_size):
 
 
 if __name__ == '__main__':
-         
+
     @cache_arc(max_size=500)
     def f(x, y):
         return 3*x+y
