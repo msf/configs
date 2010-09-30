@@ -39,6 +39,7 @@ alias aptget='sudo aptitude install'
 alias aptls='aptitude search'
 alias aptrm='sudo aptitude remove'
 alias aptup='sudo aptitude update && sudo aptitude upgrade'
+alias sapo-vpn='sudo pppd call VPN-W'
 alias mpirun='mpirun --mca mpi_paffinity_alone 1'
 
 
