@@ -3,8 +3,8 @@
 import sys
 from time import time
 
-#good_words_list = '/var/tmp/twl06.txt'
 good_words_list = 'twl06.txt'
+good_words_list = '/var/tmp/twl06.txt'
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'.upper()
 
@@ -15,8 +15,35 @@ def edits1(word):
                [word[0:i]+c+word[i+1:] for i in range(n) for c in alphabet] + # substitution
                [word[0:i]+c+word[i:] for i in range(n+1) for c in alphabet]) # insertion
 
+def lev_dist( w1, w2, max_cost ):
+    len1 = len(w1) +1
+    len2 = len(w2) +1
+    d = [ [0]*len2 for i in xrange(len1) ]
+    i = 0
+    j = 0
+    cost = 0
+    for i in xrange( len1 ):
+        d[i][0] = i
+    for j in xrange( len2 ):
+        d[0][j] = j
+    for i in xrange(1, len1 ):
+        for j in xrange(1, len2 ):
+            if w1[i-1] == w2[j-1]:
+                cost = d[i-1][j-1]
+            else:
+                deletion     = d[i-1][j] +1
+                insertion    = d[i][j-1] +1
+                substitution = d[i-1][j-1] + 1
+                cost = min(deletion, insertion, substitution)
+            if i == j and cost > max_cost:
+                return cost
+            d[i][j] = cost
+    return d[len1-1][len2-1]
 
-def damlev_distance( word1, word2, max_cost ):
+
+
+
+def damlev_dist( word1, word2, max_cost ):
     """ Damerau-Levenshtein Distance is a "distance" (string metric) between two strings,
     i.e., finite sequence of symbols, given by counting the minimum number of operations
     needed to transform one string into the other, where an operation is defined as an
@@ -88,7 +115,7 @@ def breathalizer(good_words, words, word_edits, edits2):
         # minimum damerau-levenshtein distance from list of good words
         best = len(w)
         for gw in good_words.keys():
-            best = min(damlev_distance(w, gw, best), best)
+            best = min(lev_dist(w, gw, best), best)
             if best == 3:
                 break
         cache[w] = best
@@ -137,4 +164,4 @@ print(breathalizer(good_words, words, word_edits, word_edits2))
 times[5] = time()
 
 
-print_times(times)
+#print_times(times)
