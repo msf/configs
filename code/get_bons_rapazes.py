@@ -32,13 +32,12 @@ def pull_podcasts( url_list, stdout='/dev/null'):
         if os.path.exists(fname):
             print("%s already exists, skipping.." % (fname))
             continue
-        args = tmp_args
+        args = []
+        args.extend(tmp_args)
         args.append(fname)
         args.append(url)
-        dev_null = open(stdout, 'w')
-        #proc = subprocess.Popen(args, stdout=dev_null, stderr=dev_null)
-        proc = subprocess.Popen(args)
-        print("Pid: %d - fetching: %s" % ( proc.pid, url))
+        proc = subprocess.Popen(args, stdout=stdout, stderr=stdout)
+        print("Pid: %d - %r" % ( proc.pid, " ".join(args) ))
         cmd_list.append(proc)
 
     return cmd_list
@@ -73,7 +72,8 @@ def get_bons_rapazes(homepage_url):
         data = fetch_page(page_url)
         pods.extends( grep_podcasts(data) )
 
-    running = pull_podcasts(pods)
+    dev_null = open('/dev/null', 'w')
+    running = pull_podcasts(pods, stdout=dev_null)
 
     wait_for_completion(running)
 
