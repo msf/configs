@@ -58,6 +58,7 @@ alias aptrm='sudo aptitude remove'
 alias rdpvivo='rdesktop -g 1024x768 -z -x m -P elchapelon.no-ip.info:8888 &>/dev/null &'
 alias sapo-vpn='sudo pppd call VPN-W'
 alias mpirun='mpirun --mca mpi_paffinity_alone 1'
+alias sshfs='sshfs -o reconnect,intr'
 
 # keychain
 if [ -x /usr/bin/keychain ]; then
