@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-void    rev_word(char *str, unsigned start, unsigned stop)
+void rev_word(char *str, unsigned start, unsigned stop)
 {
     unsigned i, len = stop - start;
     char tmp;
 
     if(len < 0) return;
-    for(i = 0; i < len; i++) {
+    for(i = 0; i < len/2; i++) {
         tmp = str[ start + i ];
         str[ start +i] = str[ stop -i];
         str[ stop -i] = tmp;
@@ -19,7 +19,9 @@ void    rev_word(char *str, unsigned start, unsigned stop)
 char * my_strtok(char *str, char tok) {
     int x = 0;
 
-    unsigned i;
+    return strtok(str, tok);
+
+    unsigned i=0;
     while( str[i] != '\0') {
         if (str[i] == tok)
             x = 1; //mark token found
@@ -57,7 +59,7 @@ void rev_text_2(char *text)
     unsigned i, j, len;
 
     len = strlen(text);
-    for(i=0; i < (len-i); i++) {
+    for(i=0; i < (len/2); i++) {
         tmp = text[i];
         text[i] = text[len-i-1];
         text[len-i-1] = tmp;
