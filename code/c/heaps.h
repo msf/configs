@@ -16,4 +16,11 @@ int maxheap_increase_key(heap_t *heap, unsigned i, int value);
 int maxheap_insert(heap_t *heap, int value);
 
 
+heap_t * minheap_new(int *array, unsigned size);
+
+int minheap_popmin(heap_t *heap);
+int minheap_min(heap_t *heap);
+
+int minheap_decrease_key(heap_t *heap, unsigned i, int value);
+int minheap_insert(heap_t *heap, int value);
 #endif // _HEAPS_H_
