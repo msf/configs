@@ -3,9 +3,9 @@
 
 #include "mask.h"
 
-mask_t * mask_new(int bit_count)
+mask_t * mask_new(unsigned bit_count)
 {
-    int map_size;
+    unsigned map_size;
     mask_t *msk = malloc(sizeof(mask_t));
     if(!msk)
         return NULL;
@@ -32,35 +32,35 @@ void mask_free(mask_t *mask)
     free(mask);
 }
 
-int mask_set(mask_t *mask, int pos)
+int mask_set(mask_t *mask, unsigned pos)
 {
     if( !mask  || !mask->map)
         return -1;
 
-    int n = pos / 8;
-    int off = pos % 8;
+    unsigned n = pos / 8;
+    unsigned off = pos % 8;
     mask->map[n] |= 1 << off;
     return 0;
 }
 
-int mask_unset(mask_t *mask, int pos)
+int mask_unset(mask_t *mask, unsigned pos)
 {
     if( !mask  || !mask->map)
         return -1;
 
-    int n = pos / 8;
-    int off = pos % 8;
+    unsigned n = pos / 8;
+    unsigned off = pos % 8;
     mask->map[n] &= ~(1 << off);
     return 0;
 }
 
-int mask_isset(mask_t *mask, int pos)
+int mask_isset(mask_t *mask, unsigned pos)
 {
     if( !mask  || !mask->map)
         return -1;
 
-    int n = pos / 8;
-    int off = pos % 8;
+    unsigned n = pos / 8;
+    unsigned off = pos % 8;
     return ( mask->map[n] >> off ) & 1 ;
 }
 
