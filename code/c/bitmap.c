@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mask.h"
+#include "bitmap.h"
 
-mask_t * mask_new(unsigned bit_count)
+bitmap_t * bitmap_new(unsigned bit_count)
 {
     unsigned map_size;
-    mask_t *msk = malloc(sizeof(mask_t));
+    bitmap_t *msk = malloc(sizeof(bitmap_t));
     if(!msk)
         return NULL;
 
@@ -23,55 +23,55 @@ mask_t * mask_new(unsigned bit_count)
     return msk;
 }
 
-void mask_free(mask_t *mask)
+void bitmap_free(bitmap_t *bitmap)
 {
-    if( !mask  || !mask->map)
+    if( !bitmap  || !bitmap->map)
         return ;
 
-    free(mask->map);
-    free(mask);
+    free(bitmap->map);
+    free(bitmap);
 }
 
-int mask_set(mask_t *mask, unsigned pos)
+int bitmap_set(bitmap_t *bitmap, unsigned pos)
 {
-    if( !mask  || !mask->map)
+    if( !bitmap  || !bitmap->map)
         return -1;
 
     unsigned n = pos / 8;
     unsigned off = pos % 8;
-    mask->map[n] |= 1 << off;
+    bitmap->map[n] |= 1 << off;
     return 0;
 }
 
-int mask_unset(mask_t *mask, unsigned pos)
+int bitmap_unset(bitmap_t *bitmap, unsigned pos)
 {
-    if( !mask  || !mask->map)
+    if( !bitmap  || !bitmap->map)
         return -1;
 
     unsigned n = pos / 8;
     unsigned off = pos % 8;
-    mask->map[n] &= ~(1 << off);
+    bitmap->map[n] &= ~(1 << off);
     return 0;
 }
 
-int mask_isset(mask_t *mask, unsigned pos)
+int bitmap_isset(bitmap_t *bitmap, unsigned pos)
 {
-    if( !mask  || !mask->map)
+    if( !bitmap  || !bitmap->map)
         return -1;
 
     unsigned n = pos / 8;
     unsigned off = pos % 8;
-    return ( mask->map[n] >> off ) & 1 ;
+    return ( bitmap->map[n] >> off ) & 1 ;
 }
 
-void mask_setall(mask_t *m)
+void bitmap_setall(bitmap_t *m)
 {
     if( !m || !m->map)
         return ;
     memset(m->map, 0xff, m->map_size);
 }
 
-void mask_unsetall(mask_t *m)
+void bitmap_unsetall(bitmap_t *m)
 {
     if( !m || !m->map)
         return ;

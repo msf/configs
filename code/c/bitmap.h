@@ -3,16 +3,16 @@ typedef struct {
     char *map;
     unsigned bit_count;
     unsigned map_size;
-} mask_t;
+} bitmap_t;
 
 
-/* creates a new (all bits unset) mask */
-mask_t * mask_new(unsigned bit_count);
+/* creates a new (all bits unset) bitmap */
+bitmap_t * bitmap_new(unsigned bit_count);
 
-void mask_free(mask_t *mask);
-int mask_set(mask_t *mask, unsigned pos);
-int mask_unset(mask_t *mask, unsigned pos);
-int mask_isset(mask_t *mask, unsigned pos);
+void bitmap_free(bitmap_t *bitmap);
+int bitmap_set(bitmap_t *bitmap, unsigned pos);
+int bitmap_unset(bitmap_t *bitmap, unsigned pos);
+int bitmap_isset(bitmap_t *bitmap, unsigned pos);
 
-void mask_unsetall(mask_t *mask);
-void mask_setall(mask_t *mask);
+void bitmap_unsetall(bitmap_t *bitmap);
+void bitmap_setall(bitmap_t *bitmap);
