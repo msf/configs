@@ -37,6 +37,9 @@ int bitmap_set(bitmap_t *bitmap, unsigned pos)
     if( !bitmap  || !bitmap->map)
         return -1;
 
+    if( pos > bitmap->bit_count )
+        return -2;
+
     unsigned n = pos / 8;
     unsigned off = pos % 8;
     bitmap->map[n] |= 1 << off;
@@ -48,6 +51,9 @@ int bitmap_unset(bitmap_t *bitmap, unsigned pos)
     if( !bitmap  || !bitmap->map)
         return -1;
 
+    if( pos > bitmap->bit_count )
+        return -2;
+
     unsigned n = pos / 8;
     unsigned off = pos % 8;
     bitmap->map[n] &= ~(1 << off);
@@ -58,6 +64,9 @@ int bitmap_isset(bitmap_t *bitmap, unsigned pos)
 {
     if( !bitmap  || !bitmap->map)
         return -1;
+
+    if( pos > bitmap->bit_count )
+        return -2;
 
     unsigned n = pos / 8;
     unsigned off = pos % 8;
