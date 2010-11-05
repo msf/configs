@@ -27,11 +27,11 @@ EDITOR="vim"
 export IRCSERVER IRCNAME IRCUSER IRCNICK EDITOR
 # aliases for all shell's
 
-alias ls="ls --color=auto -n"
-alias l='ls -Fn'
+alias ls="ls --color=auto -Fv"
+alias l='ls'
 alias rm='\rm -i'
-alias la='ls -naF'
-alias ll='ls -naihlF'
+alias la='ls -a'
+alias ll='ls -aihl'
 alias cp='cp -i'
 alias mv='mv -i'
 alias df='df -h'
