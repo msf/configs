@@ -1,0 +1,8 @@
+#!/bin/sh
+#xplanetbg &
+#Esetroot -f ~/backgrounds/trinity2k2.jpg
+#gkrellm2 -w&
+#xchat-2 &
+#fluxter &
+torsmo  -x 670 -y 855 -d &
+exec fluxbox -rc ~/.fluxbox/init
