@@ -27,11 +27,11 @@ EDITOR="vim"
 export IRCSERVER IRCNAME IRCUSER IRCNICK EDITOR
 # aliases for all shell's
 
-alias ls="ls --color=auto -n"
-alias l='ls -Fn'
+alias ls="ls --color=auto -Fv"
+alias l='ls'
 alias rm='\rm -i'
-alias la='ls -naF'
-alias ll='ls -naihlF'
+alias la='ls -a'
+alias ll='ls -aihl'
 alias cp='cp -i'
 alias mv='mv -i'
 alias df='df -h'
@@ -58,6 +58,7 @@ alias aptrm='sudo aptitude remove'
 alias rdpvivo='rdesktop -g 1024x768 -z -x m -P elchapelon.no-ip.info:8888 &>/dev/null &'
 alias sapo-vpn='sudo pppd call VPN-W'
 alias mpirun='mpirun --mca mpi_paffinity_alone 1'
+alias sshfs='sshfs -o reconnect,intr'
 
 # keychain
 if [ -x /usr/bin/keychain ]; then

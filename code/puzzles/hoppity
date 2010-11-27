@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+import sys
+
+file = open(sys.argv[1],'r')
+
+count = int( file.read().strip() )
+
+for i in xrange(1, count +1):
+    t = i % 3
+    f = i % 5
+    if t == 0 and f == 0: print("Hop")
+    elif t == 0: print("Hoppity")
+    elif f == 0: print("Hophop")
+
