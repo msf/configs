@@ -1,0 +1,6 @@
+xterm*loginShell: true
+xterm*background: black
+xterm*foreground: grey
+xterm*faceSize: 10
+xterm*utf8: true
+xterm*faceName: Terminus

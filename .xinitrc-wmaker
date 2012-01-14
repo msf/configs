@@ -1,0 +1,4 @@
+wmSMPmon &
+wmtop &
+wmsysmon &
+exec wmaker
