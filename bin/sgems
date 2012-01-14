@@ -5,7 +5,7 @@
 #libsoqt3
 #qt3-mt e mais uma porrada de libs usuais para QT3
 
-SGEMS_DIR=$HOME/sgems-stuff/sgems/sgems
+SGEMS_DIR=/opt/sgems
 #export LD_LIBRARY_PATH=$SGEMS_DIR/lib:${LD_LIBRARY_PATH}
 export GSTLAPPLIHOME=$SGEMS_DIR
 
