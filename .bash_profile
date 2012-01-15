@@ -11,8 +11,9 @@ EDITOR=vim
 export EDITOR
 
 # keychain
-if [ -x /usr/bin/keychain ]; then
-    /usr/bin/keychain -q ~/.ssh/id_rsa
+keychain=`which keychain`
+if [ -x ${keychain} ]; then
+    ${keychain} -q ~/.ssh/id_rsa
     source ~/.keychain/${HOSTNAME}-sh  > /dev/null
 fi
 
@@ -31,6 +32,3 @@ PATH="${PATH}:/opt/lxc/bin"
 PYTHONPATH="${HOME}/sapo/v3.git/trunk/sawpy/py-libsaw:${HOME}/sapo/v3.git/sawpy/py-libsaw:${HOME}/sapo/libsapo-broker-python"
 
 export PATH CLASSPATH PYTHONPATH
-
-# ubuntu screen magic
-`echo $- | grep -qs i` && which byobu-launcher > /dev/null && byobu-launcher

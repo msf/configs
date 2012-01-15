@@ -1,7 +1,7 @@
 # Lines configured by zsh-newuser-install
 HISTFILE=~/.histfile
-HISTSIZE=1000
-SAVEHIST=1000
+HISTSIZE=10000
+SAVEHIST=10000
 setopt appendhistory autocd extendedglob
 setopt No_Beep
 bindkey -e
@@ -27,11 +27,11 @@ EDITOR="vim"
 export IRCSERVER IRCNAME IRCUSER IRCNICK EDITOR
 # aliases for all shell's
 
-alias ls="ls --color=auto -Fv"
-alias l='ls'
+alias ls="ls -G -Fv"
+alias l='ls -G'
 alias rm='\rm -i'
 alias la='ls -a'
-alias ll='ls -aihl'
+alias ll='ls -aihlrt'
 alias cp='cp -i'
 alias mv='mv -i'
 alias df='df -h'
@@ -55,14 +55,14 @@ alias aptls='aptitude search'
 alias aptget='sudo aptitude install'
 alias aptup='sudo aptitude update; sudo aptitude safe-upgrade'
 alias aptrm='sudo aptitude remove'
-alias rdpvivo='rdesktop -g 1024x768 -z -x m -P elchapelon.no-ip.info:8888 &>/dev/null &'
 alias sapo-vpn='sudo pppd call VPN-W'
 alias mpirun='mpirun --mca mpi_paffinity_alone 1'
 alias sshfs='sshfs -o reconnect,intr'
 
 # keychain
-if [ -x /usr/bin/keychain ]; then
-    /usr/bin/keychain -q ~/.ssh/id_rsa
+keychain=`which keychain`
+if [ -x ${keychain} ]; then
+    ${keychain} -q ~/.ssh/id_rsa
     source ~/.keychain/${HOST}-sh  > /dev/null
 fi
 

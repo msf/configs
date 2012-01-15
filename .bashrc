@@ -10,11 +10,11 @@ IRCNICK="m3thos"
 export IRCNAME IRCUSER IRCNICK
 
 # aliases for all shell's
-alias ls="ls --color=auto -n"
-alias l='ls -Fn'
+alias ls="ls -G"
+alias l='ls -GF'
 alias rm='\rm -i'
-alias la='ls -aFn'
-alias ll='ls -ihlFn'
+alias la='ls -aF'
+alias ll='ls -ihlFrt'
 alias cp='cp -i'
 alias mv='mv -i'
 alias df='df -h'
