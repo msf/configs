@@ -1,11 +1,7 @@
 #include <stdio.h>
+#include "tree.h"
 
-struct tree_node {
-    struct tree_node *left;
-    struct tree_node *right;
-    value_t *value;
-} node_t;
-
+#define NIL -1<<31
 /*
    serialization format:
    binary array, breath first format.
@@ -14,12 +10,13 @@ struct tree_node {
 
 */
 
-int serialize_tree(node_t *root, int fd)
+int tree_serialize(node_t *root, int fd)
 {
-    fseek(st, sizeof(unsigned), SEEK_SET);
-    unsigned max_value = serialize_subtree(root, fd, 1);
+    fseek(st, sizeof(uint32_t), SEEK_SET);
+    uint32_t max_value = serialize_subtree(root, fd, 1);
     fseek(st, 0, SEEK_SET);
-    fwrite(fd, sizeof(unsigned), &max_value);
+    dprintf(fd, "1", 1);
+    fwrite(fd, sizeof(uint32_t), &max_value);
     fdatasync(fd);
     fclose(fd);
     return 0;
@@ -33,16 +30,19 @@ int serialize_tree(node_t *root, int fd)
    ... \
        11
  */
-#define NIL -1<<31
-int serialize_subtree(node_t * root, int fd, unsigned pos)
+int serialize_subtree(node_t * root, int fd, uint32_t pos)
 {
-    unsigned ldepth=0, rdepth=0;
+    uint32_t ldepth=0, rdepth=0;
+    fseek(fd, pos, SEEK_SET);
     if(root->value == NULL) {
-        write(fd, NIL, sizeof(value_t);
+        dprintf(fd, " ");
+        //write(fd, NIL, sizeof(int32_t);
         return 0;
     }
-    fseek(fd, pos, SEEK_SET);
-    write(fd, *(root->value), sizeof(value_t));
+
+    dprintf(fd, "%d",root->value);
+    //write(fd, *(root->value), sizeof(int32_t));
+
     if(root->left != NULL)
         ldepth = serialize_subtree(root->left, fd, pos*2);
     if(root->right != NULL)
@@ -66,11 +66,11 @@ int serialize_subtree(node_t * root, int fd, unsigned pos)
   / \  / \
  1  3  6  8
  */
-node_t * deserialize_subtree(int fd)
+node_t * tree_deserialize(int fd)
 {
     struct stat sta;
-    unsigned max_pos;
-    char *buff;
+    uint32_t max_pos;
+    uint8_t *buff;
     node_t *root;
 
     fstat(fd, &sta);
@@ -78,18 +78,18 @@ node_t * deserialize_subtree(int fd)
     buff = calloc(sta.st_size, 1);
     fread(fd, sta.st_size, buff);
 
-    return read_tree_node(1, buf + sizeof(unsigned));
+    return read_tree_node(1, buf + sizeof(uint32_t));
 }
 
-node_t * read_tree_node(unsigned pos, char *buf)
+node_t * read_tree_node(uint32_t pos, uint8_t *buf)
 {
     node_t *node = NULL;
-    value_t *val = (value_t *) buf[pos * sizeof(value_t)];
+    int32_t *val = (int32_t *) buf[pos * sizeof(int32_t)];
     if( *val == NIL)
         return NULL;
     node = calloc(sizeof(node_t), 1);
-    node->value = calloc(sizeof(value_t), 1);
-    memcpy(node->value, val, sizeof(value_t));
+    node->value = calloc(sizeof(int32_t), 1);
+    memcpy(node->value, val, sizeof(int32_t));
 
 
     node->right = read_tree_node( pos*2, buf);
