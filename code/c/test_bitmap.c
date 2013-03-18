@@ -56,6 +56,7 @@ int bitmap_test4(bitmap_t *m, unsigned len)
 
 int bitmap_test(unsigned len)
 {
+    int ok = 0;
     bitmap_t *m;
 
     m = bitmap_new(len);
@@ -64,10 +65,10 @@ int bitmap_test(unsigned len)
         bitmap_test2(m, len) ||
         bitmap_test3(m, len) ||
         bitmap_test4(m, len) ) {
-        bitmap_free(m);
-        return 1;
+        ok = 1;
     }
-    return 0;
+    bitmap_free(m);
+    return ok;
 }
 
 
