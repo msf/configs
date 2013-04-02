@@ -1,100 +1,75 @@
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Scanner;
-import java.util.regex.Pattern;
-
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public final class ReadAdjacencyList {
 
-    private Scanner scanner;
+	HashMap<String,Integer> symbolTable = new HashMap<String, Integer>();
+	String[] reverseSymbolTable;
+	In input;
+	int vertexCount = 0;
+	Graph graph;
 
-    // assume Unicode UTF-8 encoding
-    private static final String charsetName = "UTF-8";
+	public ReadAdjacencyList(String s) {
+		
+		input = new In(s);
+		reverseSymbolTable = new String[256];
+		
+		ArrayList<String> lines = new ArrayList<String>();
+		while (input.hasNextLine()) {
+			String line = input.readLine();
+			lines.add(line);
+			String letter = line.substring(0, 1).toLowerCase();
+			setGetEdge(letter);
+		}
 
-    // assume language = English, country = US for consistency with System.out.
-    private static final java.util.Locale usLocale = 
-        new java.util.Locale("en", "US");
+		StdOut.printf("Graph c/ vertices:%d\n",vertexCount);
+		graph = new Graph(vertexCount);
+		vertexCount = 0;
+		for (String line : lines) {
+			String letter = line.substring(0, 1).toLowerCase();
+			int v = setGetEdge(letter);
+			String[] edges = line.substring(3).split(" ");
+			for (String e : edges) {
+				int w = setGetEdge(e);
+				StdOut.printf("edge:%s-%s : %d-%d\n", letter,e,v,w);
+				if(!graph.hasEdge(v, w))
+					graph.addEdge(v, w);
+			}
+		}
+	}
 
-    // the default token separator; we maintain the invariant that this value 
-    // is held by the scanner's delimiter between calls
-    private static final Pattern WHITESPACE_PATTERN
-        = Pattern.compile("\\p{javaWhitespace}+");
 
-    // makes whitespace characters significant 
-    private static final Pattern EMPTY_PATTERN
-        = Pattern.compile("");
+	private Integer setGetEdge(String edge) {
+		String e = edge.toLowerCase();
+		if(!symbolTable.containsKey(e))
+			symbolTable.put(e, vertexCount++);
+		int v = symbolTable.get(e);
+		reverseSymbolTable[v] = e;
+		return v;
+	}
+	
+	public String printGraph() {
 
-    int vertexCount = 0;
-    Graph graph;
+		StringBuilder sb = new StringBuilder();
+		sb.append(graph.toString());
+		sb.append("\n");
+		for(int i = 0; i < graph.V(); i++) {
+			sb.append(reverseSymbolTable[i]);
+			sb.append(": ");
+			for(int adj : graph.adj(i)) {
+				sb.append(reverseSymbolTable[adj]);
+				sb.append(" ");
+			}
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
 
-
-    public ReadAdjacencyList(String s) {
-        try {
-            // first try to read file from local file system
-            File file = new File(s);
-            if (file.exists()) {
-                scanner = new Scanner(file, charsetName);
-                scanner.useLocale(usLocale);
-                return;
-            }
-        }
-        catch (IOException ioe) {
-            System.err.println("Could not open " + s);
-        }
-
-        ArrayList<String> lines = new ArrayList<String>();
-        while(scanner.hasNextLine()) {
-            lines.add(scanner.readLine());
-            vertexCount++;
-        }
-
-        int basePoint = "A".codePointAt(0);
-        graph = new Graph(vertexCount);
-        for(String line: lines) {
-            int v = line.codePointAt(0) - basePoint;
-            String edges = line.substring(1).split(WHITESPACE_PATTERN);
-            for(String e: edges) {
-                int w = e.codePointAt(0) - basePoint;
-                if(w > 0)
-                    graph.addEdge(v,w);
-            }
-        }
-    }
-
-   /**
-     * Read and return the next line.
-     */
-    public String readLine() {
-        String line;
-        try                 { line = scanner.nextLine(); }
-        catch (Exception e) { line = null;               }
-        return line;
-    }
-
-    /**
-     * Read and return the next character.
-     */
-    public char readChar() {
-        scanner.useDelimiter(EMPTY_PATTERN);
-        String ch = scanner.next();
-        assert (ch.length() == 1) : "Internal (Std)In.readChar() error!"
-            + " Please contact the authors.";
-        scanner.useDelimiter(WHITESPACE_PATTERN);
-        return ch.charAt(0);
-    }  
-
-    public String printGraph() {
-
-    }
-
-    public static void main(String[] args) {
-        ReadAdjacencyList ral = new ReadAdjacencyList(args[1]);
-
-        ral.printGraph();
-    }
+	public static void main(String[] args) {
+		ReadAdjacencyList ral = new ReadAdjacencyList(args[0]);
+		
+		StdOut.print(ral.printGraph());
+	}
 
 }
+

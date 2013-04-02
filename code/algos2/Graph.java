@@ -133,6 +133,15 @@ public class Graph {
         adj[w].add(v);
     }
 
+    public boolean hasEdge(int v, int w) {
+    	boolean rc = false;
+    	for(int e: adj[v]) {
+    		if(e == w) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
 
    /**
      * Return the list of neighbors of vertex v as in Iterable.
