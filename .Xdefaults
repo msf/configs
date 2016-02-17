@@ -1,6 +1,14 @@
 xterm*loginShell: true
 xterm*background: black
 xterm*foreground: grey
-xterm*faceSize: 16
+xterm*faceSize: 18
 xterm*utf8: true
-xterm*faceName: Terminus
+xterm*faceName: Inconsolata
+
+urxvt*font: xft:Inconsolata:pixelsize=20
+URxvt*scrollBar: false
+URxvt.saveLines: 32767
+URxvt*termName: rxvt
+URxvt*background: #0f0f0f
+URxvt*foreground: #f0f0f0
+
