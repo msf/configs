@@ -28,3 +28,9 @@ dt = diff-tree -p --color
 
 [push]
     default = tracking
+
+[branch]
+    autosetuprebase = always
+
+[pull]
+	rebase = true

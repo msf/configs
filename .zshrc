@@ -41,10 +41,12 @@ alias less='less -RSXF'
 alias gvim='gvim 2>/dev/null' #gvim is printing asserts to stderr, dirties the console.
 alias lock='gnome-screensaver-command -l'
 alias google-chrome='google-chrome --enable-plugins'
+alias j='jobs'
 alias ipy='ipython -nobanner -noconfirm_exit'
 alias term='xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8'
-alias eve='wine explorer /desktop=0,1680x1050 "C:\Program Files\CCP\EVE\eve.exe"'
+alias eve='wine explorer /desktop=0,1680x1050 "C:\Program Files\CCP\EVE\bin\exefile.exe'
 alias ventrilo='wine ~/.wine/drive_c/Program\ Files/Ventrilo/Ventrilo.exe'
+alias dstat='dstat -c -d -n -m -s -y'
 #pacman/arch stuff
 alias pacget='sudo pacman -S'
 alias pacls='sudo pacman -Ss'
