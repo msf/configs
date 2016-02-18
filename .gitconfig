@@ -23,6 +23,7 @@ dt = diff-tree -p --color
 
 [core]
     pager = less -R
+    excludesfile = /Users/miguel/.gitignore
 
 [color]
     diff = auto
