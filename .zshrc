@@ -77,6 +77,8 @@ fi
 PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 #PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
 #CLASSPATH="/usr/share/junit/lib/junit.jar:${CLASSPATH}"
-PYTHONPATH="${HOME}/sapo/libsapo-broker-python/:${HOME}/code/pysmell:.:${HOME}/sapo/v3.git/trunk/sawpy/py-libsaw:${HOME}/sapo/"
-LD_LIBRARY_PATH=${HOME}/sapo/v3.trunk/.build/default/libsaw
-export PATH CLASSPATH PYTHONPATH LD_LIBRARY_PATH
+PYTHONPATH="."
+#export LD_LIBRARY_PATH=
+GOPATH="${HOME}/go"
+PATH="${GOPATH}/bin:${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+export PATH CLASSPATH PYTHONPATH GOPATH
