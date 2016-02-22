@@ -11,9 +11,15 @@ br = branch
 lg = log --graph --pretty=format:\"%Cred%h%Creset — %s %Cgreen(%cr)%Creset\" --abbrev-commit --date=relative
 dt = diff-tree -p --color
 
+[branch]
+    autosetuprebase = always
 
 [merge]
-    tool = meld
+    ff = no
+    tool = kdiff3
+
+[pull]
+    rebase = true
 
 [core]
     pager = less -R
@@ -23,6 +29,7 @@ dt = diff-tree -p --color
     status = true
     diff-tree = true
     branch = auto
+
 [gui]
 	fontui = -family \"Liberation Sans\" -size 12 -weight bold -slant roman -underline 0 -overstrike 0
 

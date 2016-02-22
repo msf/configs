@@ -41,6 +41,8 @@ alias aptup='sudo aptitude update && sudo aptitude upgrade'
 alias sapo-vpn='sudo pppd call VPN-W'
 alias mpirun='mpirun --mca mpi_paffinity_alone 1'
 alias sshfs='sshfs -o reconnect,intr'
+alias pr="hub pull-request"
+alias vac="source env/bin/activate"
 
 # keychain
 keychain=`which keychain`
