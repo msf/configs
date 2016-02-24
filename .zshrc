@@ -82,7 +82,6 @@ fi
 
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 
-
 function fssh() {
     instance="$1"
     if [[ $instance =~ ^i- ]]
@@ -93,13 +92,14 @@ function fssh() {
     fi
 }
 
-PATH="/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:${PATH}"
+GOPATH="${HOME}/go"
+PATH="/usr/local/go/bin:${PATH}"
+PATH="${GOPATH}/bin:${PATH}"
+PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 #PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
 #CLASSPATH="/usr/share/junit/lib/junit.jar:${CLASSPATH}"
 PYTHONPATH="."
 #export LD_LIBRARY_PATH=
-GOPATH="${HOME}/go"
-PATH="${GOPATH}/bin:${PATH}"
 export PATH CLASSPATH PYTHONPATH GOPATH
 
 export SERVER_RESOURCES_DIR="${HOME}/cm/static-config/server_resources/staging"
