@@ -41,3 +41,5 @@ dt = diff-tree -p --color
 
 [pull]
 	rebase = true
+[credential]
+	helper = cache
