@@ -29,8 +29,12 @@ match ErrorMsg /^\t\+/
 match ErrorMsg /\s\+$/
 
 set shell=bash
+set background=dark
 
-colorscheme koehler
+" pathogen will load the other modules
+execute pathogen#infect()
+
+colorscheme slate
 
 source ~/.vim/syntax.vim
 source ~/.vim/minibufexpl.vim
@@ -50,8 +54,9 @@ set shell=bash
 " (\ is the default, but ',' is more common, and easier to reach)
 let mapleader=","
 
-" pathogen will load the other modules
-execute pathogen#infect()
+
+" use the python from usr/local/bin
+let g:ycm_path_to_python_interpreter = "/usr/local/bin/python"
 
 " we want to tell the syntastic module when to run
 " we want to see code highlighting and checks when  we open a file
