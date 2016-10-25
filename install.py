@@ -25,13 +25,13 @@ def copyFiles():
     for file in config_files:
         destfile = HOME + file
         sourcefile = CWD + file
-        if os.path.exists(destfile):
+        if os.path.exists(destfile) or os.path.islink(destfile):
             removePath(destfile)
         try:
             os.symlink(sourcefile,destfile)
             print("symlinked %s" % file)
-        except OSError:
-            print("failed on %s -> %s" % (sourcefile, destfile))
+        except OSError, ex:
+            print("failed on %s -> %s, %s" % (sourcefile, destfile, ex))
 
 def removePath(destfile):
     # REMOVE if dest exists
@@ -54,7 +54,7 @@ def copyConfigDirs():
 
     for di in configdirs :
         destpath = destdir + di
-        if os.path.exists(destpath):
+        if os.path.exists(destpath) or os.path.islink(destpath):
             removePath(destpath)
         os.symlink( CWD + di, destpath )
         print("symlinked directory %s" % destpath)
