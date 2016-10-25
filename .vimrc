@@ -12,11 +12,12 @@ set ts=4
 set shiftwidth=4
 set softtabstop=4
 set scrolloff=3
-"set expandtab
+set expandtab
 set hlsearch
 set autowrite
 set hidden
 set number
+set mouse=
 syntax enable
 
 map <F5> :make<CR>
@@ -29,8 +30,12 @@ match ErrorMsg /^\t\+/
 match ErrorMsg /\s\+$/
 
 set shell=bash
+set background=dark
 
-colorscheme koehler
+" pathogen will load the other modules
+execute pathogen#infect()
+
+colorscheme solarized
 
 source ~/.vim/syntax.vim
 source ~/.vim/minibufexpl.vim
@@ -50,8 +55,9 @@ set shell=bash
 " (\ is the default, but ',' is more common, and easier to reach)
 let mapleader=","
 
-" pathogen will load the other modules
-execute pathogen#infect()
+
+" use the python from usr/local/bin
+let g:ycm_path_to_python_interpreter = "/usr/local/bin/python"
 
 " we want to tell the syntastic module when to run
 " we want to see code highlighting and checks when  we open a file
@@ -63,8 +69,11 @@ let g:syntastic_check_on_wq = 0
 autocmd BufWritePre * :%s/\s\+$//e
 
 " tell vim to allow you to copy between files, remember your cursor
-" position and other little nice things like that
-set viminfo='100,\"2500,:200,%,n~/.viminfo
+if has('nvim')
+ set shada='20,<50,:200,%,n~/.nvim/_nviminfo
+else
+ set viminfo='20,\"50,:200,%,n~/.viminfo
+endif
 
 " use goimports for formatting
 let g:go_fmt_command = "goimports"
@@ -72,11 +81,17 @@ let g:go_fmt_command = "goimports"
 " turn highlighting on
 let g:go_highlight_functions = 1
 let g:go_highlight_methods = 1
+let g:go_highlight_fields = 1
 let g:go_highlight_structs = 1
+let g:go_highlight_interfaces = 1
 let g:go_highlight_operators = 1
 let g:go_highlight_build_constraints = 1
 
-let g:syntastic_go_checkers = ['go', 'golint', 'errcheck']
+" from vim-go README.md on slowness with Syntastic
+let g:syntastic_go_checkers = ['go', 'golint', 'govet', 'errcheck']
+let g:syntastic_mode_map = { 'mode': 'active', 'passive_filetypes': ['go'] }
+" fix syntastic + vim-go weirdness
+let g:go_list_type = "quickfix"
 
 " Open go doc in vertical window, horizontal, or tab
 au Filetype go nnoremap <leader>v :vsp <CR>:exe "GoDef" <CR>

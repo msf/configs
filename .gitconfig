@@ -5,11 +5,13 @@
 [alias]
 ci = commit
 co = checkout
-st = status
+st = status --short --branch
 di = diff
 br = branch
-lg = log --graph --pretty=format:\"%Cred%h%Creset — %s %Cgreen(%cr)%Creset\" --abbrev-commit --date=relative
+lg = log --graph --pretty=format:\"%Cred%h%Creset — %s %Cgreen(%cr)%Creset\" --decorate --oneline --date=relative
 dt = diff-tree -p --color
+rim = rebase -i master
+poh = push origin HEAD
 
 [branch]
     autosetuprebase = always
@@ -31,6 +33,12 @@ dt = diff-tree -p --color
     diff-tree = true
     branch = auto
 
+[diff]
+    tool = meld
+
+[difftool "vimdirdiff"]
+    cmd = vim -f '+next' '+execute \"DirDiff\" argv(0) argv(1)' $LOCAL $REMOTE '+syntax off'
+
 [gui]
 	fontui = -family \"Liberation Sans\" -size 12 -weight bold -slant roman -underline 0 -overstrike 0
 
@@ -42,3 +50,9 @@ dt = diff-tree -p --color
 
 [pull]
 	rebase = true
+[credential]
+	helper = osxkeychain
+[filter "lfs"]
+	clean = git-lfs clean %f
+	smudge = git-lfs smudge %f
+	required = true
