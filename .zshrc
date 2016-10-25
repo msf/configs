@@ -64,6 +64,8 @@ alias sshfs='sshfs -o reconnect,intr'
 alias pr="hub pull-request"
 alias vac="source env/bin/activate"
 alias gti=git
+alias frp="python -m icecastle.region_party"
+alias cm-ops="cd ~/cm/operations ; source env/bin/activate"
 
 # keychain
 keychain=`which keychain`
@@ -72,16 +74,32 @@ if [ -x ${keychain} ]; then
     source ~/.keychain/${HOST}-sh  > /dev/null
 fi
 
+#if [ -x `which nvim` ]; then
+#    alias vim=nvim
+#fi
 
 [ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
 
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 
-PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+
+function fssh() {
+    instance="$1"
+    if [[ $instance =~ ^i- ]]
+    then
+        fab zone:b iid:$@ ssh
+    else
+        fab zone:b group:$@ most_recent ssh
+    fi
+}
+
+PATH="/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:${PATH}"
 #PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
 #CLASSPATH="/usr/share/junit/lib/junit.jar:${CLASSPATH}"
 PYTHONPATH="."
 #export LD_LIBRARY_PATH=
 GOPATH="${HOME}/go"
-PATH="${GOPATH}/bin:${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+PATH="${GOPATH}/bin:${PATH}"
 export PATH CLASSPATH PYTHONPATH GOPATH
+
+export SERVER_RESOURCES_DIR="${HOME}/cm/static-config/server_resources/staging"
