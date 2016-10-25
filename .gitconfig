@@ -10,6 +10,7 @@ di = diff
 br = branch
 lg = log --graph --pretty=format:\"%Cred%h%Creset — %s %Cgreen(%cr)%Creset\" --decorate --oneline --date=relative
 dt = diff-tree -p --color
+dc = diff --cached
 rim = rebase -i master
 poh = push origin HEAD
 
