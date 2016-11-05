@@ -35,6 +35,7 @@ set background=dark
 " pathogen will load the other modules
 execute pathogen#infect()
 
+let g:solarized_termcolors = 256
 colorscheme solarized
 
 source ~/.vim/syntax.vim
@@ -42,6 +43,9 @@ source ~/.vim/minibufexpl.vim
 "source ~/.vim/pysmell.vim
 source ~/.vim/python.vim
 source ~/.vim/badwhitespace.vim
+
+" this isn't working yet.
+"let g:deoplete#enable_at_startup = 1
 
 let g:DirDiffExcludes = ".git,*.class,*.exe,.svn"
 
