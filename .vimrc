@@ -40,9 +40,6 @@ colorscheme solarized
 
 source ~/.vim/syntax.vim
 source ~/.vim/minibufexpl.vim
-"source ~/.vim/pysmell.vim
-source ~/.vim/python.vim
-source ~/.vim/badwhitespace.vim
 
 " this isn't working yet.
 "let g:deoplete#enable_at_startup = 1
@@ -62,10 +59,15 @@ let mapleader=","
 
 " use the python from usr/local/bin
 let g:ycm_path_to_python_interpreter = "/usr/local/bin/python"
+let g:python_host_prog = '/usr/local/bin/python'
 
-" we want to tell the syntastic module when to run
-" we want to see code highlighting and checks when  we open a file
-" but we don't care so much that it reruns when we close the file
+" recommeded settings from Syntastic's README
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+"let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
