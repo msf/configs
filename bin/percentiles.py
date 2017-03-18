@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import re
 
 
 PERCENTILES = [10, 50, 90, 95, 99]
-numbers = re.compile('\d+(?:\.\d+)?')
+NUMBERS_REGEXP = re.compile(r'\d+(?:\.\d+)?')
 
 
 def read_numbers(inputstream):
@@ -13,15 +14,15 @@ def read_numbers(inputstream):
 
     for line in inputstream:
         try:
-            val = float(numbers.findall(line)[0])
+            val = float(NUMBERS_REGEXP.findall(line)[0])
             numbs.append(val)
             sumi += val
-        except Exception, e:
+        except Exception:
             pass
     return numbs, sumi
 
 
-def percentile(sorted_numbers, percentile):
+def get_percentile(sorted_numbers, percentile):
     count = len(sorted_numbers)
     if count == 0:
         return -1
@@ -41,16 +42,21 @@ def run(inputstream):
     numbs.sort(key=float)
 
     print("count: {},    min:{:.3f},    avg:{:.3f},    max:{:.3f}".format(
-          len(numbs), numbs[0], sumi/len(numbs), numbs[-1]))
+        len(numbs), numbs[0], sumi/len(numbs), numbs[-1]))
     percentiles_str = ""
     for percen in PERCENTILES:
-        value = percentile(numbs, percen)
-        percentiles_str +="    P{}%: {:.3f}".format(percen, value)
+        value = get_percentile(numbs, percen)
+        percentiles_str += "    P{}%: {:.3f}".format(percen, value)
     print(percentiles_str.strip())
 
 
-if sys.argv[1] == '-':
-    inputstream = sys.stdin
-else:
-    inputstream = open(sys.argv[1])
-run(inputstream)
+def main():
+    if sys.argv[1] == '-':
+        inputstream = sys.stdin
+    else:
+        inputstream = open(sys.argv[1])
+    run(inputstream)
+
+
+if __name__ == '__main__':
+    main()
