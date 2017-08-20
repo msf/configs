@@ -122,18 +122,11 @@ alias term='xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8'
 alias eve='wine explorer /desktop=0,1680x1050 "C:\Program Files\CCP\EVE\bin\exefile.exe'
 alias ventrilo='wine ~/.wine/drive_c/Program\ Files/Ventrilo/Ventrilo.exe'
 alias dstat='dstat -c -d -n -m -s -y'
-#pacman/arch stuff
-alias pacget='sudo pacman -S'
-alias pacls='sudo pacman -Ss'
-alias pacup='sudo pacman -Syu'
-alias pacrm='sudo pacman -R'
-alias pacup2='yaourt -Syu --aur'
 alias aptls='aptitude search'
 alias aptget='sudo aptitude install'
 alias aptls='aptitude search'
 alias aptrm='sudo aptitude remove'
 alias aptup='sudo aptitude update && sudo aptitude upgrade'
-alias sapo-vpn='sudo pppd call VPN-W'
 alias mpirun='mpirun --mca mpi_paffinity_alone 1'
 alias sshfs='sshfs -o reconnect,intr'
 alias pr="hub pull-request"
@@ -141,6 +134,8 @@ alias vac="source env/bin/activate"
 alias gti=git
 alias frp="python -m icecastle.region_party"
 alias cm-ops="cd ~/cm/operations ; source env/bin/activate"
+alias tmux='tmux -2'  # use 256 colors
+
 
 # keychain
 keychain=`which keychain`
@@ -178,3 +173,13 @@ PATH="${GOPATH}/bin:${PATH}"
 export PATH CLASSPATH PYTHONPATH GOPATH
 
 export SERVER_RESOURCES_DIR="${HOME}/cm/static-config/server_resources/staging"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f /Users/miguel/Downloads/google-cloud-sdk/path.zsh.inc ]; then
+  source '/Users/miguel/Downloads/google-cloud-sdk/path.zsh.inc'
+fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f /Users/miguel/Downloads/google-cloud-sdk/completion.zsh.inc ]; then
+  source '/Users/miguel/Downloads/google-cloud-sdk/completion.zsh.inc'
+fi
