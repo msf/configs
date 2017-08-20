@@ -11,7 +11,7 @@ int main()
 	void *p;
 	time_t t;
 
-	printf("tamanho de:\n floats: %02lu\t doubles: %02lu\n long int: %02lu\t int: %02lu\t short int: %02lu\n void* %02lu\ntime_t :%02lu\n",
+	printf("size of (in bytes):\n floats: %02lu\t doubles: %02lu\n long int: %02lu\t int: %02lu\t short int: %02lu\n void* %02lu\ntime_t :%02lu\n",
 			sizeof(f),
 			sizeof(d),
 			sizeof(b),
