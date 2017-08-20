@@ -8,20 +8,20 @@ HOME = os.path.expanduser('~/')
 CWD = os.path.abspath('.') + '/'
 
 IN_DOT_CONFIG = [
-        'awesome',
-        'nvim',
+    'awesome',
+    'nvim',
 ]
 
 def copyFiles():
     config_files = glob('*')
     config_files.extend( glob('.*') )
     dont_symlink = [
-        'install.py', #or should I use __file__ ?
+        'install.py',  # or should I use __file__ ?
         'README',
         '.git',
-        ]
+    ]
     dont_symlink.extend(IN_DOT_CONFIG)
-    dont_symlink.extend( glob('.*swp') ) # temp edit files
+    dont_symlink.extend( glob('.*swp') )  # temp edit files
 
     for f in dont_symlink:
         config_files.remove(f)
