@@ -7,6 +7,10 @@ import shutil
 HOME = os.path.expanduser('~/')
 CWD = os.path.abspath('.') + '/'
 
+IN_DOT_CONFIG = [
+        'awesome',
+        'nvim',
+]
 
 def copyFiles():
     config_files = glob('*')
@@ -15,8 +19,8 @@ def copyFiles():
         'install.py', #or should I use __file__ ?
         'README',
         '.git',
-        'awesome',
         ]
+    dont_symlink.extend(IN_DOT_CONFIG)
     dont_symlink.extend( glob('.*swp') ) # temp edit files
 
     for f in dont_symlink:
@@ -44,15 +48,12 @@ def removePath(destfile):
 
 def copyConfigDirs():
     ''' into .config directory stuff '''
-    configdirs = [ 'awesome'
-        ,
-        ]
 
     destdir = HOME + ".config/"
     if not os.path.exists(destdir):
         os.mkdir(destdir)
 
-    for di in configdirs :
+    for di in IN_DOT_CONFIG:
         destpath = destdir + di
         if os.path.exists(destpath) or os.path.islink(destpath):
             removePath(destpath)
