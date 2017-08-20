@@ -1,3 +1,13 @@
+set autowrite
+set hidden
+set number
+set shell=bash
+set background=dark
+" (\ is the default, but ',' is more common, and easier to reach)
+let mapleader=","
+
+colorscheme solarized
+
 call plug#begin('~/.vim/bundle')
 Plug 'tpope/vim-sensible'
 Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
@@ -8,13 +18,16 @@ Plug 'scrooloose/syntastic'
 Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
 call plug#end()
 
-set hidden
-set number
-set autowrite
-set shell=bash
-set background=dark
-" (\ is the default, but ',' is more common, and easier to reach)
-let mapleader=","
+source ~/.vim/syntax.vim
+
+" use the python from usr/local/bin
+"let g:ycm_path_to_python_interpreter = "/usr/local/bin/python"
+
+" we want to tell the syntastic module when to run
+" we want to see code highlighting and checks when  we open a file
+" but we don't care so much that it reruns when we close the file
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
 
 " we also want to get rid of accidental trailing whitespace on save
 autocmd BufWritePre * :%s/\s\+$//e
@@ -25,9 +38,6 @@ if has('nvim')
 else
  set viminfo='20,\"50,:200,%,n~/.viminfo
 endif
-source ~/.vim/syntax.vim
-
-colorscheme solarized
 
 " use goimports for formatting
 let g:go_fmt_command = "goimports"
