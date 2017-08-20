@@ -32,14 +32,20 @@ match ErrorMsg /\s\+$/
 set shell=bash
 set background=dark
 
+" which key should be the <leader>
+" (\ is the default, but ',' is more common, and easier to reach)
+let mapleader=","
+
 " pathogen will load the other modules
 execute pathogen#infect()
 
 let g:solarized_termcolors = 256
 colorscheme solarized
 
+map <leader>. :NERDTreeToggle<CR>
+
 source ~/.vim/syntax.vim
-source ~/.vim/minibufexpl.vim
+"source ~/.vim/minibufexpl.vim
 
 " this isn't working yet.
 "let g:deoplete#enable_at_startup = 1
@@ -52,9 +58,6 @@ let g:DirDiffExcludes = ".git,*.class,*.exe,.svn"
 " plugins expect bash - not fish, zsh, etc
 set shell=bash
 
-" which key should be the <leader>
-" (\ is the default, but ',' is more common, and easier to reach)
-let mapleader=","
 
 
 " use the python from usr/local/bin
