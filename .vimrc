@@ -39,9 +39,6 @@ colorscheme solarized
 
 source ~/.vim/syntax.vim
 source ~/.vim/minibufexpl.vim
-"source ~/.vim/pysmell.vim
-source ~/.vim/python.vim
-source ~/.vim/badwhitespace.vim
 
 let g:DirDiffExcludes = ".git,*.class,*.exe,.svn"
 
@@ -57,7 +54,7 @@ let mapleader=","
 
 
 " use the python from usr/local/bin
-let g:ycm_path_to_python_interpreter = "/usr/local/bin/python"
+" let g:ycm_path_to_python_interpreter = "/usr/local/bin/python"
 
 " we want to tell the syntastic module when to run
 " we want to see code highlighting and checks when  we open a file
