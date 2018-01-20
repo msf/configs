@@ -37,7 +37,7 @@ MAC_ADDR10="0:00:00:00:00:00"; # thinkpad sapo wifi
 MAC_ADDR11="0:00:00:00:00:00"; # thinkpad sapo wired
 MACS="$MAC_ADDR1 $MAC_ADDR2 $MAC_ADDR3 $MAC_ADDR4 $MAC_ADDR5 $MAC_ADDR6 $MAC_ADDR7 $MAC_ADDR8 $MAC_ADDR9 $MAC_ADDR10 $MAC_ADDR11"
 
- 
+
 # allowed ports ssh,messenger,messengerTransfers,eMule/Kad,bittorrent,bittorrent
 tcpPORTS="22,1863,4662,26881,26882,26889";
 udpPORTS="139,1863,26891,4665,4672,1194"; #last one is openvpn
@@ -58,7 +58,7 @@ save() {
 kernel_setup() {
         # This sets UP kernel paremeters needed
         # for the correct funcioning of the firewall.
-        
+
         # Enabling Spoof-protection trought rp_filter
         for i in /proc/sys/net/ipv4/conf/*/rp_filter; do
                 echo "1" > $i
@@ -74,11 +74,11 @@ kernel_setup() {
 
         # Enablig ip forwarding for IPv4 and IPv6
         echo "1" > /proc/sys/net/ipv4/conf/all/forwarding
-	echo "1" > /proc/sys/net/ipv4/ip_dynaddr
+     	echo "1" > /proc/sys/net/ipv4/ip_dynaddr
         if [ -f /proc/sys/net/ipv6/conf/all/forwarding ]; then
         	echo "1" > /proc/sys/net/ipv6/conf/all/forwarding
 	fi
-        
+
         #Load the kernel modules.
         $PROBE ip_tables
         $PROBE iptable_filter
@@ -93,7 +93,7 @@ kernel_setup() {
 }
 
 disable() {
-        # This flushes the firewall rules, stopping it 
+        # This flushes the firewall rules, stopping it
         # and disables IP forwarding
         echo -n "Stopping firewall ->"
         # set sane defaults that disable forwarding
@@ -135,7 +135,7 @@ setup() {
 
         # --- the $IPT ruleset starts here ---
         # Setting up a "Deny by Default" policy
-        $IPT -P FORWARD DROP 
+        $IPT -P FORWARD DROP
         $IPT -t filter -P FORWARD DROP
 		# we don't alter INPUT default policy so that we don't mess other interfaces.
 
@@ -144,14 +144,14 @@ setup() {
         $IPT -A INPUT -i $LAN_INTERFACE -j LOCAL
         $IPT -N NET
         $IPT -A INPUT -i $NET_INTERFACE -j NET
-       
+
         # all the "evil" packets, so we log them and drop them.
         #Set up the icewall chain
         $IPT -N icewall
         #$IPT -A icewall -j LOG --log-level debug --log-prefix "IceWall:"
         $IPT -A icewall -j DROP
-                
-        #Setup Masquerading. Change the IP to your internal network 
+
+        #Setup Masquerading. Change the IP to your internal network
         # and uncomment this in order to enable it.
         $IPT -A POSTROUTING -t nat -s 192.168.0.0/24 -o $NET_INTERFACE -j MASQUERADE
 	# MAC address locking!
@@ -160,17 +160,17 @@ setup() {
 		$IPT -A FORWARD -t filter -m mac --mac-source $i -j ACCEPT
 	done
 
-		
+
        # Hack to circunvent some brocken firewalls/routers.. (found in man page)
-        # This  target is used to overcome criminally braindead ISPs or servers 
-        # which block ICMP Fragmentation Needed packets.  
+        # This  target is used to overcome criminally braindead ISPs or servers
+        # which block ICMP Fragmentation Needed packets.
         # The symptoms of this problem are that everything works fine  from
-        # your Linux firewall/router, but machines behind it can never exchange 
+        # your Linux firewall/router, but machines behind it can never exchange
         # large packets:
         # 1) Web browsers connect, then hang with no data received.
         # 2) Small mail works fine, but large emails hang.
         # 3) ssh works fine, but scp hangs after initial handshaking.
-        # Workaround: activate this option and add a rule to your firewall 
+        # Workaround: activate this option and add a rule to your firewall
         # configuration like:
         $IPT -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 	$IPT -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
@@ -178,17 +178,17 @@ setup() {
 
         #Accept ourselves
         $IPT -A INPUT -i lo -s 127.0.0.0/8 -d 127.0.0.0/8 -j ACCEPT
-        
+
 
         #----------------------------------[inSIDE NETWORK INTERFACE RULES]
 	# on the internal network only the registerd MAC's inidicated in
 	# MAC_ADDR? are allowed.
-	# this isn't fullproof, one can allays fake MAC addresses.. 
+	# this isn't fullproof, one can allays fake MAC addresses..
 	# but it complicates things a bit more.
 	for i in $MACS
-	do 
+	do
 		$IPT -A LOCAL -m mac --mac-source $i -j ACCEPT
-	done	
+	done
 
 	# Lets be shure that the source addresses are correct.
         $IPT -A LOCAL -s ! 192.168.0.0/24 -j icewall
@@ -197,7 +197,7 @@ setup() {
 
         #----------------------------------[outSIDE NETWORK INTERFACE RULES]
         # rules are laid out in order of "popularity" for better performance.
-		
+
         # Use state for accepting "good" incomming traffic
         $IPT -A NET -m state --state ESTABLISHED,RELATED -j ACCEPT
 
@@ -232,7 +232,7 @@ activate() {
         else
                 # kernel setup for firewall
                 kernel_setup
-                        
+
                 echo "Restoring $IPT ruleset"
                 $IPT-restore < ${IPTABLES_SAVE}
         fi
@@ -265,7 +265,7 @@ case $1 in
         abort)
                 disable
                 ;;
-	save)	
+	save)
 		save
 		;;
         *)
@@ -275,6 +275,6 @@ case $1 in
                 stop: saves firewall rule set, and stops it.
                 abort: stops firewall."
                 ;;
-esac                
+esac
 
 # vim:ts=4
