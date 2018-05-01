@@ -52,7 +52,7 @@ poh = push origin HEAD
 [pull]
 	rebase = true
 [credential]
-	helper = cache
+	helper = --timeout=43200
 [filter "lfs"]
 	clean = git-lfs clean %f
 	smudge = git-lfs smudge %f
