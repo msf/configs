@@ -30,7 +30,7 @@ def copyFiles():
         try:
             os.symlink(sourcefile,destfile)
             print("symlinked %s" % file)
-        except OSError, ex:
+        except OSError as ex:
             print("failed on %s -> %s, %s" % (sourcefile, destfile, ex))
 
 def removePath(destfile):
