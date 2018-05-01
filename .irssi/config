@@ -277,6 +277,7 @@ settings = {
   "fe-common/core" = {
     theme = "default.theme";
     completion_nicks_lowercase = "no";
+    activity_hide_level = "parts joins quits nicks modes";
   };
   "fe-text" = { actlist_sort = "refnum"; };
 };
