@@ -30,7 +30,7 @@ def get_percentile(sorted_numbers, percentile):
         return sorted_numbers[0]
     if percentile >= 100:
         return sorted_numbers[-1]
-    pos = (percentile * count)/100
+    pos = int((percentile * count)/100)
     return sorted_numbers[pos]
 
 
@@ -42,7 +42,11 @@ def run(inputstream):
     numbs.sort(key=float)
 
     print("count: {},    min:{:.3f},    avg:{:.3f},    max:{:.3f}".format(
-        len(numbs), numbs[0], sumi/len(numbs), numbs[-1]))
+        len(numbs),
+        numbs[0],
+        sumi/len(numbs),
+        numbs[-1],
+    ))
     percentiles_str = ""
     for percen in PERCENTILES:
         value = get_percentile(numbs, percen)
