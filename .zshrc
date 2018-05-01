@@ -131,6 +131,7 @@ alias mpirun='mpirun --mca mpi_paffinity_alone 1'
 alias sshfs='sshfs -o reconnect,intr'
 alias pr="hub pull-request"
 alias vac="source env/bin/activate"
+alias va3="source venv/bin/activate"
 alias gti=git
 alias frp="python -m icecastle.region_party"
 alias cm-ops="cd ~/cm/operations ; source env/bin/activate"
@@ -141,6 +142,7 @@ alias tmux='tmux -2'  # use 256 colors
 keychain=`which keychain`
 if [ -x ${keychain} ]; then
     ${keychain} -q ~/.ssh/id_rsa
+    ${keychain} -q ~/.ssh/payments-miguel-ssh-keyfile.pem
     source ~/.keychain/${HOST}-sh  > /dev/null
 fi
 
@@ -170,6 +172,7 @@ PYTHONPATH="."
 #export LD_LIBRARY_PATH=
 GOPATH="${HOME}/go"
 PATH="${GOPATH}/bin:${PATH}"
+PATH="/Applications/Postgres.app/Contents/Versions/latest/bin:${PATH}"
 export PATH CLASSPATH PYTHONPATH GOPATH
 
 export SERVER_RESOURCES_DIR="${HOME}/cm/static-config/server_resources/staging"
