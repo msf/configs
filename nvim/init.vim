@@ -1,12 +1,16 @@
 set autowrite
+set background=dark
 set hidden
 set number
 set shell=bash
-set background=dark
+set shiftwidth=4
+set softtabstop=4
+set tabstop=4
+
 " (\ is the default, but ',' is more common, and easier to reach)
 let mapleader=","
 
-colorscheme solarized
+colorscheme desert
 
 call plug#begin('~/.vim/bundle')
 Plug 'tpope/vim-sensible'
