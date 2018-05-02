@@ -11,15 +11,20 @@ br = branch
 lg = log --graph --pretty=format:\"%Cred%h%Creset — %s %Cgreen(%cr)%Creset\" --decorate --oneline --date=relative
 dt = diff-tree -p --color
 dc = diff --cached
-rim = rebase -i master
 poh = push origin HEAD
+rbc = rebase --continue
+mgt = mergetool
+rom = !git fetch && git rebase origin/master
+rim = !git fetch && git rebase -i origin/master
+prod = !git branch -f production origin/master && git push origin production
+recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(color:red)%(objectname:short)%(color:reset) %(HEAD) %(color:yellow)%(refname:short)%(color:reset) (%(color:green)%(committerdate:relative)%(color:reset)) %(contents:subject)'
 
 [branch]
     autosetuprebase = always
 
 [merge]
     ff = no
-    tool = vimdiff
+    tool = kdiff3
 
 [pull]
     rebase = true
@@ -35,7 +40,7 @@ poh = push origin HEAD
     branch = auto
 
 [diff]
-    tool = vimdiff
+    tool = kdiff3
 
 [difftool "vimdirdiff"]
     cmd = vim -f '+next' '+execute \"DirDiff\" argv(0) argv(1)' $LOCAL $REMOTE '+syntax off'
@@ -52,7 +57,6 @@ poh = push origin HEAD
 [pull]
 	rebase = true
 [credential]
-	helper = --timeout=43200
 [filter "lfs"]
 	clean = git-lfs clean %f
 	smudge = git-lfs smudge %f
