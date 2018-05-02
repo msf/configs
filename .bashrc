@@ -48,7 +48,7 @@ alias vac="source env/bin/activate"
 keychain=`which keychain`
 if [ -x ${keychain} ]; then
     ${keychain} -q ~/.ssh/id_rsa
-    source ~/.keychain/${HOST}-sh  > /dev/null
+    source ~/.keychain/${HOSTNAME}-sh  > /dev/null
 fi
 
 
