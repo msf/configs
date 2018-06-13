@@ -24,7 +24,7 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
 
 [merge]
     ff = no
-    tool = kdiff3
+    tool = meld
 
 [pull]
     rebase = true
@@ -40,7 +40,13 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
     branch = auto
 
 [diff]
-    tool = kdiff3
+    tool = meld
+
+[difftool]
+    prompt = false
+
+[difftool "meld"]
+    cmd = meld "$LOCAL" "$REMOTE"
 
 [difftool "vimdirdiff"]
     cmd = vim -f '+next' '+execute \"DirDiff\" argv(0) argv(1)' $LOCAL $REMOTE '+syntax off'
