@@ -32,3 +32,5 @@ PATH="${PATH}:/opt/lxc/bin"
 PYTHONPATH="${HOME}/sapo/v3.git/trunk/sawpy/py-libsaw:${HOME}/sapo/v3.git/sawpy/py-libsaw:${HOME}/sapo/libsapo-broker-python"
 
 export PATH CLASSPATH PYTHONPATH
+
+export PATH="$HOME/.cargo/bin:$PATH"
