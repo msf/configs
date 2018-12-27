@@ -141,7 +141,8 @@ if [ -x ${keychain} ]; then
     source ~/.keychain/${HOST}-sh  > /dev/null
 fi
 
-if [ -x `which nvim` ]; then
+nvim=`which nvim`
+if [ -x ${nvim} ]; then
     alias vim=nvim
 fi
 
@@ -181,3 +182,4 @@ fi
 if [ -f /Users/miguel/Downloads/google-cloud-sdk/completion.zsh.inc ]; then
   source '/Users/miguel/Downloads/google-cloud-sdk/completion.zsh.inc'
 fi
+export PATH="/usr/local/opt/openssl/bin:$PATH"
