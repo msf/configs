@@ -35,7 +35,7 @@ set background=dark
 " pathogen will load the other modules
 execute pathogen#infect()
 
-colorscheme solarized
+colorscheme solarized8
 
 source ~/.vim/syntax.vim
 source ~/.vim/minibufexpl.vim
