@@ -45,11 +45,11 @@ alias pr="hub pull-request"
 alias vac="source env/bin/activate"
 
 # keychain
-keychain=`which keychain`
-if [ -x ${keychain} ]; then
-    ${keychain} -q ~/.ssh/id_rsa
-    source ~/.keychain/${HOST}-sh  > /dev/null
-fi
+# keychain=`which keychain`
+# if [ -x ${keychain} ]; then
+#     ${keychain} -q ~/.ssh/id_rsa
+#     source ~/.keychain/${HOST}-sh  > /dev/null
+# fi
 
 
 

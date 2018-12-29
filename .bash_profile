@@ -11,11 +11,11 @@ EDITOR=vim
 export EDITOR
 
 # keychain
-keychain=`which keychain`
-if [ -x ${keychain} ]; then
-    ${keychain} -q ~/.ssh/id_rsa
-    source ~/.keychain/${HOSTNAME}-sh  > /dev/null
-fi
+#keychain=`which keychain`
+#if [ -x ${keychain} ]; then
+#    ${keychain} -q ~/.ssh/id_rsa
+#    source ~/.keychain/${HOSTNAME}-sh  > /dev/null
+#fi
 
 # include .bashrc if it exists
 [ -f ~/.bashrc ] && source ~/.bashrc
