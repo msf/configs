@@ -50,6 +50,7 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
 
 [push]
     default = tracking
+	followTags = true
 
 [branch]
     autosetuprebase = always
