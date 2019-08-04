@@ -37,7 +37,7 @@
   # $ nix search wget
    environment = {
      variables = {
-       EDITOR = pkgs.lib.mkOverride 0 "vim";
+       EDITOR = "vim";
      };
      systemPackages = with pkgs; [
        wget
@@ -62,9 +62,38 @@
        ncdu
        meld
        tree
+       syncthing-cli
      ];
    pathsToLink = [ "/libexec" ];
   };
+
+  powerManagement.cpuFreqGovernor = "performance";
+  
+  users.defaultUserShell = pkgs.zsh;
+  programs.zsh.enable = true;
+
+  security.pam.loginLimits = [{
+    domain = "*";
+    type = "hard";
+    item = "nofile";
+    value = "65535";
+  }];
+
+  fonts = {
+    enableFontDir = true;
+    enableGhostscriptFonts = true;
+    fonts = with pkgs; [
+      google-fonts
+      inconsolata
+      liberation_ttf
+      powerline-fonts
+      source-code-pro
+      terminus_font
+      ttf_bitstream_vera
+      ubuntu_font_family
+    ];
+  };
+
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -80,13 +109,16 @@
   services.syncthing = {
     enable = true;
     user = "miguel";
-    dataDir = "/home/miguel/configs/syncthing";
+    dataDir = "/home/miguel/";
+    openDefaultPorts = true;
+    systemService = true;
   };
 
   # Enable the X11 windowing system.
   services.xserver = {
     enable = true;
     layout = "us";
+    videoDrivers = [ "intel" ];
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     desktopManager = {
