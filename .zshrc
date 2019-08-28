@@ -46,7 +46,7 @@ alias ipy='ipython -nobanner -noconfirm_exit'
 alias term='xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8'
 alias eve='wine explorer /desktop=0,1680x1050 "C:\Program Files\CCP\EVE\bin\exefile.exe'
 alias ventrilo='wine ~/.wine/drive_c/Program\ Files/Ventrilo/Ventrilo.exe'
-alias dstat='dstat -c -d -n -m -s -y'
+alias dstat='dstat -c -r -d -n -m -s -y'
 #pacman/arch stuff
 alias pacget='sudo pacman -S'
 alias pacls='sudo pacman -Ss'
@@ -64,42 +64,36 @@ alias sshfs='sshfs -o reconnect,intr'
 alias pr="hub pull-request"
 alias vac="source env/bin/activate"
 alias gti=git
-alias frp="python -m icecastle.region_party"
-alias cm-ops="cd ~/cm/operations ; source env/bin/activate"
+alias tmux="tmux -2"
 
 # keychain
 keychain=`which keychain`
 if [ -x ${keychain} ]; then
     ${keychain} -q ~/.ssh/id_rsa
+    ${keychain} -q ~/.ssh/id_ed25519
     source ~/.keychain/${HOST}-sh  > /dev/null
 fi
-
-#if [ -x `which nvim` ]; then
-#    alias vim=nvim
-#fi
 
 [ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
 
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 
 
-function fssh() {
-    instance="$1"
-    if [[ $instance =~ ^i- ]]
-    then
-        fab zone:b iid:$@ ssh
-    else
-        fab zone:b group:$@ most_recent ssh
-    fi
-}
-
 PATH="/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:${PATH}"
-#PATH="${PATH}:/opt/j2sdk1.4.1/jre/bin:/opt/j2sdk1.4.1/bin"
-#CLASSPATH="/usr/share/junit/lib/junit.jar:${CLASSPATH}"
+PATH="/opt/go/bin:${PATH}"
 PYTHONPATH="."
 #export LD_LIBRARY_PATH=
 GOPATH="${HOME}/go"
 PATH="${GOPATH}/bin:${PATH}"
+PATH=$PATH:/snap/bin
 export PATH CLASSPATH PYTHONPATH GOPATH
 
-export SERVER_RESOURCES_DIR="${HOME}/cm/static-config/server_resources/staging"
+# kubectl
+kubectl=`which kubectl`
+if [ -x ${kubectl} ]; then
+    source <(kubectl completion zsh)
+fi
+
+# zprezto
+[ -d ~/.zprezto ] && source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+
