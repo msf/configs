@@ -29,27 +29,44 @@ match ErrorMsg /^\t\+/
 " Make trailing whitespace be flagged as bad.
 match ErrorMsg /\s\+$/
 
+" plugins expect bash - not fish, zsh, etc
 set shell=bash
 set background=dark
 
-" pathogen will load the other modules
-execute pathogen#infect()
+set nocompatible    " required by Vundle
+filetype off        " required by Vundle
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+" let Vundle manage Vundle, required
+Plugin 'VundleVim/Vundle.vim'
+
+Plugin 'vim-syntastic/syntastic'
+Plugin 'scrooloose/nerdtree'
+Plugin 'hashivim/vim-terraform'
+Plugin 'fatih/vim-go'
+Plugin 'davidhalter/jedi-vim'
+Plugin 'lifepillar/vim-solarized8'
+Plugin 'will133/vim-dirdiff'
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+filetype plugin indent on    " required
 
 colorscheme solarized8
 
 source ~/.vim/syntax.vim
 source ~/.vim/minibufexpl.vim
-"source ~/.vim/pysmell.vim
-source ~/.vim/python.vim
 source ~/.vim/badwhitespace.vim
 
 let g:DirDiffExcludes = ".git,*.class,*.exe,.svn"
+map <C-n> :NERDTreeFocus<CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " this stuff came from https://coolaj86.com/articles/getting-started-with-golang-and-vim/
 "
-" plugins expect bash - not fish, zsh, etc
-set shell=bash
 
 " which key should be the <leader>
 " (\ is the default, but ',' is more common, and easier to reach)
