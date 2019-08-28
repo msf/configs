@@ -36,6 +36,7 @@ set background=dark
 set nocompatible    " required by Vundle
 filetype off        " required by Vundle
 
+" INSTALL PLUGINS WITH ":PluginInstall!"
 " set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
@@ -62,7 +63,7 @@ source ~/.vim/minibufexpl.vim
 source ~/.vim/badwhitespace.vim
 
 let g:DirDiffExcludes = ".git,*.class,*.exe,.svn"
-map <C-n> :NERDTreeFocus<CR>
+map <C-n> :NERDTreeToggle<CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " this stuff came from https://coolaj86.com/articles/getting-started-with-golang-and-vim/
