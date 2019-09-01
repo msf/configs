@@ -4,11 +4,24 @@
 
 { config, pkgs, ... }:
 
+let
+  unstableTarball = 
+    fetchTarball
+      https://github.com/NixOS/nixpkgs-channels/archive/nixos-unstable.tar.gz;
+in
 {
   imports =
     [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+      /etc/nixos/hardware-configuration.nix
     ];
+
+  nixpkgs.config = {
+    packageOverrides = pkgs: {
+      unstable = import unstableTarball {
+        config = config.nixpkgs.config;
+      };
+    };
+  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -55,14 +68,13 @@
        gcc
        zstd
        btrfs-progs
-       go
+       unstable.go
        weechat
-       restic
+       unstable.restic
        lm_sensors
        ncdu
        meld
        tree
-       syncthing-cli
      ];
    pathsToLink = [ "/libexec" ];
   };
@@ -105,6 +117,15 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
   services.timesyncd.enable = true; 
+  services.zfs.autoScrub.enable = true;
+  services.zfs.autoSnapshot = {
+    enable = true;
+    monthly = 4;  # default is 12
+    weekly = 4; 
+    daily = 4;  # default is 7
+    hourly = 4; # default is 24
+    frequent = 4;
+  };
  
   services.syncthing = {
     enable = true;
