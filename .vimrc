@@ -1,7 +1,7 @@
 " .vimrc, ficheiro de configuracao do vim
 "
 set incsearch
-set nocp
+set nocompatible
 set title
 set ttyfast
 set ruler
@@ -17,7 +17,7 @@ set hlsearch
 set autowrite
 set hidden
 set number
-set mouse=
+set mouse=a
 syntax enable
 
 map <F5> :make<CR>
@@ -44,12 +44,12 @@ call vundle#begin()
 " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
 
+Plugin 'lifepillar/vim-solarized8'
 Plugin 'vim-syntastic/syntastic'
 Plugin 'scrooloose/nerdtree'
 Plugin 'hashivim/vim-terraform'
 Plugin 'fatih/vim-go'
 Plugin 'davidhalter/jedi-vim'
-Plugin 'lifepillar/vim-solarized8'
 Plugin 'will133/vim-dirdiff'
 
 " All of your Plugins must be added before the following line
@@ -63,7 +63,7 @@ source ~/.vim/minibufexpl.vim
 source ~/.vim/badwhitespace.vim
 
 let g:DirDiffExcludes = ".git,*.class,*.exe,.svn"
-map <C-n> :NERDTreeToggle<CR>
+map <C-k> :NERDTreeToggle<CR>
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " this stuff came from https://coolaj86.com/articles/getting-started-with-golang-and-vim/
