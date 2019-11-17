@@ -46,6 +46,7 @@ alias dstat='dstat -c -r -d -n -m -s -y'
 alias vac="source env/bin/activate"
 alias gti=git
 alias tmux="tmux -2"
+alias k="kubectl"
 
 # keychain
 keychain=`which keychain`
@@ -76,3 +77,4 @@ fi
 # zprezto
 [ -d ~/.zprezto ] && source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 
+[ -f ~/.zshrc_private ] && source ~/.zshrc_private
