@@ -16,6 +16,7 @@ def copyFiles():
         "README",
         ".git",
         "awesome",
+        "nixos",
     ]
     dont_symlink.extend(glob(".*swp"))  # temp edit files
 
