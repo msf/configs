@@ -8,19 +8,24 @@
     [ <nixpkgs/nixos/modules/installer/scan/not-detected.nix>
     ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usbhid" "uas" "sd_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ehci_pci" "ahci" "usbhid" "uas" "sd_mod" ];
   boot.initrd.kernelModules = [ "dm-snapshot" ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" =
-    { device = "/dev/disk/by-uuid/2bcd97d5-5b8c-4882-959e-d2af3334ee47";
+    { device = "/dev/disk/by-uuid/1b2dbd27-3b84-487e-b9bd-cce2c4a1cb04";
       fsType = "ext4";
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/D693-A6F9";
+    { device = "/dev/disk/by-id/ata-SanDisk_SDMSATA256G_164642400538-part1";
       fsType = "vfat";
+    };
+
+  fileSystems."/home" =
+    { device = "/dev/disk/by-uuid/6febb429-5433-49cf-b14b-8536367fd298";
+      fsType = "ext4";
     };
 
   fileSystems."/media/weird" =
@@ -54,7 +59,7 @@
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/85b871e2-888c-468b-bfce-be4816daf224"; }
+    [ { device = "/dev/disk/by-uuid/cb2560ee-f36e-4dbf-ace3-b7a6ecb51bc8"; }
     ];
 
   nix.maxJobs = lib.mkDefault 2;

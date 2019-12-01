@@ -4,24 +4,11 @@
 
 { config, pkgs, ... }:
 
-let
-  unstableTarball = 
-    fetchTarball
-      https://github.com/NixOS/nixpkgs-channels/archive/nixos-unstable.tar.gz;
-in
 {
   imports =
     [ # Include the results of the hardware scan.
-      /etc/nixos/hardware-configuration.nix
+      ./hardware-configuration.nix
     ];
-
-  nixpkgs.config = {
-    packageOverrides = pkgs: {
-      unstable = import unstableTarball {
-        config = config.nixpkgs.config;
-      };
-    };
-  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -33,12 +20,20 @@ in
   networking.hostId = "a7ec8faa"; # zfs needs this
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
+  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
+  # Per-interface useDHCP will be mandatory in the future, so this generated config
+  # replicates the default behaviour.
+  #networking.useDHCP = false;
+  #networking.interfaces.eno1.useDHCP = true;
+  #networking.interfaces.wlp3s0.useDHCP = true;
+
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Select internationalisation properties.
    i18n = {
+     consoleFont = "Lat2-Terminus16";
      consoleKeyMap = "us";
      defaultLocale = "en_US.UTF-8";
    };
@@ -53,28 +48,40 @@ in
        EDITOR = "vim";
      };
      systemPackages = with pkgs; [
-       wget
-       vim
-       zsh
-       git
-       tmux
-       lsof
-       htop
-       dstat
-       iotop
-       smartmontools
-       firefox
-       python3
-       gcc
-       zstd
+       atop
+       awscli
        btrfs-progs
-       unstable.go
-       weechat
-       unstable.restic
+       dstat
+       firefox
+       fwupd
+       fwupdate
+       gcc
+       git
+       hdparm
+       htop
+       iotop
        lm_sensors
-       ncdu
+       lshw
+       lsof
        meld
+       ncdu
+       parted
+       pciutils
+       python3
+       rclone
+       smartmontools
+       syncthing
+       sysstat
+       tmux
        tree
+       go
+       restic
+       vim
+       weechat
+       wget
+       zfstools
+       zsh
+       zstd
      ];
    pathsToLink = [ "/libexec" ];
   };
@@ -200,7 +207,8 @@ in
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
   # should.
-  system.stateVersion = "19.03"; # Did you read the comment?
+  system.stateVersion = "19.09"; # Did you read the comment?
 
   nixpkgs.config.allowUnfree = true;
 }
+
