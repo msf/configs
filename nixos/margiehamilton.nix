@@ -12,14 +12,16 @@
 
   boot.supportedFilesystems = [ "zfs" "btrfs" ];
   boot.zfs.enableUnstable = true;
+  boot.kernelParams = ["zfs.zfs_arc_max=3221225472"];  # 3GB
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.kernel.sysctl."vm.swapiness" = 60;
 
   networking.hostId = "b05e6b14";  # for ZFS
   networking.hostName = "margiehamilton"; # Define your hostname.
-  networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+  networking.wireless.enable = false;  # using network manager
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
@@ -106,17 +108,18 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
-  services.timesyncd.enable = true; 
+  services.openssh.permitRootLogin = "no";
+  services.timesyncd.enable = true;
   services.zfs.autoScrub.enable = true;
   services.zfs.autoSnapshot = {
     enable = true;
     monthly = 4;  # default is 12
-    weekly = 4; 
+    weekly = 4;
     daily = 4;  # default is 7
     hourly = 4; # default is 24
     frequent = 4;
   };
- 
+
   services.syncthing = {
     enable = true;
     user = "miguel";
@@ -134,20 +137,25 @@
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     desktopManager = {
-        default = "none";
-        xterm.enable = false;
+        # default = "none";
+	gnome3.enable = true;
+        # xterm.enable = false;
     };
 
-    windowManager.i3 = {
-        enable = true;
-        extraPackages = with pkgs; [
-            dmenu
-            i3status
-            i3lock
-            i3blocks
-        ];
-    };
+    displayManager.gdm.enable = true;
+    displayManager.gdm.wayland = false;
+
+    # windowManager.i3 = {
+    #     enable = true;
+    #     extraPackages = with pkgs; [
+    #         dmenu
+    #         i3status
+    #         i3lock
+    #         i3blocks
+    #     ];
+    # };
   };
+  services.dbus.packages = with pkgs; [ gnome3.dconf gnome2.GConf ];  # needed for gtk apps
   # Enable the KDE Desktop Environment.
   # services.xserver.displayManager.sddm.enable = true;
   # services.xserver.desktopManager.plasma5.enable = true;
@@ -173,7 +181,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.miguel = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "networkmanager" ]; # Enable ‘sudo’ for the user.
     shell = "/run/current-system/sw/bin/zsh";
   };
 
