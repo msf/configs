@@ -15,14 +15,14 @@ setprompt_simple() {
     zstyle ':vcs_info:*' actionformats "(%s)[%b|%a] "
     setopt prompt_subst
 
-    for COLOR in BLUE RED GREEN YELLOW WHITE GREY BLACK; do
+    for COLOR in BLUE RED GREEN YELLOW WHITE GREY BLACK PURPLE CYAN; do
         eval PR_$COLOR='%{$fg[${(L)COLOR}]%}'
         eval PR_BOLD_$COLOR='%{$fg_bold[${(L)COLOR}]%}'
     done
 
     PR_RESET="%{$reset_color%}"
 
-    PROMPT='$PR_BLUE%n$PR_WHITE@$PR_BOLD_YELLOW%m $PR_BLUE%c $PR_GREY$(my_vcs_info)$PR_BLUE%% $PR_RESET'
+    PROMPT='$PR_BLUE%n$PR_WHITE@$PR_BOLD_YELLOW%m $PR_BLUE%c $PR_RESET$(my_vcs_info)$PR_BLUE%% $PR_RESET'
 }
 
 
