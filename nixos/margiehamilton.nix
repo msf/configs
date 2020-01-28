@@ -48,28 +48,34 @@
        EDITOR = "vim";
      };
      systemPackages = with pkgs; [
-       wget
-       vim
-       zsh
-       git
-       tmux
-       lsof
-       htop
-       dstat
-       iotop
-       smartmontools
-       firefox
-       python3
-       gcc
-       zstd
+       atop
        btrfs-progs
+       dstat
+       file
+       firefox
+       gcc
+       git
+       gnumake
        go
-       weechat
-       restic
+       htop
+       iotop
        lm_sensors
+       lsof
+       lxappearance
        ncdu
-       meld
+       python3
+       restic
+       rxvt_unicode
+       smartmontools
+       sysstat
+       tmux
        tree
+       unzip
+       vim
+       weechat
+       wget
+       zsh
+       zstd
      ];
    pathsToLink = [ "/libexec" ];
   };
@@ -137,23 +143,21 @@
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     desktopManager = {
-        # default = "none";
-	gnome3.enable = true;
-        # xterm.enable = false;
+        default = "none";
+        xterm.enable = false;
     };
 
-    displayManager.gdm.enable = true;
-    displayManager.gdm.wayland = false;
-
-    # windowManager.i3 = {
-    #     enable = true;
-    #     extraPackages = with pkgs; [
-    #         dmenu
-    #         i3status
-    #         i3lock
-    #         i3blocks
-    #     ];
-    # };
+    windowManager.i3 = {
+        enable = true;
+        # package = pkgs.i3-gaps;
+        extraPackages = with pkgs; [
+            dmenu
+            i3status
+            i3lock
+            i3blocks
+            feh
+        ];
+    };
   };
   services.dbus.packages = with pkgs; [ gnome3.dconf gnome2.GConf ];  # needed for gtk apps
   # Enable the KDE Desktop Environment.
