@@ -1,11 +1,11 @@
 xterm*loginShell: true
 xterm*background: black
 xterm*foreground: grey
-xterm*faceSize: 10
+xterm*faceSize: 12
 xterm*utf8: true
 xterm*faceName: Inconsolata
 
-urxvt*font: xft:Inconsolata:pixelsize=10
+URxvt*font: xft:Inconsolata:pixelsize=16
 URxvt*scrollBar: false
 URxvt.saveLines: 32767
 URxvt*termName: rxvt
