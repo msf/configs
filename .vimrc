@@ -51,6 +51,7 @@ Plugin 'hashivim/vim-terraform'
 Plugin 'fatih/vim-go'
 Plugin 'davidhalter/jedi-vim'
 Plugin 'will133/vim-dirdiff'
+Plugin 'vim-airline/vim-airline'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required

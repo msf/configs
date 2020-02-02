@@ -56,7 +56,6 @@ if [ -x ${keychain} ]; then
     source ~/.keychain/${HOST}-sh  > /dev/null
 fi
 
-[ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
 
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 
@@ -78,3 +77,6 @@ fi
 [ -d ~/.zprezto ] && source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 
 [ -f ~/.zshrc_private ] && source ~/.zshrc_private
+
+[ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
+#source  ~/powerlevel9k/powerlevel9k.zsh-theme
