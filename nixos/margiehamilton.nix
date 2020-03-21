@@ -57,12 +57,14 @@
        git
        gnumake
        go
+       google-chrome
        htop
        iotop
        lm_sensors
        lsof
        lxappearance
        ncdu
+       powertop
        python3
        restic
        rxvt_unicode
@@ -197,4 +199,3 @@
 
   nixpkgs.config.allowUnfree = true;
 }
-

@@ -31,11 +31,14 @@
        EDITOR = "vim";
      };
      systemPackages = with pkgs; [
+       atop
        btrfs-progs
        dstat
+       file
        firefox
        gcc
        git
+       gnumake
        go
        google-chrome
        htop
