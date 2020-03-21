@@ -29,7 +29,12 @@ setprompt_simple() {
 
 # https://github.com/justjanne/powerline-go
 function powerline_precmd() {
-    PS1="$($GOPATH/bin/powerline-go -mode flat -error $? -shell zsh)"
+    if [ ! -x $GOPATH/bin/powerline-go ]; then
+        echo "please install: go get -u github.com/justjanne/powerline-go"
+        setprompt_simple
+    else
+        PS1="$($GOPATH/bin/powerline-go -mode flat -error $? -shell zsh)"
+    fi
 }
 
 function install_powerline_precmd() {
@@ -42,5 +47,6 @@ function install_powerline_precmd() {
 }
 
 if [ "$TERM" != "linux" ]; then
+    prompt_off_setup
     install_powerline_precmd
 fi
