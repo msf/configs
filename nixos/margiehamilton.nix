@@ -35,8 +35,8 @@
 
   # Select internationalisation properties.
   i18n = {
-    consoleKeyMap = "us";
     defaultLocale = "en_US.UTF-8";
+    consoleUseXkbConfig = true;
   };
 
   # Set your time zone.
@@ -56,6 +56,7 @@
        gcc
        git
        gnumake
+       gnome3.adwaita-icon-theme
        go
        google-chrome
        htop
@@ -76,6 +77,7 @@
        vim
        weechat
        wget
+       zoom-us
        zsh
        zstd
      ];
@@ -136,30 +138,32 @@
     systemService = true;
   };
 
+
   # Enable the X11 windowing system.
   services.xserver = {
     enable = true;
     layout = "us";
-    videoDrivers = [ "intel" ];
+     videoDrivers = [ "intel" ];
     libinput.enable = true;  # Enable touchpad support.
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     desktopManager = {
-        default = "none";
-        xterm.enable = false;
+        gnome3.enable = true;
     };
+    displayManager.gdm.enable = true;
+    displayManager.gdm.wayland = false;
 
-    windowManager.i3 = {
-        enable = true;
-        # package = pkgs.i3-gaps;
-        extraPackages = with pkgs; [
-            dmenu
-            i3status
-            i3lock
-            i3blocks
-            feh
-        ];
-    };
+#    windowManager.i3 = {
+#        enable = true;
+#        # package = pkgs.i3-gaps;
+#        extraPackages = with pkgs; [
+#            dmenu
+#            i3status
+#            i3lock
+#            i3blocks
+#            feh
+#        ];
+#    };
   };
   services.dbus.packages = with pkgs; [ gnome3.dconf gnome2.GConf ];  # needed for gtk apps
   # Enable the KDE Desktop Environment.
