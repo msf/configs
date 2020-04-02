@@ -49,7 +49,7 @@ Plugin 'vim-syntastic/syntastic'
 Plugin 'scrooloose/nerdtree'
 Plugin 'hashivim/vim-terraform'
 Plugin 'fatih/vim-go'
-Plugin 'davidhalter/jedi-vim'
+"Plugin 'davidhalter/jedi-vim'
 Plugin 'will133/vim-dirdiff'
 Plugin 'vim-airline/vim-airline'
 
@@ -57,7 +57,7 @@ Plugin 'vim-airline/vim-airline'
 call vundle#end()            " required
 filetype plugin indent on    " required
 
-colorscheme solarized8
+colorscheme solarized8_high
 
 source ~/.vim/syntax.vim
 source ~/.vim/minibufexpl.vim
