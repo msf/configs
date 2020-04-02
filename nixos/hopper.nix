@@ -52,6 +52,7 @@
        awscli
        btrfs-progs
        dstat
+       file
        firefox
        fwupd
        fwupdate
@@ -69,9 +70,11 @@
        pciutils
        python3
        rclone
+       restic
+       rxvt_unicode
        smartmontools
-       syncthing
        sysstat
+       syncthing
        tmux
        tree
        go
@@ -87,7 +90,7 @@
   };
 
   powerManagement.cpuFreqGovernor = "performance";
-  
+
   users.defaultUserShell = pkgs.zsh;
   programs.zsh.enable = true;
 
@@ -123,17 +126,18 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
-  services.timesyncd.enable = true; 
+  services.openssh.permitRootLogin = "no";
+  services.timesyncd.enable = true;
   services.zfs.autoScrub.enable = true;
   services.zfs.autoSnapshot = {
     enable = true;
     monthly = 4;  # default is 12
-    weekly = 4; 
+    weekly = 4;
     daily = 4;  # default is 7
     hourly = 4; # default is 24
     frequent = 4;
   };
- 
+
   services.syncthing = {
     enable = true;
     user = "miguel";
@@ -148,7 +152,8 @@
   services.xserver = {
     enable = true;
     layout = "us";
-    videoDrivers = [ "intel" ];
+     videoDrivers = [ "intel" ];
+    libinput.enable = true;  # Enable touchpad support.
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     desktopManager = {
@@ -163,6 +168,7 @@
             i3status
             i3lock
             i3blocks
+            feh
         ];
     };
   };
@@ -178,7 +184,7 @@
   # Open ports in the firewall.
   networking.firewall.allowedTCPPorts = [ 22 ];
   networking.firewall.allowPing = true;
- 
+
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
@@ -190,14 +196,6 @@
    sound.enable = true;
    hardware.pulseaudio.enable = true;
 
-
-  # Enable touchpad support.
-  # services.xserver.libinput.enable = true;
-
-  # Enable the KDE Desktop Environment.
-  # services.xserver.displayManager.sddm.enable = true;
-  # services.xserver.desktopManager.plasma5.enable = true;
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.miguel = {
      isNormalUser = true;
@@ -206,7 +204,7 @@
      shell = "/run/current-system/sw/bin/zsh";
      openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIeH/MddmSVsqKwTR8ys07HMW/DDDAYdsm9/lYM6hd1X miguel.filipe@unbabel" "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCZsY3qNOZP4uL+baYJ+B2lc6SEYWnJeKKPhwZ7azhO/RleAb3SsZ7452ktvCY1YE2fAsHwgHYrZEAXj8sD1DoDUMUWael2MAAzTdnPJWriINO5QeZ1WrSLaFHb5eQ4fUMpidCmFOnEWOl9MUopeTrOgLElKoAaq9mWQvBo3VtRXH4bk4/dkCWhYuI8rpXk9w+oNhTgFr9NumSnRIFDwKazNwZFjNxt0actwKanebg7lDQabTCGc3CuU59YGiYjQmgBpvb7mkQJi5grGdCg0uFeee2NlsSBUmmxBG+OLgrtjFXpbcm2H3IgBxQRRUnN2dho2sZW2c7tV4queKmSVsEtyEQcSpc5NQZrIFE6tVEeXHhfxFtGe2qmEgX6Zmh+/TgrGTJWocsQvvuRaCrJ5jTQkYHl/9rgIoSBc5NtUL/duVlA4DzvUOUsjDyU00WaTAHB0pm767ZICyN+7Zkb3o934+hreYzMszvL60sit1V4y8ORLplUJvGhkNHrljOrtp2VVtluWEPxJLENbiiUMDB6PqQI8c4vEx4BVvFeWaPJcAZLc2y9ZX5w8R6fl2f5VWXiGbjJl4xfTquSWa3YbC//x12KFyOvMzQCctCX6fgvgEg9oGig9Xg3fEoN/R26JBjbKbCeZI5UWSIOZrrTEo50icUsUR6AweIVQ1q2IV5NQ== miguel.filipe@gmail.com" ];
  };
-  
+
   # This value determines the NixOS release with which your system is to be
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
