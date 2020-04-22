@@ -10,14 +10,13 @@
       ./hardware-configuration.nix
     ];
 
-  boot.supportedFilesystems = [ "zfs" "btrfs" ];
-  boot.zfs.enableUnstable = true;
-  boot.kernelParams = ["zfs.zfs_arc_max=3221225472"];  # 3GB
-
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernel.sysctl."vm.swapiness" = 60;
+  boot.kernelParams = ["zfs.zfs_arc_max=3221225472"];  # 3GB
+  boot.supportedFilesystems = [ "zfs" "btrfs" ];
+  boot.zfs.enableUnstable = true;
 
   networking.hostId = "b05e6b14";  # for ZFS
   networking.hostName = "margiehamilton"; # Define your hostname.
@@ -29,9 +28,18 @@
   networking.useDHCP = false;
   networking.interfaces.enp2s0f0.useDHCP = true;
 
+  networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
+
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+  # Open ports in the firewall.
+  networking.firewall.allowedTCPPorts = [ 22 ];
+  networking.firewall.allowPing = true;
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
 
   # Select internationalisation properties.
   console.useXkbConfig = true;
@@ -61,6 +69,7 @@
        gnumake
        gnome3.adwaita-icon-theme
        go
+       hdparm
        google-chrome
        htop
        iotop
@@ -70,12 +79,12 @@
        lxappearance
        ncdu
        parted
-       powertop
        pciutils
+       powertop
        python3
+       rclone
        restic
        rxvt_unicode
-       rclone
        smartmontools
        sysstat
        syncthing
@@ -93,6 +102,8 @@
      ];
    pathsToLink = [ "/libexec" ];
   };
+
+  powerManagement.cpuFreqGovernor = "performance";
 
   users.defaultUserShell = pkgs.zsh;
   programs.zsh.enable = true;
@@ -178,16 +189,6 @@
   };
   services.dbus.packages = with pkgs; [ gnome3.dconf gnome2.GConf ];  # needed for gtk apps
 
-
-  # services.openssh.enable = true;
-  networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
-
-  # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 22 ];
-  networking.firewall.allowPing = true;
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;

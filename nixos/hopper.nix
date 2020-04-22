@@ -26,10 +26,24 @@
   #networking.useDHCP = false;
   #networking.interfaces.eno1.useDHCP = true;
   #networking.interfaces.wlp3s0.useDHCP = true;
+  networking.interfaces.eno1.ipv4.addresses = [ {
+    address = "192.168.1.10";
+    prefixLength = 24;
+  } ];
+  networking.defaultGateway = "192.168.1.1";
+
+  networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+  # Open ports in the firewall.
+  networking.firewall.allowedTCPPorts = [ 22 ];
+  networking.firewall.allowPing = true;
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
 
   # Select internationalisation properties.
    i18n = {
@@ -42,7 +56,6 @@
    time.timeZone = "UTC";
 
   # List packages installed in system profile. To search, run:
-  # $ nix search wget
    environment = {
      variables = {
        EDITOR = "vim";
@@ -52,11 +65,13 @@
        awscli
        btrfs-progs
        dstat
+       file
        firefox
        fwupd
        fwupdate
        gcc
        git
+       gnumake
        go
        hdparm
        htop
@@ -69,13 +84,15 @@
        parted
        pciutils
        python3
-       restic
        rclone
+       restic
        smartmontools
+       sysstat
        syncthing
        sysstat
        tmux
        tree
+       unzip
        vim
        weechat
        wget
@@ -113,7 +130,6 @@
     ];
   };
 
-
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -123,6 +139,7 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+  services.openssh.permitRootLogin = "no";
   services.timesyncd.enable = true;
   services.zfs.autoScrub.enable = true;
   services.zfs.autoSnapshot = {
@@ -168,35 +185,12 @@
   };
 
 
-  networking.interfaces.eno1.ipv4.addresses = [ {
-    address = "192.168.1.10";
-    prefixLength = 24;
-  } ];
-  networking.defaultGateway = "192.168.1.1";
-  networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
-
-  # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 22 ];
-  networking.firewall.allowPing = true;
-
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
   # Enable CUPS to print documents.
   # services.printing.enable = true;
 
   # Enable sound.
-   sound.enable = true;
-   hardware.pulseaudio.enable = true;
-
-
-  # Enable touchpad support.
-  # services.xserver.libinput.enable = true;
-
-  # Enable the KDE Desktop Environment.
-  # services.xserver.displayManager.sddm.enable = true;
-  # services.xserver.desktopManager.plasma5.enable = true;
+  sound.enable = true;
+  hardware.pulseaudio.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.miguel = {
@@ -215,4 +209,3 @@
 
   nixpkgs.config.allowUnfree = true;
 }
-

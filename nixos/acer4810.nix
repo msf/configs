@@ -14,6 +14,35 @@
   boot.loader.grub.device = "/dev/sda";
   boot.supportedFilesystems = [ "btrfs" ];
 
+  networking.hostName = "acer4810"; # Define your hostname.
+  networking.networkmanager.enable = true;
+  networking.wireless.enable = false;  # Enables wireless support via wpa_supplicant.
+  networking.wireless.networks = {
+    "cabovisao-36A4" = {
+       psk = "2c3996fc36a4";
+    };
+  };
+
+  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
+  # Per-interface useDHCP will be mandatory in the future, so this generated config
+  # replicates the default behaviour.
+  networking.useDHCP = false;
+  networking.interfaces.enp1s0.useDHCP = true;
+  networking.interfaces.wlp2s0.useDHCP = true;
+
+  networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
+
+  # Configure network proxy if necessary
+  # networking.proxy.default = "http://user:password@proxy:port/";
+  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+  # Open ports in the firewall.
+  networking.firewall.allowedTCPPorts = [ 22 ];
+  networking.firewall.allowPing = true;
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
+
   # Select internationalisation properties.
   i18n = {
     consoleFont = "Lat2-Terminus16";
@@ -25,7 +54,6 @@
   time.timeZone = "UTC";
 
   # List packages installed in system profile. To search, run:
-  # $ nix search wget
   environment = {
      variables = {
        EDITOR = "vim";
@@ -36,22 +64,32 @@
        dstat
        file
        firefox
+       fwupd
+       fwupdate
        gcc
        git
        gnumake
        go
+       hdparm
        google-chrome
        htop
        iotop
        lm_sensors
+       lshw
        lsof
+       lxappearance
        meld
        ncdu
+       parted
+       pciutils
        powertop
        python3
+       rclone
        restic
        rxvt_unicode
        smartmontools
+       sysstat
+       syncthing
        sysstat
        tmux
        tree
@@ -59,6 +97,7 @@
        vim
        weechat
        wget
+       zfstools
        zsh
        zstd
      ];
@@ -104,15 +143,6 @@
   services.openssh.permitRootLogin = "no";
   services.timesyncd.enable = true;
 
-  networking.hostName = "acer4810"; # Define your hostname.
-  networking.networkmanager.enable = true;
-  networking.wireless.enable = false;  # Enables wireless support via wpa_supplicant.
-  networking.wireless.networks = {
-    "cabovisao-36A4" = {
-       psk = "2c3996fc36a4";
-    };
-  };
-
   services.syncthing = {
     enable = true;
     user = "miguel";
@@ -120,6 +150,8 @@
     openDefaultPorts = true;
     systemService = true;
   };
+
+  services.tailscale.enable = true;
 
   # Enable the X11 windowing system.
   services.xserver = {
@@ -148,25 +180,6 @@
   };
 
 
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  networking.useDHCP = false;
-  networking.interfaces.enp1s0.useDHCP = true;
-  networking.interfaces.wlp2s0.useDHCP = true;
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 22 ];
-  networking.firewall.allowPing = true;
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-  networking.nameservers = [ "1.1.1.1" "8.8.8.8"];
-
   # Enable CUPS to print documents.
   # services.printing.enable = true;
 
@@ -178,7 +191,9 @@
   users.users.miguel = {
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" ]; # Enable ‘sudo’ for the user.
+    uid = 1000;
     shell = "/run/current-system/sw/bin/zsh";
+    openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIeH/MddmSVsqKwTR8ys07HMW/DDDAYdsm9/lYM6hd1X miguel.filipe@unbabel" "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCZsY3qNOZP4uL+baYJ+B2lc6SEYWnJeKKPhwZ7azhO/RleAb3SsZ7452ktvCY1YE2fAsHwgHYrZEAXj8sD1DoDUMUWael2MAAzTdnPJWriINO5QeZ1WrSLaFHb5eQ4fUMpidCmFOnEWOl9MUopeTrOgLElKoAaq9mWQvBo3VtRXH4bk4/dkCWhYuI8rpXk9w+oNhTgFr9NumSnRIFDwKazNwZFjNxt0actwKanebg7lDQabTCGc3CuU59YGiYjQmgBpvb7mkQJi5grGdCg0uFeee2NlsSBUmmxBG+OLgrtjFXpbcm2H3IgBxQRRUnN2dho2sZW2c7tV4queKmSVsEtyEQcSpc5NQZrIFE6tVEeXHhfxFtGe2qmEgX6Zmh+/TgrGTJWocsQvvuRaCrJ5jTQkYHl/9rgIoSBc5NtUL/duVlA4DzvUOUsjDyU00WaTAHB0pm767ZICyN+7Zkb3o934+hreYzMszvL60sit1V4y8ORLplUJvGhkNHrljOrtp2VVtluWEPxJLENbiiUMDB6PqQI8c4vEx4BVvFeWaPJcAZLc2y9ZX5w8R6fl2f5VWXiGbjJl4xfTquSWa3YbC//x12KFyOvMzQCctCX6fgvgEg9oGig9Xg3fEoN/R26JBjbKbCeZI5UWSIOZrrTEo50icUsUR6AweIVQ1q2IV5NQ== miguel.filipe@gmail.com" ];
   };
 
   # This value determines the NixOS release with which your system is to be
