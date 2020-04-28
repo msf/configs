@@ -46,10 +46,9 @@
   # networking.firewall.enable = false;
 
   # Select internationalisation properties.
-   i18n = {
-     consoleFont = "Lat2-Terminus16";
-     consoleKeyMap = "us";
-     defaultLocale = "en_US.UTF-8";
+  console.useXkbConfig = true;
+  i18n = {
+    defaultLocale = "en_US.UTF-8";
    };
 
   # Set your time zone.
@@ -79,13 +78,14 @@
        lm_sensors
        lshw
        lsof
-       meld
+       lxappearance
        ncdu
        parted
        pciutils
        python3
        rclone
        restic
+       rxvt_unicode
        smartmontools
        sysstat
        syncthing
@@ -168,10 +168,7 @@
     videoDrivers = [ "intel" ];
     xkbOptions = "eurosign:e ctrl:nocaps";
 
-    desktopManager = {
-        default = "none";
-        xterm.enable = false;
-    };
+    displayManager.defaultSession = "none+i3";
 
     windowManager.i3 = {
         enable = true;
@@ -205,7 +202,7 @@
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
   # should.
-  system.stateVersion = "19.09"; # Did you read the comment?
+  system.stateVersion = "20.03"; # Did you read the comment?
 
   nixpkgs.config.allowUnfree = true;
 }
