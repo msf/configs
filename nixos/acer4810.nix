@@ -17,20 +17,18 @@
   networking.hostName = "acer4810"; # Define your hostname.
   networking.networkmanager.enable = true;
   networking.wireless.enable = false;  # Enables wireless support via wpa_supplicant.
-  networking.wireless.networks = {
-    "cabovisao-36A4" = {
-       psk = "2c3996fc36a4";
-    };
-  };
 
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  networking.useDHCP = false;
   networking.interfaces.enp1s0.useDHCP = true;
   networking.interfaces.wlp2s0.useDHCP = true;
 
   networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
+
+  networking.extraHosts =
+  ''
+  100.119.38.108  hopper-tail
+  100.89.241.6  acer-tail
+  100.99.150.19 lovelace-tail
+  '';
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -60,6 +58,7 @@
      };
      systemPackages = with pkgs; [
        atop
+       awscli
        btrfs-progs
        dstat
        file
@@ -88,6 +87,7 @@
        restic
        rxvt_unicode
        smartmontools
+       syncthing
        sysstat
        syncthing
        sysstat
