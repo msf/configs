@@ -14,6 +14,13 @@
   boot.loader.grub.device = "/dev/sda";
   boot.supportedFilesystems = [ "btrfs" ];
 
+  zramSwap = {
+    enable = true;
+    memoryPercent = 40;
+    numDevices = 1;
+    algorithm = "zstd";
+  };
+
   networking.hostName = "acer4810"; # Define your hostname.
   networking.networkmanager.enable = true;
   networking.wireless.enable = false;  # Enables wireless support via wpa_supplicant.
@@ -42,9 +49,8 @@
   # networking.firewall.enable = false;
 
   # Select internationalisation properties.
+  #console.useXkbConfig = true;
   i18n = {
-    consoleFont = "Lat2-Terminus16";
-    consoleKeyMap = "us";
     defaultLocale = "en_US.UTF-8";
   };
 
@@ -200,7 +206,7 @@
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
   # should.
-  system.stateVersion = "19.09"; # Did you read the comment?
+  system.stateVersion = "20.03"; # Did you read the comment?
 
   nixpkgs.config.allowUnfree = true;
 }
