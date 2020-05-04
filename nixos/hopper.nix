@@ -34,6 +34,15 @@
 
   networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
 
+  networking.extraHosts =
+  ''
+  100.119.38.108  hopper-tail
+  100.89.241.6	acer-tail
+  100.99.150.19   lovelace-tail
+  100.67.77.31	margie-tail
+  '';
+
+
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
