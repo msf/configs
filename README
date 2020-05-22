@@ -3,3 +3,7 @@ issue:
 $ find . -not   -path   "./.git*"  -type f |xargs -I a md5sum  a ~/a
 
 to find whats different from current system.
+RUN:
+$ python install.py
+$ ./install_vundle.sh
+
