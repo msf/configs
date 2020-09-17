@@ -1,1 +1,5 @@
+#!/bin/bash -ex
+
+sudo cpupower frequency-set -g performance
+sudo cpupower frequency-set -d 2GHz  #min at 2Ghz
 echo "level full-speed" |sudo tee  /proc/acpi/ibm/fan
