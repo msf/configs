@@ -40,6 +40,7 @@
   100.89.241.6	acer-tail
   100.99.150.19   lovelace-tail
   100.67.77.31	margie-tail
+  100.121.57.66  curie-tail
   '';
 
 
@@ -48,9 +49,9 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 22 ];
+  networking.firewall.allowedTCPPorts = [ 22  5001];
   networking.firewall.allowPing = true;
-  # networking.firewall.allowedUDPPorts = [ ... ];
+  networking.firewall.allowedUDPPorts = [ 5001 5002 ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
 
@@ -76,7 +77,6 @@
        file
        firefox
        fwupd
-       fwupdate
        gcc
        git
        gnumake
@@ -163,11 +163,13 @@
   services.syncthing = {
     enable = true;
     user = "miguel";
-    dataDir = "/home/miguel/";
+    dataDir = "/media/simple/syncthing/";
+    configDir = "/home/miguel/.config/syncthing";
     openDefaultPorts = true;
     systemService = true;
   };
 
+  services.fwupd.enable = true;
   services.tailscale.enable = true;
 
   # Enable the X11 windowing system.
@@ -211,7 +213,9 @@
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
   # should.
-  system.stateVersion = "20.03"; # Did you read the comment?
+  system.stateVersion = "20.09"; # Did you read the comment?
+  system.autoUpgrade.enable = true;  # incremental updates are good
+  system.autoUpgrade.allowReboot = false;  # not that crazy
 
   nixpkgs.config.allowUnfree = true;
 }
