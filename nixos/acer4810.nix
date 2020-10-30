@@ -16,7 +16,7 @@
 
   zramSwap = {
     enable = true;
-    memoryPercent = 40;
+    memoryPercent = 30;
     numDevices = 1;
     algorithm = "zstd";
   };
@@ -35,6 +35,7 @@
   100.119.38.108  hopper-tail
   100.89.241.6  acer-tail
   100.99.150.19 lovelace-tail
+  100.67.77.31	margie-tail
   '';
 
   # Configure network proxy if necessary
@@ -49,7 +50,7 @@
   # networking.firewall.enable = false;
 
   # Select internationalisation properties.
-  #console.useXkbConfig = true;
+  console.useXkbConfig = true;
   i18n = {
     defaultLocale = "en_US.UTF-8";
   };
@@ -167,10 +168,7 @@
     libinput.enable = true;  # Enable touchpad support.
     xkbOptions = "eurosign:e ctrl:nocaps";
 
-    desktopManager = {
-        default = "none";
-        xterm.enable = false;
-    };
+    displayManager.defaultSession = "none+i3";
 
     windowManager.i3 = {
         enable = true;
