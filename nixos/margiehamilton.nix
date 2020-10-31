@@ -10,13 +10,14 @@
       ./hardware-configuration.nix
     ];
 
+  boot.supportedFilesystems = [ "zfs" "btrfs" ];
+  boot.zfs.enableUnstable = true;
+  boot.kernelParams = ["zfs.zfs_arc_max=3221225472"];  # 3GB
+
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernel.sysctl."vm.swapiness" = 60;
-  boot.kernelParams = ["zfs.zfs_arc_max=3221225472"];  # 3GB
-  boot.supportedFilesystems = [ "zfs" "btrfs" ];
-  boot.zfs.enableUnstable = true;
 
   networking.hostId = "b05e6b14";  # for ZFS
   networking.hostName = "margiehamilton"; # Define your hostname.
@@ -29,6 +30,14 @@
   networking.interfaces.enp2s0f0.useDHCP = true;
 
   networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
+
+  networking.extraHosts =
+  ''
+  100.119.38.108  hopper-tail
+  100.89.241.6	acer-tail
+  100.99.150.19   lovelace-tail
+  100.67.77.31	margie-tail
+  '';
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
