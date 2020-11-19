@@ -74,7 +74,7 @@ if [ -x ${kubectl} ]; then
 fi
 
 # zprezto
-[ -d ~/.zprezto ] && source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+#[ -d ~/.zprezto ] && source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 
 [ -f ~/.zshrc_private ] && source ~/.zshrc_private
 
