@@ -61,5 +61,6 @@ def copyConfigDirs():
         print("symlinked directory %s" % destpath)
 
 
-copyFiles()
-copyConfigDirs()
+if __name__ == "__main__":
+    copyFiles()
+    copyConfigDirs()
