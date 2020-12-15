@@ -66,6 +66,8 @@ GOPATH="${HOME}/go"
 PATH="${GOPATH}/bin:${PATH}"
 PATH=$PATH:/snap/bin
 export PATH CLASSPATH GOPATH
+export GOPRIVATE="gitlab.com/Unbabel"
+
 
 # kubectl
 kubectl=`which kubectl`
