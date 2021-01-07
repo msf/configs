@@ -7,6 +7,11 @@ using:
 
 # TODO:
 - macro: shift-backspace -> delete
+- macro: shift up/down -> page up/down
+- alt-gr/language-key/pt-keymap
+- f9-f12: better use for them.
+ - shift-printscreen I use a lot
+ - volume up/down
 - macro: "esq, :wa<enter>"
 - macro: better use of left alt/ctrl for layers/macros
 
