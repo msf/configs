@@ -28,33 +28,33 @@
       fsType = "ext4";
     };
 
-  fileSystems."/media/weird" =
-    { device = "weird";
+  fileSystems."/media/simple" =
+    { device = "simple";
       fsType = "zfs";
     };
 
-  fileSystems."/media/weird/backups" =
-    { device = "weird/backups";
+  fileSystems."/media/simple/backups" =
+    { device = "simple/backups";
       fsType = "zfs";
     };
 
-  fileSystems."/media/weird/backups/caitlin" =
-    { device = "weird/backups/caitlin";
+  fileSystems."/media/simple/backups-caitlin" =
+    { device = "simple/backups-caitlin";
       fsType = "zfs";
     };
 
-  fileSystems."/media/weird/restic" =
-    { device = "weird/restic";
+  fileSystems."/media/simple/restic" =
+    { device = "simple/restic";
       fsType = "zfs";
     };
 
-  fileSystems."/media/weird/snapshots" =
-    { device = "weird/snapshots";
+  fileSystems."/media/simple/syncthing" =
+    { device = "simple/syncthing";
       fsType = "zfs";
     };
 
-  fileSystems."/media/weird/syncthing" =
-    { device = "weird/syncthing";
+  fileSystems."/media/simple/influxdb" =
+    { device = "simple/influxdb";
       fsType = "zfs";
     };
 
@@ -63,5 +63,5 @@
     ];
 
   nix.maxJobs = lib.mkDefault 2;
-  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 }

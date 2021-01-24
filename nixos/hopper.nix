@@ -37,34 +37,36 @@
   networking.extraHosts =
   ''
   100.119.38.108  hopper-tail
-  100.89.241.6	acer-tail
+  100.89.241.6  acer-tail
   100.99.150.19   lovelace-tail
-  100.67.77.31	margie-tail
+  100.67.77.31  margie-tail
   100.121.57.66  curie-tail
   '';
+
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 22  5001];
+  # syncthing -> 22000,21027
+  networking.firewall.allowedTCPPorts = [ 22  5001 22000 21027];
+  networking.firewall.allowedUDPPorts = [ 5001 5002 22000 21027];
   networking.firewall.allowPing = true;
-  networking.firewall.allowedUDPPorts = [ 5001 5002 ];
   # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+   networking.firewall.enable = false;
 
   # Select internationalisation properties.
   console.useXkbConfig = true;
   i18n = {
     defaultLocale = "en_US.UTF-8";
-   };
+  };
 
   # Set your time zone.
-   time.timeZone = "UTC";
+  time.timeZone = "UTC";
 
   # List packages installed in system profile. To search, run:
-   environment = {
+  environment = {
      variables = {
        EDITOR = "vim";
      };
@@ -90,6 +92,7 @@
        ncdu
        parted
        pciutils
+       podman
        python3
        rclone
        restic
@@ -146,8 +149,13 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-  services.openssh.permitRootLogin = "no";
+  services.openssh = {
+        enable = true;
+        permitRootLogin = "prohibit-password";
+        passwordAuthentication = false;
+  };
+  users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMi8xVr7C/qB+DGIGa07Hm9uv0pTKZ8qbX8DywAteaXP miguel@curie" ];
+
   services.timesyncd.enable = true;
   services.zfs.autoScrub.enable = true;
   services.zfs.autoSnapshot = {
@@ -217,4 +225,68 @@
   system.autoUpgrade.allowReboot = false;  # not that crazy
 
   nixpkgs.config.allowUnfree = true;
+
+
+  # servers/services inside containers
+  environment.etc = {
+    "telegraf.conf" = {
+      mode = "0440";
+      text = ''
+        [global_tags]
+        [agent]
+          interval = "10s"
+          round_interval = true
+          metric_batch_size = 1000
+          metric_buffer_limit = 10000
+          collection_jitter = "0s"
+          flush_interval = "10s"
+          flush_jitter = "0s"
+          precision = ""
+          hostname = "hopper"
+          omit_hostname = false
+        [[outputs.influxdb_v2]]
+          urls = ["http://hopper-tail:8086"]
+          token = "GnK3erFQGnB3aLonK6mCiIRYTGenl4ShRGdxr7M3E6b2yzl51shxHUR7gJdTagJ094Vpf8fJzzotCWwhSxclHA=="
+          organization = "casa"
+          bucket = "hopper"
+        [[inputs.cpu]]
+          percpu = true
+          totalcpu = true
+          collect_cpu_time = false
+          report_active = false
+        [[inputs.disk]]
+          ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+        [[inputs.diskio]]
+        [[inputs.kernel]]
+        [[inputs.mem]]
+        [[inputs.processes]]
+        [[inputs.swap]]
+        [[inputs.system]]
+        [[inputs.zfs]]
+          poolMetrics = true
+        [[inputs.sensors]]
+      '';
+    };
+  };
+
+  virtualisation = {
+    podman = {
+      enable = true;
+      dockerCompat = true;
+    };
+    oci-containers = {
+      backend = "podman";
+      containers = {
+        telegraf = {
+          image = "telegraf:1.17-alpine";
+          volumes = [ "/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro" ];
+        };
+        influxdb = {
+          image = "quay.io/influxdb/influxdb:v2.0.3";
+          volumes = [ "/media/simple/influxdb:/root/.influxdbv2" ];
+          ports = [ "8083:8083" "8086:8086" ];
+        };
+      };
+    };
+  };
 }
