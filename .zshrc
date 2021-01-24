@@ -60,7 +60,9 @@ fi
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 
 
-PATH="/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:${PATH}"
+PATH="/sbin:/usr/sbin:${PATH}"
+PATH="/snap/bin:${PATH}"
+PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
 PATH="/opt/go/bin:${PATH}"
 GOPATH="${HOME}/go"
 PATH="${GOPATH}/bin:${PATH}"
