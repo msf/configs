@@ -2,7 +2,7 @@ import os
 from subprocess import run
 
 
-DIRPATH = "/media/weird/syncthing"
+DIRPATH = "/media/simple/syncthing"
 BLACKLIST = { ".zfs", }
 
 
