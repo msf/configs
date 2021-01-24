@@ -84,3 +84,6 @@ fi
 
 [ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
 #source  ~/powerlevel9k/powerlevel9k.zsh-theme
+
+# for alacritty
+fpath+=${ZDOTDIR:-~}/.zsh_functions
