@@ -37,6 +37,7 @@
   100.89.241.6	acer-tail
   100.99.150.19   lovelace-tail
   100.67.77.31	margie-tail
+  100.121.57.66  curie-tail
   '';
 
   # Configure network proxy if necessary
@@ -72,11 +73,11 @@
        file
        firefox
        fwupd
-       fwupdate
        gcc
        git
        gnumake
        gnome3.adwaita-icon-theme
+       gnome3.gnome-power-manager
        go
        hdparm
        google-chrome
@@ -116,6 +117,7 @@
 
   users.defaultUserShell = pkgs.zsh;
   programs.zsh.enable = true;
+  programs.dconf.enable = true; #gnome
 
   security.pam.loginLimits = [{
     domain = "*";
@@ -168,6 +170,7 @@
     systemService = true;
   };
 
+  services.fwupd.enable = true;
   services.tailscale.enable = true;
 
   # Enable the X11 windowing system.
@@ -178,9 +181,7 @@
     libinput.enable = true;  # Enable touchpad support.
     xkbOptions = "eurosign:e ctrl:nocaps";
 
-    desktopManager = {
-        gnome3.enable = true;
-    };
+    desktopManager.gnome3.enable = true;
     displayManager.gdm.enable = true;
     displayManager.gdm.wayland = false;
 
@@ -197,6 +198,7 @@
 #    };
   };
   services.dbus.packages = with pkgs; [ gnome3.dconf gnome2.GConf ];  # needed for gtk apps
+  services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ]; # gnome
 
 
   # Enable CUPS to print documents.
@@ -225,7 +227,9 @@
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
   # should.
-  system.stateVersion = "20.03"; # Did you read the comment?
+  system.stateVersion = "20.09"; # Did you read the comment?
+  system.autoUpgrade.enable = true;  # incremental updates are good
+  system.autoUpgrade.allowReboot = false;  # not that crazy
 
   nixpkgs.config.allowUnfree = true;
 }

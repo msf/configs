@@ -33,9 +33,9 @@
   networking.extraHosts =
   ''
   100.119.38.108  hopper-tail
-  100.89.241.6  acer-tail
-  100.99.150.19 lovelace-tail
-  100.67.77.31	margie-tail
+  100.89.241.6    acer-tail
+  100.99.150.19   lovelace-tail
+  100.67.77.31	  margie-tail
   '';
 
   # Configure network proxy if necessary
