@@ -10,6 +10,15 @@
       ./hardware-configuration.nix
     ];
 
+  hardware = {
+    enableRedistributableFirmware = true;
+    cpu.intel.updateMicrocode = true;
+  };
+
+  boot.kernelParams = [
+    "mitigations=off" # old b0x, need moar sp33d
+  ];
+
   # Use the systemd-boot EFI boot loader.
   boot.loader.grub.device = "/dev/sda";
   boot.supportedFilesystems = [ "btrfs" ];
@@ -35,7 +44,8 @@
   100.119.38.108  hopper-tail
   100.89.241.6    acer-tail
   100.99.150.19   lovelace-tail
-  100.67.77.31	  margie-tail
+  100.67.77.31    margie-tail
+  100.121.57.66   curie-tail
   '';
 
   # Configure network proxy if necessary
@@ -43,11 +53,13 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 22 ];
+  # syncthing -> 22000,21027
+  networking.firewall.allowedTCPPorts = [ 22  5001 22000 21027];
+  networking.firewall.allowedUDPPorts = [ 5001 5002 22000 21027];
   networking.firewall.allowPing = true;
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  networking.firewall.enable = false;
 
   # Select internationalisation properties.
   console.useXkbConfig = true;
@@ -88,6 +100,7 @@
        ncdu
        parted
        pciutils
+       podman
        powertop
        python3
        rclone
@@ -153,11 +166,13 @@
   services.syncthing = {
     enable = true;
     user = "miguel";
-    dataDir = "/home/miguel/";
+    dataDir = "/media/simple/syncthing/";
+    configDir = "/home/miguel/.config/syncthing";
     openDefaultPorts = true;
     systemService = true;
   };
 
+  services.fwupd.enable = true;
   services.tailscale.enable = true;
 
   # Enable the X11 windowing system.
@@ -204,7 +219,73 @@
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
   # should.
-  system.stateVersion = "20.03"; # Did you read the comment?
+  system.stateVersion = "20.09"; # Did you read the comment?
+  system.autoUpgrade.enable = true;  # incremental updates are good
+  system.autoUpgrade.allowReboot = false;  # not that crazy
+
+  # Clean up packages after a while
+  nix.gc = {
+    automatic = true;
+    dates = "weekly UTC";
+  };
 
   nixpkgs.config.allowUnfree = true;
+
+  # servers/services inside containers
+  environment.etc = {
+    "telegraf.conf" = {
+      mode = "0440";
+      text = ''
+        [global_tags]
+        [agent]
+          interval = "10s"
+          round_interval = true
+          metric_batch_size = 1000
+          metric_buffer_limit = 10000
+          collection_jitter = "0s"
+          flush_interval = "10s"
+          flush_jitter = "0s"
+          precision = ""
+          hostname = "acer4810"
+          omit_hostname = false
+        [[outputs.influxdb_v2]]
+          urls = ["http://hopper-tail:8086"]
+          token = "GnK3erFQGnB3aLonK6mCiIRYTGenl4ShRGdxr7M3E6b2yzl51shxHUR7gJdTagJ094Vpf8fJzzotCWwhSxclHA=="
+          organization = "casa"
+          bucket = "hopper"
+        [[inputs.cpu]]
+          percpu = true
+          totalcpu = true
+          collect_cpu_time = false
+          report_active = false
+        [[inputs.disk]]
+          ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+        [[inputs.diskio]]
+        [[inputs.kernel]]
+        [[inputs.mem]]
+        [[inputs.processes]]
+        [[inputs.swap]]
+        [[inputs.system]]
+        [[inputs.zfs]]
+          poolMetrics = true
+        [[inputs.sensors]]
+      '';
+    };
+  };
+
+  virtualisation = {
+    podman = {
+      enable = true;
+      dockerCompat = true;
+    };
+    oci-containers = {
+      backend = "podman";
+      containers = {
+        telegraf = {
+          image = "telegraf:1.17-alpine";
+          volumes = [ "/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro" ];
+        };
+      };
+    };
+  };
 }

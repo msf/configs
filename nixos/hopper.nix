@@ -10,11 +10,20 @@
       ./hardware-configuration.nix
     ];
 
+  hardware = {
+    enableRedistributableFirmware = true;
+    cpu.intel.updateMicrocode = true;
+  };
+
+  boot.supportedFilesystems = [ "zfs" "btrfs" ];
+  boot.zfs.enableUnstable = true;
+  boot.kernelParams = [
+    "mitigations=off"  # old b0x, need moar sp33d
+  ];
+
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.supportedFilesystems = [ "btrfs" "zfs" ];
-  boot.zfs.enableUnstable = true;
 
   networking.hostName = "hopper"; # Define your hostname.
   networking.hostId = "a7ec8faa"; # zfs needs this
@@ -37,10 +46,10 @@
   networking.extraHosts =
   ''
   100.119.38.108  hopper-tail
-  100.89.241.6  acer-tail
+  100.89.241.6    acer-tail
   100.99.150.19   lovelace-tail
-  100.67.77.31  margie-tail
-  100.121.57.66  curie-tail
+  100.67.77.31    margie-tail
+  100.121.57.66   curie-tail
   '';
 
 
@@ -54,7 +63,7 @@
   networking.firewall.allowedUDPPorts = [ 5001 5002 22000 21027];
   networking.firewall.allowPing = true;
   # Or disable the firewall altogether.
-   networking.firewall.enable = false;
+  networking.firewall.enable = false;
 
   # Select internationalisation properties.
   console.useXkbConfig = true;
@@ -223,6 +232,12 @@
   system.stateVersion = "20.09"; # Did you read the comment?
   system.autoUpgrade.enable = true;  # incremental updates are good
   system.autoUpgrade.allowReboot = false;  # not that crazy
+
+  # Clean up packages after a while
+  nix.gc = {
+    automatic = true;
+    dates = "weekly UTC";
+  };
 
   nixpkgs.config.allowUnfree = true;
 

@@ -10,9 +10,17 @@
       ./hardware-configuration.nix
     ];
 
+  hardware = {
+    enableRedistributableFirmware = true;
+    cpu.intel.updateMicrocode = true;
+  };
+
   boot.supportedFilesystems = [ "zfs" "btrfs" ];
   boot.zfs.enableUnstable = true;
-  boot.kernelParams = ["zfs.zfs_arc_max=3221225472"];  # 3GB
+  boot.kernelParams = [
+    "zfs.zfs_arc_max=3221225472"  # 3GB
+    "mitigations=off"  # old b0x, need moar sp33d
+  ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -108,6 +116,7 @@
        restic
        rxvt_unicode
        smartmontools
+       syncthing
        sysstat
        syncthing
        sysstat
@@ -257,7 +266,6 @@
   };
 
   nixpkgs.config.allowUnfree = true;
-
 
   # servers/services inside containers
   environment.etc = {
