@@ -19,8 +19,17 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernel.sysctl."vm.swapiness" = 60;
 
+  # premature to enable this..
+  #zramSwap = {
+  #  enable = true;
+  #  memoryPercent = 20;
+  #  numDevices = 1;
+  #  algorithm = "zstd";
+  #};
+
   networking.hostId = "b05e6b14";  # for ZFS
   networking.hostName = "margiehamilton"; # Define your hostname.
+  networking.networkmanager.enable = true;
   networking.wireless.enable = false;  # using network manager
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
@@ -34,10 +43,10 @@
   networking.extraHosts =
   ''
   100.119.38.108  hopper-tail
-  100.89.241.6	acer-tail
+  100.89.241.6    acer-tail
   100.99.150.19   lovelace-tail
-  100.67.77.31	margie-tail
-  100.121.57.66  curie-tail
+  100.67.77.31    margie-tail
+  100.121.57.66   curie-tail
   '';
 
   # Configure network proxy if necessary
@@ -45,11 +54,13 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 22 ];
+  # syncthing -> 22000,21027
+  networking.firewall.allowedTCPPorts = [ 22  5001 22000 21027];
+  networking.firewall.allowedUDPPorts = [ 5001 5002 22000 21027];
   networking.firewall.allowPing = true;
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  networking.firewall.enable = false;
 
   # Select internationalisation properties.
   console.useXkbConfig = true;
@@ -90,6 +101,7 @@
        ncdu
        parted
        pciutils
+       podman
        powertop
        python3
        rclone
@@ -149,8 +161,13 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-  services.openssh.permitRootLogin = "no";
+  services.openssh = {
+	enable = true;
+	permitRootLogin = "prohibit-password";
+	passwordAuthentication = false;
+  };
+  users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMi8xVr7C/qB+DGIGa07Hm9uv0pTKZ8qbX8DywAteaXP miguel@curie" ];
+
   services.timesyncd.enable = true;
   services.zfs.autoScrub.enable = true;
   services.zfs.autoSnapshot = {
@@ -165,7 +182,8 @@
   services.syncthing = {
     enable = true;
     user = "miguel";
-    dataDir = "/home/miguel/";
+    dataDir = "/media/simple/syncthing/";
+    configDir = "/home/miguel/.config/syncthing";
     openDefaultPorts = true;
     systemService = true;
   };
@@ -181,21 +199,22 @@
     libinput.enable = true;  # Enable touchpad support.
     xkbOptions = "eurosign:e ctrl:nocaps";
 
+    displayManager.defaultSession = "none+i3";
     desktopManager.gnome3.enable = true;
-    displayManager.gdm.enable = true;
-    displayManager.gdm.wayland = false;
+#    displayManager.gdm.enable = true;
+#    displayManager.gdm.wayland = false;
 
-#    windowManager.i3 = {
-#        enable = true;
-#        # package = pkgs.i3-gaps;
-#        extraPackages = with pkgs; [
-#            dmenu
-#            i3status
-#            i3lock
-#            i3blocks
-#            feh
-#        ];
-#    };
+    windowManager.i3 = {
+        enable = true;
+        # package = pkgs.i3-gaps;
+        extraPackages = with pkgs; [
+            dmenu
+            i3status
+            i3lock
+            i3blocks
+            feh
+        ];
+    };
   };
   services.dbus.packages = with pkgs; [ gnome3.dconf gnome2.GConf ];  # needed for gtk apps
   services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ]; # gnome
@@ -231,5 +250,70 @@
   system.autoUpgrade.enable = true;  # incremental updates are good
   system.autoUpgrade.allowReboot = false;  # not that crazy
 
+  # Clean up packages after a while
+  nix.gc = {
+    automatic = true;
+    dates = "weekly UTC";
+  };
+
   nixpkgs.config.allowUnfree = true;
+
+
+  # servers/services inside containers
+  environment.etc = {
+    "telegraf.conf" = {
+      mode = "0440";
+      text = ''
+        [global_tags]
+        [agent]
+          interval = "10s"
+          round_interval = true
+          metric_batch_size = 1000
+          metric_buffer_limit = 10000
+          collection_jitter = "0s"
+          flush_interval = "10s"
+          flush_jitter = "0s"
+          precision = ""
+          hostname = "margie"
+          omit_hostname = false
+        [[outputs.influxdb_v2]]
+          urls = ["http://hopper-tail:8086"]
+          token = "GnK3erFQGnB3aLonK6mCiIRYTGenl4ShRGdxr7M3E6b2yzl51shxHUR7gJdTagJ094Vpf8fJzzotCWwhSxclHA=="
+          organization = "casa"
+          bucket = "hopper"
+        [[inputs.cpu]]
+          percpu = true
+          totalcpu = true
+          collect_cpu_time = false
+          report_active = false
+        [[inputs.disk]]
+          ignore_fs = ["tmpfs", "devtmpfs", "devfs", "iso9660", "overlay", "aufs", "squashfs"]
+        [[inputs.diskio]]
+        [[inputs.kernel]]
+        [[inputs.mem]]
+        [[inputs.processes]]
+        [[inputs.swap]]
+        [[inputs.system]]
+        [[inputs.zfs]]
+          poolMetrics = true
+        [[inputs.sensors]]
+      '';
+    };
+  };
+
+  virtualisation = {
+    podman = {
+      enable = true;
+      dockerCompat = true;
+    };
+    oci-containers = {
+      backend = "podman";
+      containers = {
+        telegraf = {
+          image = "telegraf:1.17-alpine";
+          volumes = [ "/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro" ];
+        };
+      };
+    };
+  };
 }
