@@ -1,0 +1,8 @@
+[gluster]
+192.168.33.11 ansible_ssh_private_key_file=/home/miguel/zfs/data/work/un/msf-scratch/gpu-cluster-ansible/.vagrant/machines/gpu1/libvirt/private_key
+192.168.33.12 ansible_ssh_private_key_file=/home/miguel/zfs/data/work/un/msf-scratch/gpu-cluster-ansible/.vagrant/machines/gpu2/libvirt/private_key
+
+[gluster:vars]
+ansible_user=vagrant
+gpu1=192.168.33.11
+gpu2=192.168.33.11

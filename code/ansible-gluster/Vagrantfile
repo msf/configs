@@ -1,0 +1,33 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu2004"
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt-get install -y ansible
+  SHELL
+  config.vm.provision "shell", inline: "echo Hello"
+
+  config.vm.define "gpu1" do |gpu1|
+    gpu1.vm.provider :libvirt do |libvirt|
+      libvirt.storage :file, :size => '1G'
+      libvirt.storage :file, :size => '1G'
+      libvirt.storage :file, :size => '1G'
+      libvirt.storage :file, :size => '1G'
+    end
+    gpu1.vm.box = "generic/ubuntu2004"
+    gpu1.vm.hostname = "gpu1"
+    gpu1.vm.network "private_network", ip: "192.168.33.11"
+  end
+
+  config.vm.define "gpu2" do |gpu2|
+    gpu2.vm.provider :libvirt do |libvirt|
+      libvirt.storage :file, :size => '1G'
+      libvirt.storage :file, :size => '1G'
+      libvirt.storage :file, :size => '1G'
+      libvirt.storage :file, :size => '1G'
+    end
+    gpu2.vm.box = "generic/ubuntu2004"
+    gpu2.vm.hostname = "gpu2"
+    gpu2.vm.network "private_network", ip: "192.168.33.12"
+  end
+end
+

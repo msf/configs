@@ -1,0 +1,37 @@
+---
+- name: Install Base Required Packages
+  become: true
+  apt:
+    state: present
+    name:
+      # cli basics
+      # - zsh
+      - vim
+      - unzip
+      - curl
+      - wget
+      - tree
+      - tmux
+      - less
+      # devel/debug
+      # - strace
+      # - tcpdump
+      # - sysstat
+      # - whois
+      # - lsof
+      # - htop
+      # - iftop
+      # - iotop
+      # - ack-grep
+      - ncdu
+
+- name: Update and Upgrade
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    upgrade: safe
+
+- name: Change /etc/hosts
+  template:
+    src: hosts.j2
+    dest: /etc/hosts

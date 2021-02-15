@@ -1,0 +1,80 @@
+---
+# This playbook will install GlusterFS and configure it
+
+- name: Create data directory directory
+  file:
+    path: /data
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Add /data/README.md
+  template:
+    src: data-README.md
+    dest: /data/README.md
+
+- name: Generate passphrase files
+  ansible.builtin.shell: |
+    dd if=/dev/urandom of=/dev/stdout bs=64 count=1 | base64 >> /data/{{ item }}_key
+  with_items:
+    - hdd1
+    - hdd2
+    - ssd1
+    - ssd2
+
+#- include: format_drives.yml
+- name: Install luks and btrfs
+  become: true
+  apt:
+    state: present
+    name:
+      - btrfs-progs
+      - btrfs-compsize
+      - cryptsetup
+      - util-linux  # blkid, wipefs
+
+- name: Format hard-drive if needed
+  filesystem:
+    fstype: btrfs
+    dev: /dev/vdb
+    opts: -L hdd1
+
+- name: mount drive
+  mount:
+    path: /data/hdd1
+    src: LABEL=hdd1
+    fstype: btrfs
+    opts: relatime,compress=zstd:1
+    state: mounted
+
+- name: Create /data/hdd1/hdd directory
+  file:
+    path: /data/hdd1/hdd
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install glusterfs-server
+  become: true
+  apt:
+    state: present
+    name:
+      - glusterfs-server
+
+- name: Set up glusterd service
+  service:
+    name: glusterd
+    state: started
+    enabled: yes
+
+# TODO: peer probe was done by hand, could be here
+# - volume creation should probably be done by hand..
+- name: Mount GlusterFS
+  mount:
+    path: /mnt
+    src: localhost:/hdd
+    fstype: glusterfs
+    state: mounted
+

@@ -1,0 +1,17 @@
+---
+- name: apply common configs to all nodes
+  hosts: all
+  remote_user: vagrant
+  become: true
+
+  roles:
+    - common
+
+- name: Configure Glusterfs
+  hosts: gluster
+  remote_user: vagrant
+  become: true
+
+  roles:
+    - gluster
+
