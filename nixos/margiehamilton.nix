@@ -88,6 +88,7 @@
        atop
        awscli
        btrfs-progs
+       docker
        dstat
        file
        firefox
@@ -209,7 +210,7 @@
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     displayManager.defaultSession = "none+i3";
-    desktopManager.gnome3.enable = true;
+   desktopManager.gnome3.enable = true;
 #    displayManager.gdm.enable = true;
 #    displayManager.gdm.wayland = false;
 
@@ -249,6 +250,9 @@
     extraGroups = [ "networkmanager" ]; # Enable ‘sudo’ for the user.
     shell = "/run/current-system/sw/bin/zsh";
     openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIeH/MddmSVsqKwTR8ys07HMW/DDDAYdsm9/lYM6hd1X miguel.filipe@unbabel" "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCZsY3qNOZP4uL+baYJ+B2lc6SEYWnJeKKPhwZ7azhO/RleAb3SsZ7452ktvCY1YE2fAsHwgHYrZEAXj8sD1DoDUMUWael2MAAzTdnPJWriINO5QeZ1WrSLaFHb5eQ4fUMpidCmFOnEWOl9MUopeTrOgLElKoAaq9mWQvBo3VtRXH4bk4/dkCWhYuI8rpXk9w+oNhTgFr9NumSnRIFDwKazNwZFjNxt0actwKanebg7lDQabTCGc3CuU59YGiYjQmgBpvb7mkQJi5grGdCg0uFeee2NlsSBUmmxBG+OLgrtjFXpbcm2H3IgBxQRRUnN2dho2sZW2c7tV4queKmSVsEtyEQcSpc5NQZrIFE6tVEeXHhfxFtGe2qmEgX6Zmh+/TgrGTJWocsQvvuRaCrJ5jTQkYHl/9rgIoSBc5NtUL/duVlA4DzvUOUsjDyU00WaTAHB0pm767ZICyN+7Zkb3o934+hreYzMszvL60sit1V4y8ORLplUJvGhkNHrljOrtp2VVtluWEPxJLENbiiUMDB6PqQI8c4vEx4BVvFeWaPJcAZLc2y9ZX5w8R6fl2f5VWXiGbjJl4xfTquSWa3YbC//x12KFyOvMzQCctCX6fgvgEg9oGig9Xg3fEoN/R26JBjbKbCeZI5UWSIOZrrTEo50icUsUR6AweIVQ1q2IV5NQ== miguel.filipe@gmail.com" ];
+  };
+  users.users.notroot = {
+    isNormalUser = true;
   };
 
   # This value determines the NixOS release with which your system is to be
@@ -312,16 +316,26 @@
   virtualisation = {
     podman = {
       enable = true;
-      dockerCompat = true;
+    };
+    docker = {
+      enable = true;
     };
     oci-containers = {
-      backend = "podman";
+      backend = "docker";
       containers = {
         telegraf = {
           image = "telegraf:1.17-alpine";
           volumes = [ "/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro" ];
         };
+         kostal2influx = {
+          image = "msf/kostal2influx:v0.2";
+          user = "notroot";
+        };
+        hello = {
+          image = "hello-world";
+        };
       };
     };
   };
+  # systemd.services.podman-kostal2influx.serviceConfig.User = "notroot"; 
 }

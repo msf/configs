@@ -28,8 +28,18 @@
       fsType = "vfat";
     };
 
+  fileSystems."/mnt/backups/backups" =
+    { device = "backups/backups";
+      fsType = "zfs";
+    };
+
+  fileSystems."/mnt/backups/syncthing" =
+    { device = "backups/syncthing";
+      fsType = "zfs";
+    };
+
   swapDevices = [ ];
 
   nix.maxJobs = lib.mkDefault 4;
-  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
+  powerManagement.cpuFreqGovernor = lib.mkDefault "performance";
 }
