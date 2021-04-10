@@ -273,7 +273,7 @@
 
   # servers/services inside containers
   environment.etc = {
-    "telegraf.conf" = {
+    "telegraf/telegraf.conf" = {
       mode = "0440";
       text = ''
         [global_tags]
@@ -290,9 +290,9 @@
           omit_hostname = false
         [[outputs.influxdb_v2]]
           urls = ["http://hopper-tail:8086"]
-          token = "GnK3erFQGnB3aLonK6mCiIRYTGenl4ShRGdxr7M3E6b2yzl51shxHUR7gJdTagJ094Vpf8fJzzotCWwhSxclHA=="
+	  token = "6fm31K9UVWC2o0oADBWg_broHVpdV9egDoj51mMGy-pYvRNAPBB475qjWRTb-8N66mTOsXbeQcM8YVvzwxrLNw=="
           organization = "casa"
-          bucket = "hopper"
+          bucket = "alfeizerao"
         [[inputs.cpu]]
           percpu = true
           totalcpu = true
@@ -316,6 +316,7 @@
   virtualisation = {
     podman = {
       enable = true;
+      extraPackages = [ pkgs.zfs ];
     };
     docker = {
       enable = true;
@@ -325,17 +326,33 @@
       containers = {
         telegraf = {
           image = "telegraf:1.17-alpine";
-          volumes = [ "/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro" ];
+          extraOptions = ["--network=host"];
+          volumes = [
+             "/:/hostfs:ro"
+             "/etc:/hostfs/etc:ro"
+             "/proc:/hostfs/proc:ro"
+             "/sys:/hostfs/sys:ro"
+             "/var/run/utmp:/var/run/utmp:ro"
+             "/etc/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro"
+          ];
+	  environment = {
+	    HOST_ETC = "/hostfs/etc";
+	    HOST_PROC = "/hostfs/proc";
+	    HOST_SYS = "/hostfs/sys";
+	    HOST_MOUNT_PREFIX = "/hostfs";
+	  };
         };
          kostal2influx = {
-          image = "msf/kostal2influx:v0.2";
-          user = "notroot";
-        };
-        hello = {
-          image = "hello-world";
+          image = "quay.io/msf/kostal2influx:v0.2";
+          user = "nobody:nogroup";
+          extraOptions = ["--network=host"];
+	  environment = {
+	    INFLUXTOKEN = "6fm31K9UVWC2o0oADBWg_broHVpdV9egDoj51mMGy-pYvRNAPBB475qjWRTb-8N66mTOsXbeQcM8YVvzwxrLNw==";
+            INFLUXHOST = "hopper-tail";
+            KOSTALHOST = "192.168.0.11";
+	  };
         };
       };
     };
   };
-  # systemd.services.podman-kostal2influx.serviceConfig.User = "notroot"; 
 }
