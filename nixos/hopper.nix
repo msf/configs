@@ -20,9 +20,10 @@
   boot.kernelParams = [
     "mitigations=off"  # old b0x, need moar sp33d
   ];
-
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
+
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "hopper"; # Define your hostname.
@@ -45,13 +46,12 @@
 
   networking.extraHosts =
   ''
-  100.119.38.108  hopper-tail
-  100.89.241.6    acer-tail
-  100.99.150.19   lovelace-tail
-  100.67.77.31    margie-tail
-  100.121.57.66   curie-tail
+  100.119.38.108 hopper-tail
+  100.89.241.6   acer-tail
+  100.99.150.19  lovelace-tail
+  100.67.77.31   margie-tail
+  100.121.57.66  curie-tail
   '';
-
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -159,9 +159,9 @@
 
   # Enable the OpenSSH daemon.
   services.openssh = {
-        enable = true;
-        permitRootLogin = "prohibit-password";
-        passwordAuthentication = false;
+    enable = true;
+    permitRootLogin = "prohibit-password";
+    passwordAuthentication = false;
   };
   users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMi8xVr7C/qB+DGIGa07Hm9uv0pTKZ8qbX8DywAteaXP miguel@curie" ];
 
@@ -244,7 +244,7 @@
 
   # servers/services inside containers
   environment.etc = {
-    "telegraf.conf" = {
+    "telegraf/telegraf.conf" = {
       mode = "0440";
       text = ''
         [global_tags]
@@ -287,6 +287,7 @@
   virtualisation = {
     podman = {
       enable = true;
+      extraPackages = [ pkgs.zfs ];
       dockerCompat = true;
     };
     oci-containers = {
@@ -294,7 +295,20 @@
       containers = {
         telegraf = {
           image = "telegraf:1.17-alpine";
-          volumes = [ "/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro" ];
+          volumes = [
+             "/:/hostfs:ro"
+             "/etc:/hostfs/etc:ro"
+             "/proc:/hostfs/proc:ro"
+             "/sys:/hostfs/sys:ro"
+             "/var/run/utmp:/var/run/utmp:ro"
+             "/etc/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro"
+          ];
+          environment = {
+            HOST_ETC = "/hostfs/etc";
+            HOST_PROC = "/hostfs/proc";
+            HOST_SYS = "/hostfs/sys";
+            HOST_MOUNT_PREFIX = "/hostfs";
+          };
         };
         influxdb = {
           image = "quay.io/influxdb/influxdb:v2.0.3";
