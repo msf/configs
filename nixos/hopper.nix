@@ -106,9 +106,10 @@
        rclone
        restic
        rxvt_unicode
+       sanoid
        smartmontools
-       sysstat
        syncthing
+       sysstat
        sysstat
        tmux
        tree
@@ -317,5 +318,14 @@
         };
       };
     };
+  };
+
+  # Enable cron backups
+  services.cron = {
+    enable = true;
+    systemCronJobs = [
+      # on sundays, sync to alfeizerao
+      "0 1 * * 0      root    /root/sync-alfeizerao.sh >> /tmp/sync-alfeizerao.log"
+    ];
   };
 }
