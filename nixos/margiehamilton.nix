@@ -24,6 +24,7 @@
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernel.sysctl."vm.swapiness" = 60;
 
@@ -50,11 +51,11 @@
 
   networking.extraHosts =
   ''
-  100.119.38.108  hopper-tail
-  100.89.241.6    acer-tail
-  100.99.150.19   lovelace-tail
-  100.67.77.31    margie-tail
-  100.121.57.66   curie-tail
+  100.119.38.108 hopper-tail
+  100.89.241.6   acer-tail
+  100.99.150.19  lovelace-tail
+  100.67.77.31   margie-tail
+  100.121.57.66  curie-tail
   '';
 
   # Configure network proxy if necessary
@@ -66,7 +67,6 @@
   networking.firewall.allowedTCPPorts = [ 22  5001 22000 21027];
   networking.firewall.allowedUDPPorts = [ 5001 5002 22000 21027];
   networking.firewall.allowPing = true;
-  # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
 
@@ -95,18 +95,19 @@
        fwupd
        gcc
        git
-       gnumake
        gnome3.adwaita-icon-theme
        gnome3.gnome-power-manager
+       gnumake
        go
-       hdparm
        google-chrome
+       hdparm
        htop
        iotop
        lm_sensors
        lshw
        lsof
        lxappearance
+       mbuffer
        ncdu
        parted
        pciutils
@@ -116,9 +117,8 @@
        rclone
        restic
        rxvt_unicode
+       sanoid
        smartmontools
-       syncthing
-       sysstat
        syncthing
        sysstat
        tmux
@@ -127,8 +127,8 @@
        vim
        weechat
        wget
-       zoom-us
        zfstools
+       zoom-us
        zsh
        zstd
      ];
@@ -172,11 +172,11 @@
 
   # Enable the OpenSSH daemon.
   services.openssh = {
-	enable = true;
-	permitRootLogin = "prohibit-password";
-	passwordAuthentication = false;
+    enable = true;
+    permitRootLogin = "prohibit-password";
+    passwordAuthentication = false;
   };
-  users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMi8xVr7C/qB+DGIGa07Hm9uv0pTKZ8qbX8DywAteaXP miguel@curie" ];
+  users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMi8xVr7C/qB+DGIGa07Hm9uv0pTKZ8qbX8DywAteaXP root@hopper" ];
 
   services.timesyncd.enable = true;
   services.zfs.autoScrub.enable = true;
@@ -210,7 +210,7 @@
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     displayManager.defaultSession = "none+i3";
-   desktopManager.gnome3.enable = true;
+    desktopManager.gnome3.enable = true;
 #    displayManager.gdm.enable = true;
 #    displayManager.gdm.wayland = false;
 
@@ -335,22 +335,22 @@
              "/var/run/utmp:/var/run/utmp:ro"
              "/etc/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro"
           ];
-	  environment = {
-	    HOST_ETC = "/hostfs/etc";
-	    HOST_PROC = "/hostfs/proc";
-	    HOST_SYS = "/hostfs/sys";
-	    HOST_MOUNT_PREFIX = "/hostfs";
-	  };
+          environment = {
+            HOST_ETC = "/hostfs/etc";
+            HOST_PROC = "/hostfs/proc";
+            HOST_SYS = "/hostfs/sys";
+            HOST_MOUNT_PREFIX = "/hostfs";
+          };
         };
          kostal2influx = {
           image = "quay.io/msf/kostal2influx:v0.2";
           user = "nobody:nogroup";
           extraOptions = ["--network=host"];
-	  environment = {
-	    INFLUXTOKEN = "6fm31K9UVWC2o0oADBWg_broHVpdV9egDoj51mMGy-pYvRNAPBB475qjWRTb-8N66mTOsXbeQcM8YVvzwxrLNw==";
+          environment = {
+            INFLUXTOKEN = "6fm31K9UVWC2o0oADBWg_broHVpdV9egDoj51mMGy-pYvRNAPBB475qjWRTb-8N66mTOsXbeQcM8YVvzwxrLNw==";
             INFLUXHOST = "hopper-tail";
             KOSTALHOST = "192.168.0.11";
-	  };
+          };
         };
       };
     };
