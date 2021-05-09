@@ -98,6 +98,7 @@
        lshw
        lsof
        lxappearance
+       mbuffer
        ncdu
        parted
        pciutils
@@ -109,7 +110,6 @@
        sanoid
        smartmontools
        syncthing
-       sysstat
        sysstat
        tmux
        tree
@@ -129,12 +129,20 @@
   users.defaultUserShell = pkgs.zsh;
   programs.zsh.enable = true;
 
-  security.pam.loginLimits = [{
+  security.pam.loginLimits = [
+  {
     domain = "*";
     type = "hard";
     item = "nofile";
     value = "65535";
-  }];
+  }
+  {
+    domain = "*";
+    type = "hard";
+    item = "nproc";
+    value = "1049600";
+  }
+  ];
 
   fonts = {
     enableFontDir = true;
@@ -164,7 +172,7 @@
     permitRootLogin = "prohibit-password";
     passwordAuthentication = false;
   };
-  users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMi8xVr7C/qB+DGIGa07Hm9uv0pTKZ8qbX8DywAteaXP miguel@curie" ];
+  users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMi8xVr7C/qB+DGIGa07Hm9uv0pTKZ8qbX8DywAteaXP root@hopper" ];
 
   services.timesyncd.enable = true;
   services.zfs.autoScrub.enable = true;
@@ -178,7 +186,7 @@
   };
 
   services.syncthing = {
-    enable = true;
+    enable = false;
     user = "miguel";
     dataDir = "/media/simple/syncthing/";
     configDir = "/home/miguel/.config/syncthing";
@@ -285,6 +293,9 @@
     };
   };
 
+  # This is required by podman to run containers in rootless mode.
+  security.unprivilegedUsernsClone = config.virtualisation.containers.enable;
+
   virtualisation = {
     podman = {
       enable = true;
@@ -320,12 +331,13 @@
     };
   };
 
+
   # Enable cron backups
   services.cron = {
     enable = true;
     systemCronJobs = [
-      # on sundays, sync to alfeizerao
-      "0 1 * * 0      root    /root/sync-alfeizerao.sh >> /tmp/sync-alfeizerao.log"
+      # everynight, sync to alfeizerao
+      "0 1 * * *      root    /root/sync-alfeizerao.sh >> /tmp/sync-alfeizerao.log"
     ];
   };
 }
