@@ -1,0 +1,61 @@
+---
+- name: Install Base Required Packages
+  become: true
+  apt:
+    state: latest
+    install_recommends: no
+    name:
+      # pkgs are alpha sorted
+      - ack-grep
+      - aptitude
+      - atop
+      - awscli
+      - btrfs-progs
+      - build-essential
+      - curl
+      - docker.io
+      - dstat
+      - fwupd
+      - gcc
+      - git
+      - hdparm
+      - htop
+      - iftop
+      - iotop
+      - iperf3
+      - less
+      - lm-sensors
+      - lsof
+      - ncdu
+      - parted
+      - pigz
+      - python
+      - python-dev
+      - python-is-python3
+      - restic
+      - smartmontools
+      - sshfs
+      - strace
+      - sysstat
+      - tcpdump
+      - tmux
+      - tree
+      - unzip
+      - vim
+      - weechat
+      - wget
+      - whois
+      - zfs-dkms
+      - zsh
+      - zstd
+
+- name: Update and Upgrade
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    upgrade: safe
+
+- name: Change /etc/hosts
+  copy:
+    src: etc_hosts
+    dest: /etc/hosts

@@ -1,0 +1,10 @@
+---
+- name: apply common configs to all nodes
+  hosts: localhost
+  remote_user: miguel
+  become: true
+  gather_facts: yes
+
+  roles:
+    - { role: common, tags: ['common'] }
+
