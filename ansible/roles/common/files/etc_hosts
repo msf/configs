@@ -7,7 +7,8 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
-100.119.38.108 hopper-tail
+100.119.38.108 hopper-old
+100.119.216.56 hopper-tail
 100.89.241.6   acer-tail
 100.99.150.19  lovelace-tail
 100.67.77.31   margie-tail

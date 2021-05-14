@@ -26,13 +26,16 @@
       - less
       - lm-sensors
       - lsof
+      - mbuffer
       - ncdu
       - parted
       - pigz
       - python
       - python-dev
       - python-is-python3
+      - rclone
       - restic
+      - sanoid
       - smartmontools
       - sshfs
       - strace
@@ -59,3 +62,6 @@
   copy:
     src: etc_hosts
     dest: /etc/hosts
+
+- name: Install telegraf
+  import_tasks: telegraf.yml
