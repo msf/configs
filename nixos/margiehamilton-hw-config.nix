@@ -38,6 +38,11 @@
       fsType = "zfs";
     };
 
+  fileSystems."/mnt/backups/chia" =
+    { device = "backups/chia";
+      fsType = "zfs";
+    };
+
   swapDevices = [ ];
 
   nix.maxJobs = lib.mkDefault 4;
