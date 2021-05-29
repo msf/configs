@@ -51,11 +51,11 @@
 
   networking.extraHosts =
   ''
-  100.92.53.58   hopper-tail
   100.119.216.56 grace-tail
   100.119.55.5  lovelace-tail
   100.67.77.31  margie-tail
   100.72.79.86  curie-tail
+  100.92.53.58   hopper-tail
   '';
 
   # Configure network proxy if necessary
@@ -289,7 +289,7 @@
           hostname = "margie"
           omit_hostname = false
         [[outputs.influxdb_v2]]
-          urls = ["http://hopper-tail:8086"]
+          urls = ["http://grace-tail:8086"]
 	  token = "6fm31K9UVWC2o0oADBWg_broHVpdV9egDoj51mMGy-pYvRNAPBB475qjWRTb-8N66mTOsXbeQcM8YVvzwxrLNw=="
           organization = "casa"
           bucket = "alfeizerao"

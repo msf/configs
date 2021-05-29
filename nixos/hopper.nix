@@ -36,21 +36,25 @@
   #networking.useDHCP = false;
   #networking.interfaces.eno1.useDHCP = true;
   #networking.interfaces.wlp3s0.useDHCP = true;
-  networking.interfaces.eno1.ipv4.addresses = [ {
-    address = "192.168.1.10";
-    prefixLength = 24;
-  } ];
-  networking.defaultGateway = "192.168.1.1";
+  networking.interfaces.eno1.ipv4.addresses = [
+  {
+    address = "192.168.0.20";
+    prefixLength = 16;
+  }
+  ];
+  networking.defaultGateway = "192.168.0.1";
 
   networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
 
   networking.extraHosts =
   ''
+  100.103.26.62  kamala-tail
+  100.119.216.56 grace-tail
   100.119.38.108 hopper-tail
+  100.121.57.66  curie-tail
+  100.67.77.31   margie-tail
   100.89.241.6   acer-tail
   100.99.150.19  lovelace-tail
-  100.67.77.31   margie-tail
-  100.121.57.66  curie-tail
   '';
 
   # Configure network proxy if necessary
@@ -199,7 +203,7 @@
 
   # Enable the X11 windowing system.
   services.xserver = {
-    enable = true;
+    enable = false;
     layout = "us";
     videoDrivers = [ "intel" ];
     xkbOptions = "eurosign:e ctrl:nocaps";
@@ -207,7 +211,7 @@
     displayManager.defaultSession = "none+i3";
 
     windowManager.i3 = {
-        enable = true;
+        enable = false;
         extraPackages = with pkgs; [
             dmenu
             i3status
@@ -250,7 +254,6 @@
 
   nixpkgs.config.allowUnfree = true;
 
-
   # servers/services inside containers
   environment.etc = {
     "telegraf/telegraf.conf" = {
@@ -269,10 +272,10 @@
           hostname = "hopper"
           omit_hostname = false
         [[outputs.influxdb_v2]]
-          urls = ["http://hopper-tail:8086"]
-          token = "GnK3erFQGnB3aLonK6mCiIRYTGenl4ShRGdxr7M3E6b2yzl51shxHUR7gJdTagJ094Vpf8fJzzotCWwhSxclHA=="
+          urls = ["http://grace-tail:8086"]
+	  token = "6fm31K9UVWC2o0oADBWg_broHVpdV9egDoj51mMGy-pYvRNAPBB475qjWRTb-8N66mTOsXbeQcM8YVvzwxrLNw=="
           organization = "casa"
-          bucket = "hopper"
+          bucket = "alfeizerao"
         [[inputs.cpu]]
           percpu = true
           totalcpu = true
@@ -322,11 +325,26 @@
             HOST_MOUNT_PREFIX = "/hostfs";
           };
         };
-        influxdb = {
-          image = "quay.io/influxdb/influxdb:v2.0.3";
-          volumes = [ "/media/simple/influxdb:/root/.influxdbv2" ];
-          ports = [ "8083:8083" "8086:8086" ];
+        kostal2influx = {
+          image = "quay.io/msf/kostal2influx:v0.2";
+          user = "nobody:nogroup";
+          extraOptions = ["--network=host"];
+          environment = {
+            INFLUXTOKEN = "6fm31K9UVWC2o0oADBWg_broHVpdV9egDoj51mMGy-pYvRNAPBB475qjWRTb-8N66mTOsXbeQcM8YVvzwxrLNw==";
+            INFLUXHOST = "grace-tail";
+            KOSTALHOST = "192.168.0.11";
+          };
         };
+#        chia = {
+#          image = "ghcr.io/chia-network/chia:latest";
+#          extraOptions = ["--network=host"];
+#          user = "miguel:users";
+#          # todo, isolate keys away
+#          volumes = [
+#            "/media/simple/chia:/plots"
+#            "/media/simple/chia-root:/root"
+#	  ];
+#	};
       };
     };
   };
@@ -334,7 +352,7 @@
 
   # Enable cron backups
   services.cron = {
-    enable = true;
+    enable = false;
     systemCronJobs = [
       # everynight, sync to alfeizerao
       "0 1 * * *      root    /root/sync-alfeizerao.sh >> /tmp/sync-alfeizerao.log"
