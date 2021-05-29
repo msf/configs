@@ -51,11 +51,11 @@
 
   networking.extraHosts =
   ''
-  100.119.38.108 hopper-tail
-  100.89.241.6   acer-tail
-  100.99.150.19  lovelace-tail
-  100.67.77.31   margie-tail
-  100.121.57.66  curie-tail
+  100.92.53.58   hopper-tail
+  100.119.216.56 grace-tail
+  100.119.55.5  lovelace-tail
+  100.67.77.31  margie-tail
+  100.72.79.86  curie-tail
   '';
 
   # Configure network proxy if necessary
@@ -128,7 +128,7 @@
        weechat
        wget
        zfstools
-       zoom-us
+       #zoom-us
        zsh
        zstd
      ];
@@ -190,7 +190,7 @@
   };
 
   services.syncthing = {
-    enable = true;
+    enable = false;
     user = "miguel";
     dataDir = "/media/simple/syncthing/";
     configDir = "/home/miguel/.config/syncthing";
@@ -210,7 +210,7 @@
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     displayManager.defaultSession = "none+i3";
-    desktopManager.gnome3.enable = true;
+    desktopManager.gnome3.enable = false;
 #    displayManager.gdm.enable = true;
 #    displayManager.gdm.wayland = false;
 

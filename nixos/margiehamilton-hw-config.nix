@@ -28,20 +28,20 @@
       fsType = "vfat";
     };
 
-  fileSystems."/mnt/backups/backups" =
-    { device = "backups/backups";
-      fsType = "zfs";
-    };
+  # fileSystems."/mnt/backups/backups" =
+  #  { device = "backups/backups";
+  #    fsType = "zfs";
+  #  };
 
-  fileSystems."/mnt/backups/syncthing" =
-    { device = "backups/syncthing";
-      fsType = "zfs";
-    };
+  # fileSystems."/mnt/backups/syncthing" =
+  #   { device = "backups/syncthing";
+  #    fsType = "zfs";
+  #   };
 
-  fileSystems."/mnt/backups/chia" =
-    { device = "backups/chia";
-      fsType = "zfs";
-    };
+  # fileSystems."/mnt/backups/chia" =
+  #  { device = "backups/chia";
+  #    fsType = "zfs";
+  #  };
 
   swapDevices = [ ];
 
