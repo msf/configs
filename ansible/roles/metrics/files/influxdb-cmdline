@@ -1,0 +1,1 @@
+sudo podman run -d --network=host -v /media/simple/influxdb:/root/.influxdbv2 --expose=8083 --expose=8086 quay.io/influxdb/influxdb:v2.0.6

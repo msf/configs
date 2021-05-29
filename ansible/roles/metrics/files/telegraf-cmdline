@@ -1,0 +1,2 @@
+podman run -d --network=host -v /:/hostfs:ro -v /etc:/hostfs/etc:ro -v /proc:/hostfs/proc:ro -v /sys:/hostfs/sys:ro -v /var/run/utmp:/var/run/utmp:ro -v /etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro --env HOST_ETC=/hostfs/etc --env  HOST_PROC=/hostfs/proc --env HOST_SYS=/hostfs/sys --env HOST_MOUNT_PREFIX=/hostfs telegraf:1.18-alpine  --debug
+
