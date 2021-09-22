@@ -47,6 +47,7 @@ alias vac="source env/bin/activate"
 alias gti=git
 alias tmux="tmux -2"
 alias k="kubectl"
+alias docker="podman"
 
 # keychain
 keychain=`which keychain`
