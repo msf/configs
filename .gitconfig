@@ -11,7 +11,7 @@ br = branch
 lg = log --graph --pretty=format:\"%Cred%h%Creset — %s %Cgreen(%cr)%Creset\" --decorate --oneline --date=relative
 dt = diff-tree -p --color
 dc = diff --cached
-poh = push origin HEAD
+poh = push origin HEAD --force-with-lease
 rbc = rebase --continue
 mgt = mergetool
 rom = !git fetch && git rebase origin/master

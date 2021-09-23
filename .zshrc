@@ -43,6 +43,7 @@ alias j='jobs'
 alias ipy='ipython -nobanner -noconfirm_exit'
 alias term='xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8'
 alias dstat='dstat -c -r -d -n -m -s -y'
+alias vvac="python3 -m venv env && source env/bin/activate && pip install --upgrade pip"
 alias vac="source env/bin/activate"
 alias gti=git
 alias tmux="tmux -2"
