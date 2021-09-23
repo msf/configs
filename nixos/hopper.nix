@@ -50,11 +50,10 @@
   ''
   100.103.26.62  kamala-tail
   100.119.216.56 grace-tail
-  100.119.38.108 hopper-tail
-  100.121.57.66  curie-tail
+  100.119.55.5   lovelace-tail
   100.67.77.31   margie-tail
-  100.89.241.6   acer-tail
-  100.99.150.19  lovelace-tail
+  100.92.53.58   hopper-tail
+  100.93.239.53  curie-tail
   '';
 
   # Configure network proxy if necessary
