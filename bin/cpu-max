@@ -2,5 +2,3 @@
 
 sudo cpupower frequency-set -g performance
 sudo cpupower frequency-set -d 3600MHz
-
-[ -f ~/bin/thinkpad-x1e-cpu95c.sh ] && sudo bash ~/bin/thinkpad-x1e-cpu95c.sh
