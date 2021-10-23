@@ -48,7 +48,7 @@ alias vac="source env/bin/activate"
 alias gti=git
 alias tmux="tmux -2"
 alias k="kubectl"
-alias docker="podman"
+#alias docker="podman"
 
 # keychain
 keychain=`which keychain`
@@ -72,12 +72,14 @@ PATH=$PATH:/snap/bin
 export PATH CLASSPATH GOPATH
 export GOPRIVATE="gitlab.com/Unbabel"
 
-
 # kubectl
 kubectl=`which kubectl`
 if [ -x ${kubectl} ]; then
     source <(kubectl completion zsh)
 fi
+
+# for rust
+[ -f $HOME/.cargo/env ] && . "$HOME/.cargo/env"
 
 # zprezto
 #[ -d ~/.zprezto ] && source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"

@@ -37,3 +37,4 @@ alias vac="source env/bin/activate"
 PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 GOPATH="${HOME}/go"
 export PATH GOPATH
+. "$HOME/.cargo/env"
