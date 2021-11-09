@@ -2,3 +2,4 @@
 
 sudo cpupower frequency-set -g performance
 sudo cpupower frequency-set -d 3600MHz
+sudo cpupower set -b 0  # maximum bias for performance
