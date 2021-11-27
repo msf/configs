@@ -38,18 +38,22 @@
 
   networking.hostId = "b05e6b14";  # for ZFS
   networking.hostName = "margiehamilton"; # Define your hostname.
-  networking.networkmanager.enable = true;
-  networking.wireless.enable = false;  # using network manager
-
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
   networking.interfaces.enp2s0f0.useDHCP = true;
-
+  #networking.interfaces.enp2s0f0.ipv4.addresses = [ {
+  #  address = "192.168.1.20";
+  #  prefixLength = 24;
+  #} ];
+  #networking.defaultGateway = "192.168.1.1";
   networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
+  networking.networkmanager.enable = true;
+  networking.wireless.enable = false;  # using network manager
 
   networking.extraHosts =
   ''
+  192.168.1.15 grace
   100.103.26.62  kamala-tail
   100.119.216.56 grace-tail
   100.119.55.5   lovelace-tail
@@ -141,12 +145,20 @@
   programs.zsh.enable = true;
   programs.dconf.enable = true; #gnome
 
-  security.pam.loginLimits = [{
+  security.pam.loginLimits = [
+  {
     domain = "*";
     type = "hard";
     item = "nofile";
     value = "65535";
-  }];
+  }
+  {
+    domain = "*";
+    type = "hard";
+    item = "nproc";
+    value = "1049600";
+  }
+  ];
 
   fonts = {
     enableFontDir = true;
@@ -240,7 +252,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.miguel = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "networkmanager" "docker"]; # Enable ‘sudo’ for the user.
     uid = 1000;
     shell = "/run/current-system/sw/bin/zsh";
     openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIeH/MddmSVsqKwTR8ys07HMW/DDDAYdsm9/lYM6hd1X miguel.filipe@unbabel" "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCZsY3qNOZP4uL+baYJ+B2lc6SEYWnJeKKPhwZ7azhO/RleAb3SsZ7452ktvCY1YE2fAsHwgHYrZEAXj8sD1DoDUMUWael2MAAzTdnPJWriINO5QeZ1WrSLaFHb5eQ4fUMpidCmFOnEWOl9MUopeTrOgLElKoAaq9mWQvBo3VtRXH4bk4/dkCWhYuI8rpXk9w+oNhTgFr9NumSnRIFDwKazNwZFjNxt0actwKanebg7lDQabTCGc3CuU59YGiYjQmgBpvb7mkQJi5grGdCg0uFeee2NlsSBUmmxBG+OLgrtjFXpbcm2H3IgBxQRRUnN2dho2sZW2c7tV4queKmSVsEtyEQcSpc5NQZrIFE6tVEeXHhfxFtGe2qmEgX6Zmh+/TgrGTJWocsQvvuRaCrJ5jTQkYHl/9rgIoSBc5NtUL/duVlA4DzvUOUsjDyU00WaTAHB0pm767ZICyN+7Zkb3o934+hreYzMszvL60sit1V4y8ORLplUJvGhkNHrljOrtp2VVtluWEPxJLENbiiUMDB6PqQI8c4vEx4BVvFeWaPJcAZLc2y9ZX5w8R6fl2f5VWXiGbjJl4xfTquSWa3YbC//x12KFyOvMzQCctCX6fgvgEg9oGig9Xg3fEoN/R26JBjbKbCeZI5UWSIOZrrTEo50icUsUR6AweIVQ1q2IV5NQ== miguel.filipe@gmail.com" ];
@@ -313,13 +325,14 @@
     };
   };
 
+  # This is required by podman to run containers in rootless mode.
+  security.unprivilegedUsernsClone = config.virtualisation.containers.enable;
+
   virtualisation = {
     podman = {
       enable = true;
       extraPackages = [ pkgs.zfs ];
-    };
-    docker = {
-      enable = true;
+      #dockerCompat = true;
     };
     oci-containers = {
       backend = "docker";
@@ -342,7 +355,7 @@
             HOST_MOUNT_PREFIX = "/hostfs";
           };
         };
-         kostal2influx = {
+        kostal2influx = {
           image = "quay.io/msf/kostal2influx:v0.2";
           user = "nobody:nogroup";
           extraOptions = ["--network=host"];
