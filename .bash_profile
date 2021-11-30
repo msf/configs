@@ -21,4 +21,3 @@ PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 PATH="${PATH}:/opt/lxc/bin"
 
 export PATH
-. "$HOME/.cargo/env"
