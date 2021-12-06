@@ -62,3 +62,10 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
 	clean = git-lfs clean %f
 	smudge = git-lfs smudge %f
 	required = true
+[url "ssh://git@github.com/"]
+  insteadOf = https://github.com/
+[url "ssh://git@gitlab.com/"]
+  insteadOf = https://gitlab.com/
+[url "ssh://git@bitbucket.org/"]
+  insteadOf = https://bitbucket.org/
+
