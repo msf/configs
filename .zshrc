@@ -92,8 +92,11 @@ eval "$(pyenv virtualenv-init -)"
 
 [ -f ~/.zshrc_private ] && source ~/.zshrc_private
 
-[ -f ~/.prompt_zsh ] && source ~/.prompt_zsh
-#source  ~/powerlevel9k/powerlevel9k.zsh-theme
+if [ -f /usr/share/powerlevel9k/powerlevel9k.zsh-theme ]; then
+    source /usr/share/powerlevel9k/powerlevel9k.zsh-theme
+elif [ -f ~/.prompt_zsh ]; then
+    source ~/.prompt_zsh
+fi
 
 # for alacritty
 fpath+=${ZDOTDIR:-~}/.zsh_functions

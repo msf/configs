@@ -68,4 +68,3 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
   insteadOf = https://gitlab.com/
 [url "ssh://git@bitbucket.org/"]
   insteadOf = https://bitbucket.org/
-

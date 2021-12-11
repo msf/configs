@@ -9,14 +9,9 @@ CWD = os.path.abspath(".") + "/"
 
 
 def copyFiles():
-    config_files = glob("*")
-    config_files.extend(glob(".*"))
+    config_files = glob(".*")
     dont_symlink = [
-        "install.py",  # or should I use __file__ ?
-        "README",
         ".git",
-        "awesome",
-        "nixos",
     ]
     dont_symlink.extend(glob(".*swp"))  # temp edit files
 
