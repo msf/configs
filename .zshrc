@@ -83,9 +83,12 @@ fi
 [ -f $HOME/.cargo/env ] && . "$HOME/.cargo/env"
 
 # pyenv
-export PATH="$HOME/.pyenv/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+pyenv=`which pyenv`
+if [ -x ${pyenv} ]; then
+    export PATH="$HOME/.pyenv/bin:$PATH"
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+fi
 
 # zprezto
 #[ -d ~/.zprezto ] && source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
