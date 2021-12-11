@@ -34,15 +34,14 @@
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
   #networking.useDHCP = false;
-  #networking.interfaces.eno1.useDHCP = true;
+  networking.interfaces.eno1.useDHCP = true;
   #networking.interfaces.wlp3s0.useDHCP = true;
   networking.interfaces.eno1.ipv4.addresses = [
   {
-    address = "192.168.0.20";
+    address = "192.168.0.14";
     prefixLength = 16;
   }
   ];
-  networking.defaultGateway = "192.168.0.1";
 
   networking.nameservers = [ "8.8.8.8" "1.1.1.1"];
 
@@ -204,7 +203,6 @@
   services.xserver = {
     enable = false;
     layout = "us";
-    videoDrivers = [ "intel" ];
     xkbOptions = "eurosign:e ctrl:nocaps";
 
     displayManager.defaultSession = "none+i3";
@@ -241,7 +239,7 @@
   # compatible, in order to avoid breaking some software such as database
   # servers. You should change this only after NixOS release notes say you
   # should.
-  system.stateVersion = "20.09"; # Did you read the comment?
+  system.stateVersion = "21.05"; # Did you read the comment?
   system.autoUpgrade.enable = true;  # incremental updates are good
   system.autoUpgrade.allowReboot = false;  # not that crazy
 
@@ -354,7 +352,7 @@
     enable = false;
     systemCronJobs = [
       # everynight, sync to alfeizerao
-      "0 1 * * *      root    /root/sync-alfeizerao.sh >> /tmp/sync-alfeizerao.log"
+      #"0 1 * * *      root    /root/sync-alfeizerao.sh >> /tmp/sync-alfeizerao.log"
     ];
   };
 }
