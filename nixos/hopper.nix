@@ -320,6 +320,7 @@
       containers = {
         telegraf = {
           image = "telegraf:1.17-alpine";
+          extraOptions = ["--network=host"];
           volumes = [
              "/:/hostfs:ro"
              "/etc:/hostfs/etc:ro"
