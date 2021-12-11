@@ -38,6 +38,9 @@
 
   networking.hostId = "b05e6b14";  # for ZFS
   networking.hostName = "margiehamilton"; # Define your hostname.
+  # Set your time zone.
+  time.timeZone = "UTC";
+
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
@@ -53,13 +56,12 @@
 
   networking.extraHosts =
   ''
-  192.168.1.15 grace
-  100.103.26.62  kamala-tail
-  100.119.216.56 grace-tail
-  100.119.55.5   lovelace-tail
-  100.67.77.31   margie-tail
-  100.92.53.58   hopper-tail
-  100.93.239.53  curie-tail
+  100.119.216.56  grace-tail
+  100.67.77.31    margie-tail
+  100.77.156.119  kamala-tail
+  100.92.53.58    hopper-tail
+  100.93.239.53   curie-tail
+  100.94.188.127  lovelace-tail
   '';
 
   # Configure network proxy if necessary
@@ -75,13 +77,13 @@
   networking.firewall.enable = false;
 
   # Select internationalisation properties.
-  console.useXkbConfig = true;
-  i18n = {
-    defaultLocale = "en_US.UTF-8";
+  i18n.defaultLocale = "en_US.UTF-8";
+  console = {
+    font = "Lat2-Terminus16";
+    keyMap = "us";
+    # Adds terminus_font for people with HiDPI displays
+    packages = options.console.packages.default ++ [ pkgs.terminus_font ];
   };
-
-  # Set your time zone.
-  time.timeZone = "UTC";
 
   # List packages installed in system profile. To search, run:
   environment = {
@@ -161,7 +163,7 @@
   ];
 
   fonts = {
-    enableFontDir = true;
+    fontDir.enable = true;
     enableGhostscriptFonts = true;
     fonts = with pkgs; [
       google-fonts
@@ -213,11 +215,14 @@
   services.fwupd.enable = true;
   services.tailscale.enable = true;
 
+  programs.sway.enable = true;
+  xdg.portal.wlr.enable = true;
+  services.pipewire.enable = true;
+
   # Enable the X11 windowing system.
   services.xserver = {
     enable = true;
     layout = "us";
-    videoDrivers = [ "intel" ];
     libinput.enable = true;  # Enable touchpad support.
     xkbOptions = "eurosign:e ctrl:nocaps";
 
@@ -238,8 +243,6 @@
         ];
     };
   };
-  services.dbus.packages = with pkgs; [ gnome3.dconf gnome2.GConf ];  # needed for gtk apps
-  services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ]; # gnome
 
 
   # Enable CUPS to print documents.
@@ -248,6 +251,12 @@
   # Enable sound.
   sound.enable = true;
   hardware.pulseaudio.enable = true;
+
+  programs.zsh.ohMyZsh = {
+    enable = true;
+    plugins = [ "git" "python" "man" "docker" "golang" "kubectl" ];
+    theme = "agnoster";
+  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.miguel = {
@@ -267,11 +276,13 @@
     isNormalUser = true;
   };
 
-  # This value determines the NixOS release with which your system is to be
-  # compatible, in order to avoid breaking some software such as database
-  # servers. You should change this only after NixOS release notes say you
-  # should.
-  system.stateVersion = "21.05"; # Did you read the comment?
+  # This value determines the NixOS release from which the default
+  # settings for stateful data, like file locations and database versions
+  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # this value at the release version of the first install of this system.
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "21.11"; # Did you read the comment?
   system.autoUpgrade.enable = true;  # incremental updates are good
   system.autoUpgrade.allowReboot = false;  # not that crazy
 
