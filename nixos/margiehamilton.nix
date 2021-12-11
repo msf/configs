@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, options, ... }:
 
 {
   imports =
@@ -343,10 +343,10 @@
     podman = {
       enable = true;
       extraPackages = [ pkgs.zfs ];
-      #dockerCompat = true;
+      dockerCompat = true;
     };
     oci-containers = {
-      backend = "docker";
+      backend = "podman";
       containers = {
         telegraf = {
           image = "telegraf:1.17-alpine";

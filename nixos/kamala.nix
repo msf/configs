@@ -346,10 +346,10 @@
     podman = {
       enable = true;
       extraPackages = [ pkgs.zfs ];
-      #dockerCompat = true;
+      dockerCompat = true;
     };
     oci-containers = {
-      backend = "docker";
+      backend = "podman";
       containers = {
         telegraf = {
           image = "telegraf:1.17-alpine";
