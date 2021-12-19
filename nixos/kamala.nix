@@ -18,7 +18,6 @@
   boot.supportedFilesystems = [ "zfs" "btrfs" ];
   boot.zfs.enableUnstable = true;
   boot.kernelParams = [
-    "zfs.zfs_arc_max=3221225472"  # 3GB
     "mitigations=off"  # old b0x, need moar sp33d
   ];
 
@@ -111,6 +110,7 @@
        hdparm
        htop
        iotop
+       keychain
        lm_sensors
        lshw
        lsof
@@ -136,7 +136,6 @@
        weechat
        wget
        zfstools
-       #zoom-us
        zsh
        zstd
      ];
@@ -150,18 +149,18 @@
   programs.dconf.enable = true; #gnome
 
   security.pam.loginLimits = [
-  {
-    domain = "*";
-    type = "hard";
-    item = "nofile";
-    value = "65535";
-  }
-  {
-    domain = "*";
-    type = "hard";
-    item = "nproc";
-    value = "1049600";
-  }
+    {
+      domain = "*";
+      type = "hard";
+      item = "nofile";
+      value = "65535";
+    }
+    {
+      domain = "*";
+      type = "hard";
+      item = "nproc";
+      value = "1049600";
+    }
   ];
 
   fonts = {
