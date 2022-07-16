@@ -1,0 +1,8 @@
+sudo podman run -d --network=host -v /media/simple/influxdb:/root/.influxdbv2 --expose=8083 --expose=8086 quay.io/influxdb/influxdb:v2.1.1
+# sudo podman ps
+# sudo podman generate config <container-name> > podman-influxdb.service
+# sudo cp -f podman-influxdb.service /lib/systemd/system/
+# sudo systemctl daemon-reload
+# sudo podman stop <container-name>
+# sudo systemctl restart podman-influxdb
+

@@ -15,9 +15,10 @@ autoload -Uz compinit
 compinit
 # End of lines added by compinstall
 
-umask 027
+umask 002
 ulimit -c unlimited
 
+export TERM="xterm-256color"
 
 IRCNAME="More human than human"
 IRCUSER="brainstorm"
@@ -60,8 +61,6 @@ fi
 
 
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
-
-
 PATH="/sbin:/usr/sbin:${PATH}"
 PATH="/snap/bin:${PATH}"
 PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
@@ -95,11 +94,7 @@ fi
 
 [ -f ~/.zshrc_private ] && source ~/.zshrc_private
 
-if [ -f /usr/share/powerlevel9k/powerlevel9k.zsh-theme ]; then
-    source /usr/share/powerlevel9k/powerlevel9k.zsh-theme
-elif [ -f ~/.prompt_zsh ]; then
-    source ~/.prompt_zsh
-fi
+[ -f ~/.zsh_prompt ] && source ~/.zsh_prompt
 
 # for alacritty
 fpath+=${ZDOTDIR:-~}/.zsh_functions

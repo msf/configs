@@ -25,5 +25,8 @@ setprompt_simple() {
     PROMPT='$PR_BLUE%n$PR_WHITE@$PR_BOLD_YELLOW%m $PR_BLUE%c $PR_RESET$(my_vcs_info)$PR_BLUE%% $PR_RESET'
 }
 
-
-setprompt_simple
+if [ -f /usr/share/powerlevel9k/powerlevel9k.zsh-theme ]; then
+    source /usr/share/powerlevel9k/powerlevel9k.zsh-theme
+else
+    setprompt_simple
+fi
