@@ -30,9 +30,6 @@
   networking.hostId = "a7ec8faa"; # zfs needs this
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
-  # Set your time zone.
-  time.timeZone = "UTC";
-
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
@@ -79,6 +76,9 @@
     packages = options.console.packages.default ++ [ pkgs.terminus_font ];
   };
 
+  # Set your time zone.
+  time.timeZone = "UTC";
+
   # List packages installed in system profile. To search, run:
   environment = {
      variables = {
@@ -100,6 +100,7 @@
        hdparm
        htop
        iotop
+       keychain
        lm_sensors
        lshw
        lsof
@@ -137,18 +138,18 @@
   programs.zsh.enable = true;
 
   security.pam.loginLimits = [
-  {
-    domain = "*";
-    type = "hard";
-    item = "nofile";
-    value = "65535";
-  }
-  {
-    domain = "*";
-    type = "hard";
-    item = "nproc";
-    value = "1049600";
-  }
+    {
+      domain = "*";
+      type = "hard";
+      item = "nofile";
+      value = "65535";
+    }
+    {
+      domain = "*";
+      type = "hard";
+      item = "nproc";
+      value = "1049600";
+    }
   ];
 
   fonts = {
@@ -201,6 +202,32 @@
     systemService = true;
   };
 
+  services.grafana = {
+    enable = true;
+    port = 3000;
+    addr = "0.0.0.0";
+    protocol = "http";
+    dataDir = "/var/lib/grafana";
+    security = {
+      adminUser = "mig";
+      adminPassword = "mig";
+    };
+    provision.datasources = [
+      {
+        type = "influxdb";
+        url = "http://grace-tail:8086/";
+        name = "influx2";
+        orgId = "f2b8d1cbcd39e0f9";
+        isDefault = true;
+        jsonData = {
+          httpHeaderName1 = "Authorization";
+        };
+        secureJsonData = {
+          httpHeaderValue1 = "Token dAFSzxSz-BmbXsBJLcuWeWi0YIBkquI-zV-QzeRo6vNgP9zBnTJ1Mkm2rZZ95vEsykxzEUZHBxNWrnx6OeSKaA==";
+        };
+      }
+    ];
+  };
   services.fwupd.enable = true;
   services.tailscale.enable = true;
 
