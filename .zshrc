@@ -67,9 +67,10 @@ PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
 PATH="/usr/local/go/bin:${PATH}"
 GOPATH="${HOME}/go"
 PATH="${GOPATH}/bin:${PATH}"
-PATH=$PATH:/snap/bin
+PATH="/opt/homebrew/bin/:$PATH"
+PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 export PATH CLASSPATH GOPATH
-export GOPRIVATE="gitlab.com/Unbabel"
+export GOPRIVATE="github.com/duneanalytics"
 export GIT_TERMINAL_PROMPT=1
 
 # kubectl
