@@ -1,0 +1,7 @@
+sudo podman run --network=host -p 3000:3000 --name grafana grafana/grafana:8.5.9
+# sudo podman ps
+# sudo podman generate systemd grafana > podman-grafana.service
+# sudo cp -f podman-grafana.service /lib/systemd/system/
+# sudo podman stop grafana
+# sudo systemctl restart podman-grafana.service
+
