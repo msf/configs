@@ -102,6 +102,7 @@
        fwupd
        gcc
        git
+       gnome.gnome-terminal
        gnome3.adwaita-icon-theme
        gnome3.gnome-power-manager
        gnumake
@@ -284,7 +285,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "21.11"; # Did you read the comment?
+  system.stateVersion = "22.11"; # Did you read the comment?
   system.autoUpgrade.enable = true;  # incremental updates are good
   system.autoUpgrade.allowReboot = false;  # not that crazy
 
