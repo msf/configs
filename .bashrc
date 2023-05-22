@@ -1,6 +1,6 @@
 # @(#)bashrc 2001/03/22
 
-umask 027
+umask 022
 
 ulimit -c unlimited
 

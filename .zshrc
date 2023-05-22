@@ -41,7 +41,7 @@ alias grep='grep --color'
 alias less='less -RSXF'
 alias lock='gnome-screensaver-command -l'
 alias j='jobs'
-alias ipy='ipython -nobanner -noconfirm_exit'
+alias ipython='ipython3'
 alias term='xterm +sb -sl 5000 -bg black -fg grey -fa Monospace -fs 10 -u8'
 alias dstat='dstat -c -r -d -n -m -s -y --nocolor'
 alias vvac="python3 -m venv env && source env/bin/activate && pip install --upgrade pip"
@@ -49,6 +49,7 @@ alias vac="source env/bin/activate"
 alias gti=git
 alias tmux="tmux -2"
 alias k="kubectl"
+alias swagger='docker run --rm -it  --user $(id -u):$(id -g) -e GOPATH=$(go env GOPATH):/go -v $HOME:$HOME -w $(pwd) quay.io/goswagger/swagger'
 #alias docker="podman"
 
 # keychain
