@@ -30,6 +30,9 @@
   networking.hostId = "a7ec8faa"; # zfs needs this
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
+  # Set your time zone.
+  time.timeZone = "UTC";
+
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
@@ -75,9 +78,6 @@
     # Adds terminus_font for people with HiDPI displays
     packages = options.console.packages.default ++ [ pkgs.terminus_font ];
   };
-
-  # Set your time zone.
-  time.timeZone = "UTC";
 
   # List packages installed in system profile. To search, run:
   environment = {
@@ -202,32 +202,6 @@
     systemService = true;
   };
 
-  services.grafana = {
-    enable = true;
-    port = 3000;
-    addr = "0.0.0.0";
-    protocol = "http";
-    dataDir = "/var/lib/grafana";
-    security = {
-      adminUser = "mig";
-      adminPassword = "mig";
-    };
-    provision.datasources = [
-      {
-        type = "influxdb";
-        url = "http://grace-tail:8086/";
-        name = "influx2";
-        orgId = "f2b8d1cbcd39e0f9";
-        isDefault = true;
-        jsonData = {
-          httpHeaderName1 = "Authorization";
-        };
-        secureJsonData = {
-          httpHeaderValue1 = "Token dAFSzxSz-BmbXsBJLcuWeWi0YIBkquI-zV-QzeRo6vNgP9zBnTJ1Mkm2rZZ95vEsykxzEUZHBxNWrnx6OeSKaA==";
-        };
-      }
-    ];
-  };
   services.fwupd.enable = true;
   services.tailscale.enable = true;
 
@@ -279,7 +253,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "21.11"; # Did you read the comment?
+  system.stateVersion = "22.11"; # Did you read the comment?
   system.autoUpgrade.enable = true;  # incremental updates are good
   system.autoUpgrade.allowReboot = false;  # not that crazy
 
@@ -373,16 +347,6 @@
             KOSTALHOST = "192.168.0.11";
           };
         };
-#        chia = {
-#          image = "ghcr.io/chia-network/chia:latest";
-#          extraOptions = ["--network=host"];
-#          user = "miguel:users";
-#          # todo, isolate keys away
-#          volumes = [
-#            "/media/simple/chia:/plots"
-#            "/media/simple/chia-root:/root"
-#	  ];
-#	};
       };
     };
   };
