@@ -32,5 +32,3 @@ if [ -f ~/powerlevel10k/powerlevel10k.zsh-theme ]; then
 else
     setprompt_simple
 fi
-
-source /home/miguel/powerlevel10k/powerlevel10k.zsh-theme
