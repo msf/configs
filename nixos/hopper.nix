@@ -17,6 +17,7 @@
 
   boot.supportedFilesystems = [ "zfs" "btrfs" ];
   boot.zfs.enableUnstable = true;
+  boot.kernelPackages = pkgs.zfs.latestCompatibleLinuxPackages;
   boot.kernelParams = [
     "mitigations=off"  # old b0x, need moar sp33d
   ];
@@ -24,7 +25,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernel.sysctl."vm.swapiness" = 30;
+  boot.kernel.sysctl."vm.swapiness" = 10;
 
   networking.hostName = "hopper"; # Define your hostname.
   networking.hostId = "a7ec8faa"; # zfs needs this
@@ -253,7 +254,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "22.11"; # Did you read the comment?
+  system.stateVersion = "23.05"; # Did you read the comment?
   system.autoUpgrade.enable = true;  # incremental updates are good
   system.autoUpgrade.allowReboot = false;  # not that crazy
 
