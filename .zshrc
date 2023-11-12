@@ -62,6 +62,10 @@ alias rp="rocketpool"
 alias snip='grim -g "$(slurp)" - | wl-copy'
 #alias docker="podman"
 
+
+# for sway
+export XKB_DEFAULT_OPTIONS=caps:ctrl
+
 # keychain
 keychain=`which keychain`
 if [ -x ${keychain} ]; then
