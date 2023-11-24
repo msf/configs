@@ -46,7 +46,7 @@ alias mv='mv -i'
 alias df='df -h'
 alias view='vim -R'
 alias grep='grep --color'
-alias less='less -RSXF'
+#alias less='less -RSXF'
 alias lock='gnome-screensaver-command -l'
 alias j='jobs'
 alias ipython='ipython3'
@@ -61,6 +61,7 @@ alias swagger='docker run --rm -it  --user $(id -u):$(id -g) -e GOPATH=$(go env 
 alias rp="rocketpool"
 alias snip='grim -g "$(slurp)" - | wl-copy'
 #alias docker="podman"
+alias vim='nvim'
 
 
 # for sway
