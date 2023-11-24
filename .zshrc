@@ -104,26 +104,6 @@ fi
 
 [ -f ~/.zshrc_private ] && source ~/.zshrc_private
 
-##compdef gt
-####-begin-gt-completions-###
-##
-## yargs command completion script
-##
-## Installation: /opt/homebrew/bin/gt completion >> ~/.zshrc
-##    or /opt/homebrew/bin/gt completion >> ~/.zprofile on OSX.
-##
-#_gt_yargs_completions()
-#{
-#  local reply
-#  local si=$IFS
-#  IFS=$'
-#' reply=($(COMP_CWORD="$((CURRENT-1))" COMP_LINE="$BUFFER" COMP_POINT="$CURSOR" /opt/homebrew/bin/gt --get-yargs-completions "${words[@]}"))
-#  IFS=$si
-#  _describe 'values' reply
-#}
-#compdef _gt_yargs_completions gt
-###-end-gt-completions-###
-
 
 function dpsql {
 	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) psql -U ${2} -h ${1}-${2}-db.dune.com.beta.tailscale.net ${2}
@@ -144,4 +124,3 @@ antigen bundle lukechilds/zsh-nvm
 antigen theme josh
 
 antigen apply
-
