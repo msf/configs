@@ -14,6 +14,7 @@ dc = diff --cached
 poh = push origin HEAD --force-with-lease
 rbc = rebase --continue
 mgt = mergetool
+rom = !git fetch && git rebase origin/main
 rim = !git fetch && git rebase -i origin/main
 recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(color:red)%(objectname:short)%(color:reset) %(HEAD) %(color:yellow)%(refname:short)%(color:reset) (%(color:green)%(committerdate:relative)%(color:reset)) %(contents:subject)'
 
@@ -48,6 +49,7 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
 
 [push]
     default = tracking
+	autoSetupRemote = true
 
 [branch]
     autosetuprebase = always
