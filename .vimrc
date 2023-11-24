@@ -1,23 +1,25 @@
 " .vimrc, ficheiro de configuracao do vim
 "
-set incsearch
-set nocompatible
-set title
-set ttyfast
-set ruler
 set ai
-set sm
-set cin
-set ts=4
-set shiftwidth=4
-set softtabstop=4
-set scrolloff=3
-set expandtab
-set hlsearch
 set autowrite
+set background=dark
+set cin
+set expandtab
 set hidden
-set number
+set hlsearch
+set incsearch
 set mouse=a
+set nocompatible
+set number
+set ruler
+set scrolloff=3
+set shell=bash " plugins expect bash - not fish, zsh, etc
+set shiftwidth=4
+set sm
+set softtabstop=4
+set title
+set ts=4
+set ttyfast
 syntax enable
 
 map <F5> :make<CR>
@@ -29,9 +31,7 @@ match ErrorMsg /^\t\+/
 " Make trailing whitespace be flagged as bad.
 match ErrorMsg /\s\+$/
 
-" plugins expect bash - not fish, zsh, etc
-set shell=bash
-set background=dark
+
 
 set nocompatible    " required by Vundle
 filetype off        " required by Vundle
@@ -106,6 +106,8 @@ let g:go_highlight_interfaces = 1
 let g:go_highlight_operators = 1
 let g:go_highlight_build_constraints = 1
 
+let g:go_def_mode='gopls'
+let g:go_info_mode='gopls'
 " from vim-go README.md on slowness with Syntastic
 let g:syntastic_go_checkers = ['go', 'golint', 'govet', 'errcheck']
 let g:syntastic_mode_map = { 'mode': 'active', 'passive_filetypes': ['go'] }
