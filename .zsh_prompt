@@ -25,10 +25,10 @@ setprompt_simple() {
     PROMPT='$PR_BLUE%n$PR_WHITE@$PR_BOLD_YELLOW%m $PR_BLUE%c $PR_RESET$(my_vcs_info)$PR_BLUE%% $PR_RESET'
 }
 
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 if [ -f ~/powerlevel10k/powerlevel10k.zsh-theme ]; then
     source ~/powerlevel10k/powerlevel10k.zsh-theme
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 else
     setprompt_simple
 fi

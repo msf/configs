@@ -10,6 +10,7 @@ fi
 HISTFILE=~/.histfile
 HISTSIZE=910000
 SAVEHIST=910000
+
 setopt appendhistory autocd extendedglob
 setopt No_Beep
 bindkey -e
@@ -31,11 +32,12 @@ export TERM="xterm-256color"
 IRCNAME="More human than human"
 IRCUSER="brainstorm"
 IRCNICK="m3thos"
-EDITOR="vim"
+EDITOR="nvim"
+#PAGER="vimpager"
 
 export IRCSERVER IRCNAME IRCUSER IRCNICK EDITOR
-# aliases for all shell's
 
+# aliases for all shell's
 alias ls="ls -G -Fv --color"
 alias l='ls -G --color'
 alias rm='\rm -i'
@@ -44,6 +46,7 @@ alias ll='ls -aihlrt --color'
 alias cp='cp -i'
 alias mv='mv -i'
 alias df='df -h'
+alias vim='nvim'
 alias view='vim -R'
 alias grep='grep --color'
 #alias less='less -RSXF'
@@ -60,8 +63,11 @@ alias k="kubectl"
 alias swagger='docker run --rm -it  --user $(id -u):$(id -g) -e GOPATH=$(go env GOPATH):/go -v $HOME:$HOME -w $(pwd) quay.io/goswagger/swagger'
 alias rp="rocketpool"
 alias snip='grim -g "$(slurp)" - | wl-copy'
+alias pip="pip3"
+alias python="python3"
+alias py="python3"
+alias lsof="lsof -n -M"  # don't resolve names nor ports
 #alias docker="podman"
-alias vim='nvim'
 
 
 # for sway
@@ -73,7 +79,6 @@ if [ -x ${keychain} ]; then
     ${keychain} -q ~/.ssh/id_ed25519
     source ~/.keychain/${HOST}-sh  > /dev/null
 fi
-
 
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 PATH="/sbin:/usr/sbin:${PATH}"
@@ -97,24 +102,46 @@ fi
 # for rust
 [ -f $HOME/.cargo/env ] && . "$HOME/.cargo/env"
 
-# pyenv
-pyenv=`which pyenv`
-if [ -x ${pyenv} ]; then
-    export PATH="$HOME/.pyenv/bin:$PATH"
-    eval "$(pyenv init -)"
-    eval "$(pyenv virtualenv-init -)"
-fi
-
-# zprezto
-#[ -d ~/.zprezto ] && source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-
 [ -f ~/.zshrc_private ] && source ~/.zshrc_private
 
-# for alacritty
-fpath+=${ZDOTDIR:-~}/.zsh_functions
+##compdef gt
+####-begin-gt-completions-###
+##
+## yargs command completion script
+##
+## Installation: /opt/homebrew/bin/gt completion >> ~/.zshrc
+##    or /opt/homebrew/bin/gt completion >> ~/.zprofile on OSX.
+##
+#_gt_yargs_completions()
+#{
+#  local reply
+#  local si=$IFS
+#  IFS=$'
+#' reply=($(COMP_CWORD="$((CURRENT-1))" COMP_LINE="$BUFFER" COMP_POINT="$CURSOR" /opt/homebrew/bin/gt --get-yargs-completions "${words[@]}"))
+#  IFS=$si
+#  _describe 'values' reply
+#}
+#compdef _gt_yargs_completions gt
+###-end-gt-completions-###
 
-#  export NVM_DIR="$HOME/.nvm"
-#  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-#  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+function dpsql {
+	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) psql -U ${2} -h ${1}-${2}-db.dune.com.beta.tailscale.net ${2}
+}
+
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+
+source $HOME/configs/antigen.zsh
+
+antigen use oh-my-zsh
+antigen bundle git
+antigen bundle git-extras
+antigen bundle command-not-found
+antigen bundle zsh-users/zsh-completions
+antigen bundle zsh-users/zsh-syntax-highlighting
+antigen bundle lukechilds/zsh-nvm
+
+antigen theme josh
+
+antigen apply
 
