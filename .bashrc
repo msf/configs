@@ -38,3 +38,4 @@ PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 GOPATH="${HOME}/go"
 export PATH GOPATH
 source "$HOME/.cargo/env"
+. "$HOME/.cargo/env"
