@@ -30,6 +30,7 @@ alias ipy='ipython -nobanner -noconfirm_exit'
 alias ack='ack-grep'
 alias dstat='dstat -c -d -n -m -s -y'
 alias vac="source env/bin/activate"
+alias vim="nvim"
 
 
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
@@ -37,5 +38,5 @@ alias vac="source env/bin/activate"
 PATH="${PATH}:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
 GOPATH="${HOME}/go"
 export PATH GOPATH
-source "$HOME/.cargo/env"
-. "$HOME/.cargo/env"
+[ -f "$HOME/.prompt_bash" ] && source "$HOME/.prompt_bash"
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"

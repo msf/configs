@@ -23,7 +23,7 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
 
 [merge]
     ff = no
-    tool = vimdiff
+    tool = nvim
 
 [pull]
     rebase = true
