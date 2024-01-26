@@ -39,7 +39,10 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
     branch = auto
 
 [diff]
-    tool = vimdiff
+    tool = nvim -d
+
+[difftool "vimdiff"]
+    cmd = nvim -d $LOCAL $REMOTE
 
 [difftool "vimdirdiff"]
     cmd = vim -f '+next' '+execute \"DirDiff\" argv(0) argv(1)' $LOCAL $REMOTE '+syntax off'
