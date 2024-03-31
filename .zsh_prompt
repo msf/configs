@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 # get the name of the branch we are on
 my_vcs_info() {

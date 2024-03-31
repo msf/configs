@@ -23,7 +23,7 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
 
 [merge]
     ff = no
-    tool = nvim
+    tool = nvimdiff
 
 [pull]
     rebase = true
@@ -48,26 +48,26 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
     cmd = vim -f '+next' '+execute \"DirDiff\" argv(0) argv(1)' $LOCAL $REMOTE '+syntax off'
 
 [gui]
-	fontui = -family \"Liberation Sans\" -size 12 -weight bold -slant roman -underline 0 -overstrike 0
+    fontui = -family \"Liberation Sans\" -size 12 -weight bold -slant roman -underline 0 -overstrike 0
 
 [push]
     default = tracking
-	autoSetupRemote = true
+    autoSetupRemote = true
 
 [branch]
     autosetuprebase = always
 
 [pull]
-	rebase = true
+    rebase = true
 [credential]
-	helper = cache
+    helper = cache
 [filter "lfs"]
-	clean = git-lfs clean %f
-	smudge = git-lfs smudge %f
-	required = true
+    clean = git-lfs clean %f
+    smudge = git-lfs smudge %f
+    required = true
 [url "ssh://git@github.com/"]
-  insteadOf = https://github.com/
+    insteadOf = https://github.com/
 [url "ssh://git@gitlab.com/"]
-  insteadOf = https://gitlab.com/
+    insteadOf = https://gitlab.com/
 [url "ssh://git@bitbucket.org/"]
-  insteadOf = https://bitbucket.org/
+    insteadOf = https://bitbucket.org/
