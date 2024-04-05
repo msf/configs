@@ -11,7 +11,7 @@ HISTFILE=~/.histfile
 HISTSIZE=910000
 SAVEHIST=910000
 
-setopt appendhistory autocd extendedglob
+setopt incappendhistory autocd extendedglob
 setopt No_Beep
 bindkey -e
 # End of lines configured by zsh-newuser-install
@@ -124,3 +124,10 @@ antigen bundle lukechilds/zsh-nvm
 antigen theme josh
 
 antigen apply
+
+# msf
+setopt no_sharehistory
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
