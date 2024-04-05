@@ -2,12 +2,16 @@ import os
 from subprocess import run
 
 
-DIRPATH = "/media/simple/syncthing"
-BLACKLIST = { ".zfs", }
+DIRPATHS = {
+        "/media/simple/backups/BACKUPS/fotos":["fotos"],
+        "/media/simple/backups/BACKUPS/GooglePhotosBackup":["fotos","googlePhotos"],
+}
+BLACKLIST = { ".zfs", "README.md", }
 
 
 def main():
-    run_backup(DIRPATH, ["syncthing"])
+    for d, tags in DIRPATHS.items():
+        run_backup(d, tags)
 
 
 def run_backup(basedir_path, tags):
