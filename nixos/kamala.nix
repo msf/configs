@@ -25,7 +25,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernel.sysctl."vm.swapiness" = 60;
+  boot.kernel.sysctl."vm.swapiness" = 30;
 
   # premature to enable this..
   #zramSwap = {
@@ -189,8 +189,10 @@
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
-    permitRootLogin = "prohibit-password";
-    passwordAuthentication = false;
+    settings = {
+      PasswordAuthentication = false;
+      PermitRootLogin = "prohibit-password";
+    };
   };
   users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMi8xVr7C/qB+DGIGa07Hm9uv0pTKZ8qbX8DywAteaXP root@hopper" ];
 
@@ -217,12 +219,6 @@
   services.fwupd.enable = true;
   services.tailscale.enable = true;
 
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    pulse.enable = true;
-  };
-
 
   # Enable the X11 windowing system.
   services.xserver = {
@@ -235,7 +231,7 @@
     displayManager.gdm.enable = true;
     desktopManager.gnome.enable = true;
     # displayManager.gdm.wayland = false;
-    # displayManager.defaultSession = "none+i3";
+     displayManager.defaultSession = "none+i3";
 
     windowManager.i3 = {
         enable = true;
@@ -265,7 +261,13 @@
 
   # Enable sound.
   sound.enable = true;
-  hardware.pulseaudio.enable = true;
+  hardware.pulseaudio.enable = false;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    pulse.enable = true;
+  };
+
 
   programs.zsh.ohMyZsh = {
     enable = true;
