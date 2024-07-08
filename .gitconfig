@@ -1,6 +1,6 @@
 [user]
-	name = Miguel Filipe
-	email = miguel.filipe@gmail.com
+    name = Miguel Filipe
+    email = miguel.filipe@gmail.com
 
 [alias]
 ci = commit
