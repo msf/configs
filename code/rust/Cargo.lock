@@ -830,6 +830,8 @@ dependencies = [
  "futures",
  "futures-util",
  "headers",
+ "serde",
+ "serde_json",
  "tokio",
  "tokio-tungstenite 0.23.1",
  "tower 0.5.0",

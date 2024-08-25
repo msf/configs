@@ -23,20 +23,21 @@ use axum::{
     Router,
 };
 use axum_extra::TypedHeader;
-
-use std::borrow::Cow;
-use std::ops::ControlFlow;
-use std::{net::SocketAddr, path::PathBuf};
-use tower_http::{
-    services::ServeDir,
-    trace::{DefaultMakeSpan, TraceLayer},
-};
-
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 //allows to extract the IP of connecting user
 use axum::extract::connect_info::ConnectInfo;
 use axum::extract::ws::CloseFrame;
+
+use serde::Deserialize;
+use std::borrow::Cow;
+use std::ops::ControlFlow;
+use std::str;
+use std::{net::SocketAddr, path::PathBuf};
+use tower_http::{
+    services::ServeDir,
+    trace::{DefaultMakeSpan, TraceLayer},
+};
 
 //allows to split the websocket stream into separate TX and RX branches
 use futures::{sink::SinkExt, stream::StreamExt};
@@ -208,7 +209,16 @@ async fn handle_socket(mut socket: WebSocket, who: SocketAddr) {
     println!("Websocket context {who} destroyed");
 }
 
-#[derive(serde)]
+#[derive(Debug, Deserialize)]
+struct HelloMsg {
+    hello: String,
+}
+
+fn parse_hello(d: Vec<u8>) -> Result<HelloMsg, Box<dyn std::error::Error>> {
+    let json_str = str::from_utf8(&d)?;
+    let msg: HelloMsg = serde_json::from_str(json_str)?;
+    Ok(msg)
+}
 
 /// helper to print contents of messages to stdout. Has special treatment for Close.
 fn process_message(msg: Message, who: SocketAddr) -> ControlFlow<(), ()> {
@@ -216,9 +226,10 @@ fn process_message(msg: Message, who: SocketAddr) -> ControlFlow<(), ()> {
         Message::Text(t) => {
             println!(">>> {who} sent str: {t:?}");
         }
-        Message::Binary(d) => {
-            println!(">>> {} sent {} bytes: {:?}", who, d.len(), d);
-        }
+        Message::Binary(d) => match parse_hello(d) {
+            Ok(msg) => println!(">>> {} msg was: hello {:?}", who, msg.hello),
+            Err(e) => println!("EEE {} msg was unreadable:{}", who, e),
+        },
         Message::Close(c) => {
             if let Some(cf) = c {
                 println!(
@@ -243,4 +254,3 @@ fn process_message(msg: Message, who: SocketAddr) -> ControlFlow<(), ()> {
     }
     ControlFlow::Continue(())
 }
-
