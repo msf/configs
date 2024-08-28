@@ -111,20 +111,6 @@ function dpsql {
 
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 
-source $HOME/configs/antigen.zsh
-
-antigen use oh-my-zsh
-antigen bundle git
-antigen bundle git-extras
-antigen bundle command-not-found
-antigen bundle zsh-users/zsh-completions
-antigen bundle zsh-users/zsh-syntax-highlighting
-antigen bundle lukechilds/zsh-nvm
-
-antigen theme josh
-
-antigen apply
-
 # msf
 setopt no_sharehistory
 
