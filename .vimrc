@@ -57,7 +57,7 @@ Plugin 'vim-airline/vim-airline'
 call vundle#end()            " required
 filetype plugin indent on    " required
 
-colorscheme solarized8
+colorscheme desert
 
 source ~/.vim/syntax.vim
 source ~/.vim/minibufexpl.vim
