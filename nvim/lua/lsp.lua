@@ -1,6 +1,8 @@
 -- Load default lsp-zero keymaps
 local lsp_zero = require("lsp-zero")
 local telescope = require("telescope.builtin")
+
+-- Install LSP servers automatically through Mason
 require("mason").setup()
 require("mason-lspconfig").setup({ automatic_installation = true })
 
@@ -46,19 +48,45 @@ lsp_zero.format_on_save({
 	servers = {
 		["efm"] = { "javascript", "typescript", "lua" },
 		["gopls"] = { "go" },
-		-- ["stylua"] = {"lua"},
+		["jsonls"] = { "json" },
+		["rust_analyzer"] = { "rust" },
+		["terraformls"] = { "terraform" },
+		["yamlls"] = { "yaml" },
 	},
 })
 
 -- Setup LSP servers
 local lspconfig = require("lspconfig")
 -- go
-lspconfig.golangci_lint_ls.setup({})
+lspconfig.golangci_lint_ls.setup({
+	root_dir = require("lspconfig.util").root_pattern(
+		"go.mod",
+		"go.work",
+		".golangci.yml",
+		".golangci.yaml",
+		".golangci.toml",
+		".golangci.json",
+		".git"
+	),
+})
 lspconfig.gopls.setup({
     settings = {
 		gopls = {
 			gofumpt = true,
             staticcheck = true,
+		},
+	},
+})
+-- rust
+lspconfig.rust_analyzer.setup({
+	settings = {
+		["rust-analyzer"] = {
+			diagnostics = {
+				enable = false,
+			},
+			cargo = {
+				allFeatures = true,
+			},
 		},
 	},
 })

@@ -24,6 +24,7 @@ require("lazy").setup("plugins", {
 
 vim.cmd([[colorscheme gruvbox]])
 
+require("autocmd")
 require("sets")
 require("mappings")
 require("git")
