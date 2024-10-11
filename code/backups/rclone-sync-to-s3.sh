@@ -1,3 +1,3 @@
 #!/bin/sh
 source ./restic.env
-rclone sync -P /media/weird/restic/mfilipe-backups s3-backups:mfilipe-backups/restic
+rclone sync -P /media/simple/restic/mfilipe-backups cloudflare-r2-backups:backups/restic
