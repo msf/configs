@@ -130,3 +130,9 @@ function dpsql {
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# fzf, ubuntu apt install
+fzffile=/usr/share/doc/fzf/examples/key-bindings.zsh
+[ -f $fzffile ] && source $fzffile
+fzffile=/usr/share/doc/fzf/examples/completion.zsh
+[ -f $fzffile ] && source $fzffile
