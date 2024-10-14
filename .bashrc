@@ -40,3 +40,7 @@ GOPATH="${HOME}/go"
 export PATH GOPATH
 [ -f "$HOME/.prompt_bash" ] && source "$HOME/.prompt_bash"
 [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="/home/miguel/.sdkman"
+[[ -s "/home/miguel/.sdkman/bin/sdkman-init.sh" ]] && source "/home/miguel/.sdkman/bin/sdkman-init.sh"

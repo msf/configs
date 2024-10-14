@@ -85,6 +85,7 @@ alias python="python3"
 alias py="python3"
 alias lsof="lsof -n -M"  # don't resolve names nor ports
 alias docker="podman"
+alias sudo="doas"
 
 
 # for sway
