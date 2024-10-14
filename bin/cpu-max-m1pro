@@ -1,8 +1,14 @@
 #!/bin/bash -ex
 
-# little cores, 0,1 
-sudo cpupower -c 0 frequency-set -r -u 2064MHz
+sudo echo "changing to performance governor"
+sudo cpupower -c 0 frequency-set -r -g performance
+sudo cpupower -c 2 frequency-set -r -g performance
+sudo cpupower -c 6 frequency-set -r -g performance
+
+# little cores, 0,1
+sudo cpupower -c 0 frequency-set -r --min 2064MHz
 # big cores, 2,3,4,5
-sudo cpupower -c 2 frequency-set -r -u 3.23GHz
+sudo cpupower -c 2 frequency-set -r --min 3228MHz
 # big cores, 6,7,8,9
-sudo cpupower -c 6 frequency-set -r -u 3.23GHz
+sudo cpupower -c 6 frequency-set -r --min 3228MHz
+

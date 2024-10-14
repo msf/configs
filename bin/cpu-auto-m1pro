@@ -1,0 +1,14 @@
+#!/bin/bash -ex
+
+sudo echo "changing to ondemand governor"
+
+sudo cpupower -c 0 frequency-set -r -g ondemand
+sudo cpupower -c 2 frequency-set -r -g ondemand
+sudo cpupower -c 6 frequency-set -r -g ondemand
+
+# little cores, 0,1
+sudo cpupower -c 0 frequency-set -r --min 600MHz
+# big cores, 2,3,4,5
+sudo cpupower -c 2 frequency-set -r --min 600MHz
+# big cores, 6,7,8,9
+sudo cpupower -c 6 frequency-set -r --min 600MHz
