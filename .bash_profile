@@ -22,3 +22,7 @@ PATH="${PATH}:/opt/lxc/bin"
 
 export PATH
 . "$HOME/.cargo/env"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="/Users/miguel/.sdkman"
+[[ -s "/Users/miguel/.sdkman/bin/sdkman-init.sh" ]] && source "/Users/miguel/.sdkman/bin/sdkman-init.sh"
