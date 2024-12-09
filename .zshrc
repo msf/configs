@@ -53,6 +53,7 @@ IRCUSER="brainstorm"
 IRCNICK="m3thos"
 EDITOR="nvim"
 #PAGER="vimpager"
+export LESS=-X
 
 export IRCSERVER IRCNAME IRCUSER IRCNICK EDITOR
 
@@ -84,7 +85,7 @@ alias pip="pip3"
 alias python="python3"
 alias py="python3"
 alias lsof="lsof -n -M"  # don't resolve names nor ports
-alias docker="podman"
+#alias docker="podman"
 alias sudo="doas"
 
 
@@ -102,11 +103,12 @@ PATH="/sbin:/usr/sbin:${PATH}"
 PATH="/snap/bin:${PATH}"
 PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
 PATH="/usr/local/go/bin:${PATH}"
-PATH="${GOPATH}/bin:${PATH}"
 PATH="/opt/homebrew/bin/:$PATH"
 PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+[ -d ~/.yarn/bin ] && PATH="${HOME}/.yarn/bin:${PATH}"
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
-export PATH CLASSPATH GOPATH
+[ -d ~/go/bin ] && PATH="${HOME}/go/bin:${PATH}"
+export PATH CLASSPATH
 export GOPRIVATE="github.com/duneanalytics"
 export GIT_TERMINAL_PROMPT=1
 
@@ -123,7 +125,7 @@ fi
 
 
 function dpsql {
-	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) psql -U ${2} -h ${1}-${2}-db.dune.com.beta.tailscale.net ${2}
+	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) psql -U ${2} -h ${1}-${2}-db ${2}
 }
 
 
@@ -137,13 +139,21 @@ fzffile=/usr/share/doc/fzf/examples/key-bindings.zsh
 fzffile=/usr/share/doc/fzf/examples/completion.zsh
 [ -f $fzffile ] && source $fzffile
 
-antigen use oh-my-zsh
-antigen bundle git
-antigen bundle git-extras
-antigen bundle command-not-found
-antigen bundle zsh-users/zsh-completions
-antigen bundle zsh-users/zsh-syntax-highlighting
+#antigen use oh-my-zsh
+#antigen bundle git
+#antigen bundle git-extras
+#antigen bundle command-not-found
+#antigen bundle zsh-users/zsh-completions
+#antigen bundle zsh-users/zsh-syntax-highlighting
+#
+#antigen theme josh
+#
+#antigen apply
 
-antigen theme josh
 
-antigen apply
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
+export PATH=/home/miguel/.tiup/bin:$PATH
