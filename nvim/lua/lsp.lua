@@ -6,6 +6,7 @@ local telescope = require("telescope.builtin")
 require("mason").setup()
 require("mason-lspconfig").setup({ automatic_installation = true })
 
+
 lsp_zero.on_attach(function(_, bufnr)
     -- see :help lsp-zero-keybindings to learn the available actions
     lsp_zero.default_keymaps({ buffer = bufnr })
@@ -107,6 +108,7 @@ lspconfig.pylsp.setup {
         }
     }
 }
+lspconfig.kotlin_language_server.setup({})
 
 -- typescript
 lspconfig.eslint.setup({})

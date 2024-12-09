@@ -26,6 +26,7 @@ return {
 					"go",
 					"javascript",
 					"json",
+					"kotlin",
 					"lua",
 					"luadoc",
 					"luap",
