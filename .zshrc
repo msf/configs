@@ -136,3 +136,14 @@ fzffile=/usr/share/doc/fzf/examples/key-bindings.zsh
 [ -f $fzffile ] && source $fzffile
 fzffile=/usr/share/doc/fzf/examples/completion.zsh
 [ -f $fzffile ] && source $fzffile
+
+antigen use oh-my-zsh
+antigen bundle git
+antigen bundle git-extras
+antigen bundle command-not-found
+antigen bundle zsh-users/zsh-completions
+antigen bundle zsh-users/zsh-syntax-highlighting
+
+antigen theme josh
+
+antigen apply
