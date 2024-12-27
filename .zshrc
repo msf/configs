@@ -29,7 +29,7 @@ zstyle ':completion:*' completer _expand _complete _correct _approximate
 zstyle ':completion:*' format 'Completing %d'
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' menu select=2
-eval "$(dircolors -b)"
+# eval "$(dircolors -b)"  # not available on macOS
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*' list-colors ''
 zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
@@ -138,18 +138,6 @@ fzffile=/usr/share/doc/fzf/examples/key-bindings.zsh
 [ -f $fzffile ] && source $fzffile
 fzffile=/usr/share/doc/fzf/examples/completion.zsh
 [ -f $fzffile ] && source $fzffile
-
-#antigen use oh-my-zsh
-#antigen bundle git
-#antigen bundle git-extras
-#antigen bundle command-not-found
-#antigen bundle zsh-users/zsh-completions
-#antigen bundle zsh-users/zsh-syntax-highlighting
-#
-#antigen theme josh
-#
-#antigen apply
-
 
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
