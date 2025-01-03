@@ -1,10 +1,3 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-[ -f ~/.zsh_prompt ] && source ~/.zsh_prompt
 
 # Lines configured by zsh-newuser-install
 HISTFILE=~/.histfile
@@ -123,11 +116,9 @@ fi
 
 [ -f ~/.zshrc_private ] && source ~/.zshrc_private
 
-
 function dpsql {
 	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) psql -U ${2} -h ${1}-${2}-db ${2}
 }
-
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
@@ -142,6 +133,7 @@ fzffile=/usr/share/doc/fzf/examples/completion.zsh
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
 
 export PATH=/home/miguel/.tiup/bin:$PATH
+
+[ -f ~/.zsh_prompt ] && source ~/.zsh_prompt
