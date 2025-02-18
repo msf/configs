@@ -44,3 +44,4 @@ export PATH GOPATH
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="/home/miguel/.sdkman"
 [[ -s "/home/miguel/.sdkman/bin/sdkman-init.sh" ]] && source "/home/miguel/.sdkman/bin/sdkman-init.sh"
+. "$HOME/.cargo/env"

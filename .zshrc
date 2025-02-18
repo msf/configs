@@ -79,7 +79,7 @@ alias python="python3"
 alias py="python3"
 alias lsof="lsof -n -M"  # don't resolve names nor ports
 #alias docker="podman"
-alias sudo="doas"
+#alias sudo="doas"
 
 
 # for sway
@@ -89,19 +89,22 @@ export XKB_DEFAULT_OPTIONS=caps:ctrl
 keychain=`which keychain`
 if [ -x ${keychain} ]; then
     ${keychain} -q ~/.ssh/id_ed25519
+    ${keychain} -q ~/.ssh/miguel_dune
     source ~/.keychain/${HOST}-sh  > /dev/null
 fi
 
 PATH="/sbin:/usr/sbin:${PATH}"
-PATH="/snap/bin:${PATH}"
 PATH="/usr/local/bin:/usr/local/sbin:${PATH}"
 PATH="/usr/local/go/bin:${PATH}"
 PATH="/opt/homebrew/bin/:$PATH"
 PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+[ -d /snap/bin ] && PATH="/snap/bin:${PATH}"
 [ -d ~/.yarn/bin ] && PATH="${HOME}/.yarn/bin:${PATH}"
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 [ -d ~/go/bin ] && PATH="${HOME}/go/bin:${PATH}"
+PATH="/opt/homebrew/opt/llvm@19/bin:${PATH}"
 export PATH CLASSPATH
+export PATH=/home/miguel/.tiup/bin:$PATH
 export GOPRIVATE="github.com/duneanalytics"
 export GIT_TERMINAL_PROMPT=1
 
@@ -114,26 +117,31 @@ fi
 # for rust
 [ -f $HOME/.cargo/env ] && . "$HOME/.cargo/env"
 
+# python stuff
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# java stuff
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
 [ -f ~/.zshrc_private ] && source ~/.zshrc_private
 
 function dpsql {
 	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) psql -U ${2} -h ${1}-${2}-db ${2}
 }
 
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-
 # fzf, ubuntu apt install
-fzffile=/usr/share/doc/fzf/examples/key-bindings.zsh
-[ -f $fzffile ] && source $fzffile
-fzffile=/usr/share/doc/fzf/examples/completion.zsh
-[ -f $fzffile ] && source $fzffile
-
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-
-export PATH=/home/miguel/.tiup/bin:$PATH
+#fzffile=/usr/share/doc/fzf/examples/key-bindings.zsh
+#[ -f $fzffile ] && source $fzffile
+#fzffile=/usr/share/doc/fzf/examples/completion.zsh
+#[ -f $fzffile ] && source $fzffile
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
 
 [ -f ~/.zsh_prompt ] && source ~/.zsh_prompt
+
+# used for iEVM/smlxl
+eval "$(direnv hook zsh)"
+
