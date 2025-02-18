@@ -94,7 +94,7 @@ lspconfig.rust_analyzer.setup({
 -- lua
 lspconfig.lua_ls.setup(lsp_zero.nvim_lua_ls())
 -- protobuf
-lspconfig.bufls.setup({})
+lspconfig.buf_ls.setup({})
 -- python
 lspconfig.pyright.setup({})
 lspconfig.pylsp.setup {
@@ -110,9 +110,6 @@ lspconfig.pylsp.setup {
 }
 lspconfig.kotlin_language_server.setup({})
 
--- typescript
-lspconfig.eslint.setup({})
-lspconfig.tsserver.setup({})
 -- efm
 local stylua = {
     formatCommand = "stylua -",
