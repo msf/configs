@@ -1,0 +1,105 @@
+services:
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.99.0
+    container_name: victoriametrics
+    command:
+      - '-memory.allowedBytes=4GiB'
+      - '-retentionPeriod=10y'  
+      - '-influxListenAddr=:8089'
+    ports:
+      - 8428:8428
+      - 8089:8089
+      - 8089:8089/udp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /media/simple/victoriametrics
+        target: /victoria-metrics-data
+    networks:
+      - vm_net
+  influxdb:
+    image: quay.io/influxdb/influxdb:2.1.1
+    container_name: influxdb
+    volumes:
+      - type: bind
+        source: /media/simple/influxdb
+        target: /root/.influxdbv2
+    ports:
+      - 8086:8086
+      - 8083:8083
+    extra_hosts:
+      - "hopper-tail=101.119.226.56"
+    networks:
+      - vm_net
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana-oss:10.4.1
+    container_name: grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=msf
+      - GF_SECURITY_ADMIN_PASSWORD=null
+    volumes:
+      - type: bind
+        source: /media/simple/grafana/data
+        target: /var/lib/grafana
+      - /media/simple/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - /media/simple/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - vm_net
+  #  Metrics collector.
+  #  It scrapes targets defined in --promscrape.config
+  #  And forward them to --remoteWrite.url
+  vmagent:
+    container_name: vmagent
+    image: victoriametrics/vmagent:v1.99.0
+    depends_on:
+      - "victoriametrics"
+    ports:
+      - 8429:8429
+    volumes:
+      - vmagentdata:/vmagentdata
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    networks:
+      - vm_net
+    restart: always
+  mosquitto:
+    container_name: mosquitto
+    image: docker.io/eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto:/etc/mosquitto
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    user: nobody
+    network_mode: "host"
+  telegraf:
+    container_name: telegraf
+    image: docker.io/library/telegraf:1.30
+    restart: unless-stopped
+    environment:
+      - HOST_ETC=/hostfs/etc
+      - HOST_PROC=/hostfs/proc
+      - HOST_SYS=/hostfs/sys
+      - HOST_VAR=/hostfs/var
+      - HOST_RUN=/hostfs/run
+      - HOST_MOUNT_PREFIX=/hostfs
+    group_add:
+      - 994  # this is docker group id, to access /var/run/docker.sock 
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/hostfs/var/run/docker.sock:ro
+      - /proc:/hostfs/proc:ro
+      - /sys:/hostfs/sys:ro
+      - /:/hostfs:ro
+    network_mode: "host"
+networks:
+  vm_net:
+volumes:
+  vmagentdata: {}
