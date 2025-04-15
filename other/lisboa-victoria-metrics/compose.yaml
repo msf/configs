@@ -1,4 +1,23 @@
 services:
+  zigbee2mqtt:
+    container_name: zigbee2mqtt
+    image: ghcr.io/koenkk/zigbee2mqtt:2.2
+    restart: unless-stopped
+    volumes:
+      - /media/simple/zigbee2mqtt:/app/data
+      - /run/udev:/run/udev:ro
+    ports:
+      # Frontend port
+      - 8080:8080
+    environment:
+      - TZ=UTC
+    group_add:
+    - dialout
+    user: nobody
+    devices:
+      # Make sure this matches your adapter location
+      - /dev/serial/by-id/usb-Texas_Instruments_TI_CC2531_USB_CDC___0X00124B001CCBE653-if00:/dev/ttyACM0
+    network_mode: "host"
   victoriametrics:
     image: victoriametrics/victoria-metrics:v1.99.0
     container_name: victoriametrics
@@ -28,7 +47,7 @@ services:
       - 8086:8086
       - 8083:8083
     extra_hosts:
-      - "hopper-tail=101.119.226.56"
+      - "hopper-tail=100.119.216.56"
     networks:
       - vm_net
     restart: unless-stopped
@@ -81,7 +100,7 @@ services:
     network_mode: "host"
   telegraf:
     container_name: telegraf
-    image: docker.io/library/telegraf:1.30
+    image: docker.io/library/telegraf:1.34
     restart: unless-stopped
     environment:
       - HOST_ETC=/hostfs/etc
