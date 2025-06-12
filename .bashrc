@@ -45,3 +45,5 @@ export PATH GOPATH
 export SDKMAN_DIR="/home/miguel/.sdkman"
 [[ -s "/home/miguel/.sdkman/bin/sdkman-init.sh" ]] && source "/home/miguel/.sdkman/bin/sdkman-init.sh"
 . "$HOME/.cargo/env"
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

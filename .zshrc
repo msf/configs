@@ -102,6 +102,7 @@ PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 [ -d ~/.yarn/bin ] && PATH="${HOME}/.yarn/bin:${PATH}"
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 [ -d ~/go/bin ] && PATH="${HOME}/go/bin:${PATH}"
+PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 PATH="/opt/homebrew/opt/llvm@19/bin:${PATH}"
 export PATH CLASSPATH
 export PATH=/home/miguel/.tiup/bin:$PATH
@@ -113,14 +114,14 @@ kubectl=`which kubectl`
 if [ -x ${kubectl} ]; then
     source <(kubectl completion zsh)
 fi
+export KUBECONFIG=/home/miguel/.kube/config:/home/miguel/.kube/prod-fsn1.yaml:/home/miguel/.kube/dev-fsn1.yaml
 
 # for rust
 [ -f $HOME/.cargo/env ] && . "$HOME/.cargo/env"
 
 # python stuff
 export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH" && eval "$(pyenv init -)"
 
 # java stuff
 export SDKMAN_DIR="$HOME/.sdkman"
@@ -132,16 +133,15 @@ function dpsql {
 	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) psql -U ${2} -h ${1}-${2}-db ${2}
 }
 
-# fzf, ubuntu apt install
-#fzffile=/usr/share/doc/fzf/examples/key-bindings.zsh
-#[ -f $fzffile ] && source $fzffile
-#fzffile=/usr/share/doc/fzf/examples/completion.zsh
-#[ -f $fzffile ] && source $fzffile
-# Set up fzf key bindings and fuzzy completion
-source <(fzf --zsh)
+# fzf, manual install
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 [ -f ~/.zsh_prompt ] && source ~/.zsh_prompt
 
 # used for iEVM/smlxl
 eval "$(direnv hook zsh)"
 
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
