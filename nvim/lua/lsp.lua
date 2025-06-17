@@ -126,6 +126,11 @@ safe_setup("pylsp", {
     }
 })
 
+-- Protobuf (buf LSP)
+safe_setup("buf_ls", {
+    filetypes = { "proto" },
+})
+
 -- efm
 local stylua = {
     formatCommand = "stylua -",
@@ -171,6 +176,10 @@ end)
 -- Customize keymaps
 local cmp = require("cmp")
 cmp.setup({
+    sources = cmp.config.sources({
+        { name = 'nvim_lsp' },
+        { name = 'buffer' },
+    }),
     mapping = cmp.mapping.preset.insert({
         -- `Enter` key to confirm completion
         ["<CR>"] = cmp.mapping.confirm({ select = false }),
