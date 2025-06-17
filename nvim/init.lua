@@ -31,9 +31,7 @@ require("git")
 require("lsp")
 require("line")
 
-require("telescope").load_extension("projects")
-require("telescope").load_extension("fzf")
-require("project_nvim").setup({})
+-- Telescope extensions are now initialized in lua/plugins/telescope.lua
 
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
@@ -41,5 +39,5 @@ vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
 vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
 vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
 
--- Automatically format on save
-vim.cmd [[autocmd BufWritePre <buffer> lua vim.lsp.buf.format()]]
+-- Automatically format on save with error handling
+vim.cmd [[autocmd BufWritePre <buffer> lua pcall(function() vim.lsp.buf.format() end)]]

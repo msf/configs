@@ -47,19 +47,27 @@ lsp_zero.format_on_save({
         timeout_ms = 10000,
     },
     servers = {
-        ["efm"] = { "javascript", "typescript", "lua" },
+        ["efm"] = { "lua" },
         ["gopls"] = { "go" },
-        ["jsonls"] = { "json" },
         ["rust_analyzer"] = { "rust" },
-        ["terraformls"] = { "terraform" },
-        ["yamlls"] = { "yaml" },
+        ["pylsp"] = { "python" },
+        -- C/C++ will use clangd's formatter automatically
     },
 })
 
--- Setup LSP servers
+-- Setup LSP servers with error handling to make config portable
 local lspconfig = require("lspconfig")
+
+-- Helper function to safely setup LSP servers
+local function safe_setup(server, config)
+    config = config or {}
+    pcall(function()
+        lspconfig[server].setup(config)
+    end)
+end
+
 -- go
-lspconfig.golangci_lint_ls.setup({
+safe_setup("golangci_lint_ls", {
     root_dir = require("lspconfig.util").root_pattern(
         "go.mod",
         "go.work",
@@ -70,7 +78,7 @@ lspconfig.golangci_lint_ls.setup({
         ".git"
     ),
 })
-lspconfig.gopls.setup({
+safe_setup("gopls", {
     settings = {
         gopls = {
             gofumpt = true,
@@ -79,7 +87,7 @@ lspconfig.gopls.setup({
     },
 })
 -- rust
-lspconfig.rust_analyzer.setup({
+safe_setup("rust_analyzer", {
     settings = {
         ["rust-analyzer"] = {
             diagnostics = {
@@ -92,12 +100,21 @@ lspconfig.rust_analyzer.setup({
     },
 })
 -- lua
-lspconfig.lua_ls.setup(lsp_zero.nvim_lua_ls())
--- protobuf
-lspconfig.buf_ls.setup({})
--- python
-lspconfig.pyright.setup({})
-lspconfig.pylsp.setup {
+pcall(function()
+    lspconfig.lua_ls.setup(lsp_zero.nvim_lua_ls())
+end)
+-- C/C++
+safe_setup("clangd", {
+    cmd = {
+        "clangd",
+        "--background-index",
+        "--clang-tidy",
+        "--header-insertion=never", -- avoid automatic imports
+    },
+})
+
+-- Python
+safe_setup("pylsp", {
     settings = {
         pylsp = {
             plugins = {
@@ -107,8 +124,7 @@ lspconfig.pylsp.setup {
             }
         }
     }
-}
-lspconfig.kotlin_language_server.setup({})
+})
 
 -- efm
 local stylua = {
@@ -132,24 +148,25 @@ local languages = {
     json = { prettier },
     markdown = { prettier },
 }
-lspconfig.efm.setup({
-    -- capabilities = capabilities,
-    cmd = { vim.fn.expand("~/.local/share/nvim/mason/bin/efm-langserver") },
-    -- on_attach = on_attach,
-    init_options = { documentFormatting = true },
-    root_dir = vim.loop.cwd,
-    filetypes = vim.tbl_keys(languages),
-    settings = {
-        rootMarkers = { ".git/", ".prettierignore" },
-        lintDebounce = 100,
-        languages = languages,
-    },
-    single_file_support = true,
-})
--- terraform
-lspconfig.terraformls.setup({})
--- json
-lspconfig.jsonls.setup({})
+-- efm with error handling (minimal version for Lua formatting only)
+local minimal_languages = {
+    lua = { stylua },  -- Keep Lua formatting
+}
+
+pcall(function()
+    lspconfig.efm.setup({
+        cmd = { vim.fn.expand("~/.local/share/nvim/mason/bin/efm-langserver") },
+        init_options = { documentFormatting = true },
+        root_dir = vim.loop.cwd,
+        filetypes = { "lua" },  -- Only for Lua
+        settings = {
+            rootMarkers = { ".git/" },
+            lintDebounce = 100,
+            languages = minimal_languages,
+        },
+        single_file_support = true,
+    })
+end)
 
 -- Customize keymaps
 local cmp = require("cmp")
