@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Set performance governor  
+sudo cpupower frequency-set -g performance > /dev/null
+# Remove frequency limits
+sudo cpupower frequency-set -u 9.1GHz > /dev/null
+sudo cpupower frequency-set -d 2.0GHz > /dev/null
+
+# Set AMD P-State to active mode (better performance)
+echo active | sudo tee /sys/devices/system/cpu/amd_pstate/status > /dev/null 2>&1 || true
+
+echo 0 | sudo tee /proc/sys/vm/laptop_mode > /dev/null
+#
+# USB autosuspend
+echo 0 | sudo tee /sys/module/usbcore/parameters/autosuspend > /dev/null
+

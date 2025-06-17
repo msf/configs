@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Set power-save governor
+sudo cpupower frequency-set -g powersave
+# Lower max frequency
+sudo cpupower frequency-set -u 2.0GHz
+sudo cpupower frequency-set -d 20MHz > /dev/null
+
+# Set AMD P-State to passive mode (more power efficient)
+echo passive | sudo tee /sys/devices/system/cpu/amd_pstate/status > /dev/null 2>&1 || true
+
+# Enable laptop mode (aggressive power saving)
+echo 5 | sudo tee /proc/sys/vm/laptop_mode > /dev/null
+
+# USB autosuspend
+echo 1 | sudo tee /sys/module/usbcore/parameters/autosuspend > /dev/null

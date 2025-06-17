@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "CPU: $(grep 'model name' /proc/cpuinfo | head -1 | cut -d: -f2 | xargs)"
+echo "Cores: $(nproc)"
+echo ""
+
+echo "Memory Bandwidth:"
+sysbench memory --threads=4 run | grep -E "(transferred|total time)"
+echo ""

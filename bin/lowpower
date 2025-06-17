@@ -6,16 +6,11 @@ sudo cpupower frequency-set -g powersave
 sudo cpupower frequency-set -d 400MHz
 
 # usb autosuspend:
-sudo sysctl -w usbcore.autosuspend=1
+echo 1 | sudo tee /sys/module/usbcore/parameters/autosuspend > /dev/null
 
 # sata lowpower:
 filepath=/sys/class/scsi_host/host0/link_power_management_policy
 [ -f ${filepath} ] && sudo sh -c "echo min_power > ${filepath}"
 
 # enable laptop mode
-filepath=/proc/sys/vm/laptop_mode
-[ -f ${filepath} ] && sudo sh -c "echo 5 > ${filepath}"
-
-# increase writeback time
-filepath=/proc/sys/vm/dirty_writeback_centisecs
-[ -f ${filepath} ] && sudo sh -c "echo 1500 > ${filepath}"
+echo 5 | sudo tee /proc/sys/vm/laptop_mode > /dev/null
