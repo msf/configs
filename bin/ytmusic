@@ -1,0 +1,19 @@
+#!/bin/bash
+# Download YouTube audio at max quality with numbered files
+
+if [ $# -eq 0 ]; then
+    echo "Usage: ytaud <url> [output_dir]"
+    exit 1
+fi
+
+url="$1"
+output_dir="${2:-./}"
+
+cd "$output_dir" || exit 1
+
+yt-dlp \
+    --format "bestaudio" \
+    --output "%(playlist_index)03d - %(title)s.%(ext)s" \
+    --restrict-filenames \
+    --no-overwrites \
+    "$url"
