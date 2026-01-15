@@ -1,7 +1,7 @@
 services:
   zigbee2mqtt:
     container_name: zigbee2mqtt
-    image: ghcr.io/koenkk/zigbee2mqtt:2.2
+    image: ghcr.io/koenkk/zigbee2mqtt:2.7
     restart: unless-stopped
     volumes:
       - /media/simple/zigbee2mqtt:/app/data
@@ -19,7 +19,7 @@ services:
       - /dev/serial/by-id/usb-Texas_Instruments_TI_CC2531_USB_CDC___0X00124B001CCBE653-if00:/dev/ttyACM0
     network_mode: "host"
   victoriametrics:
-    image: victoriametrics/victoria-metrics:v1.99.0
+    image: victoriametrics/victoria-metrics:v1.133.0
     container_name: victoriametrics
     command:
       - '-memory.allowedBytes=4GiB'
