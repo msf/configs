@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  caddy:
+    build: .
+    container_name: caddy
+    restart: unless-stopped
+    network_mode: host
+    user: "65534:4"  # nobody:adm
+    environment:
+      - UMASK=0022  # Files 644, dirs 755
+    volumes:
+      - ./Caddyfile.production:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - /srv/logs/caddy:/srv/logs/caddy
+    env_file:
+      - env
+
+volumes:
+  caddy_data:
+  caddy_config:

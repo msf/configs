@@ -1,0 +1,14 @@
+# Secrets
+env
+secrets/
+*.key
+*.pem
+*.token
+
+# Logs
+*.log
+
+# Temp
+*.swp
+*.tmp
+.DS_Store

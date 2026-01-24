@@ -1,0 +1,70 @@
+{
+	email miguel.filipe@hey.com
+	admin localhost:2019
+	
+	log {
+		output file /srv/logs/caddy/access.log {
+			roll_size 100mb
+			roll_keep 10
+		}
+		format json
+	}
+}
+
+(security) {
+	# Basic rate limiting - 30 requests per minute per IP
+	header X-Rate-Limit "30/minute"
+	
+	# Security headers
+	header {
+		# Prevent clickjacking
+		X-Frame-Options "SAMEORIGIN"
+		# XSS protection
+		X-Content-Type-Options "nosniff"
+		# Remove server header
+		-Server
+	}
+}
+
+*.mfilipe.eu {
+	tls {
+		dns gandi {env.GANDI_API_TOKEN}
+	}
+	
+	# Jellyfin - tv.mfilipe.eu
+	@tv host tv.mfilipe.eu
+	handle @tv {
+		import security
+		
+		# Additional Jellyfin-specific protection
+		# TODO: Consider fail2ban or crowdsec integration
+		# TODO: Consider IP whitelist for admin routes
+		
+		reverse_proxy localhost:8096 {
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Real-IP {remote_host}
+		}
+		encode gzip
+	}
+	
+	# Future: img.mfilipe.eu for Immich
+	@img host img.mfilipe.eu
+	handle @img {
+		import security
+		reverse_proxy localhost:2283
+		encode gzip
+	}
+	
+	# Future: metrics.mfilipe.eu for Grafana (consider VPN-only)
+	@metrics host metrics.mfilipe.eu
+	handle @metrics {
+		import security
+		reverse_proxy localhost:3000
+		encode gzip
+	}
+	
+	# Catch-all
+	handle {
+		respond "Unknown subdomain" 404
+	}
+}
