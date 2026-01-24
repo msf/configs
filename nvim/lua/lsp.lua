@@ -55,20 +55,18 @@ lsp_zero.format_on_save({
     },
 })
 
--- Setup LSP servers with error handling to make config portable
-local lspconfig = require("lspconfig")
 
 -- Helper function to safely setup LSP servers
 local function safe_setup(server, config)
     config = config or {}
     pcall(function()
-        lspconfig[server].setup(config)
+        vim.lsp.config(server, config)
     end)
 end
 
 -- go
 safe_setup("golangci_lint_ls", {
-    root_dir = require("lspconfig.util").root_pattern(
+    root_dir = vim.fs.root(0, {
         "go.mod",
         "go.work",
         ".golangci.yml",
@@ -76,7 +74,7 @@ safe_setup("golangci_lint_ls", {
         ".golangci.toml",
         ".golangci.json",
         ".git"
-    ),
+    }),
 })
 safe_setup("gopls", {
     settings = {
@@ -111,6 +109,7 @@ safe_setup("clangd", {
         "--clang-tidy",
         "--header-insertion=never", -- avoid automatic imports
     },
+    filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "hpp", "cppm", "ixx", "ccm", "cxxm", "c++m" },
 })
 
 -- Python

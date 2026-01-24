@@ -83,3 +83,5 @@ end, opts)
 vim.keymap.set("n", "<leader>fb", telescope.buffers, opts)
 vim.keymap.set("n", "<leader>fh", telescope.help_tags, opts)
 
+-- Send selected text to Claude for generation
+vim.keymap.set('v', '<leader>cc', ':ClaudeCode generate code based on this<CR>', { desc = 'Claude: generate from selection' })
