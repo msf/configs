@@ -30,5 +30,6 @@ setprompt_simple() {
 if [ -f ~/powerlevel10k/powerlevel10k.zsh-theme ]; then
     source ~/powerlevel10k/powerlevel10k.zsh-theme
 else
-    setprompt_simple
+    eval "$(starship init zsh)"
+    # setprompt_simple
 fi

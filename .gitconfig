@@ -25,12 +25,19 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
     ff = no
     tool = nvimdiff
 
+[mergetool "nvimdiff"]
+    cmd = nvim -d "$REMOTE" "$BASE" "$LOCAL" -c '4wincmd w | wincmd J' "$MERGED"
+
 [pull]
     rebase = true
 
 [core]
-    pager = less -R
+    pager = delta
     excludesfile = /Users/miguel/.gitignore
+
+[delta]
+    navigate = true
+    side-by-side = true
 
 [color]
     diff = auto
@@ -71,3 +78,5 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
     insteadOf = https://gitlab.com/
 [url "ssh://git@bitbucket.org/"]
     insteadOf = https://bitbucket.org/
+[url "https://@github.com/"]
+	insteadOf = https://github.com/

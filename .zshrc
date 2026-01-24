@@ -80,10 +80,13 @@ alias py="python3"
 alias lsof="lsof -n -M"  # don't resolve names nor ports
 #alias docker="podman"
 #alias sudo="doas"
+alias opencode='AWS_PROFILE=default AWS_REGION=eu-west-1 $HOME/.opencode/bin/opencode'
 
 
 # for sway
 export XKB_DEFAULT_OPTIONS=caps:ctrl
+# firefox on wayland
+export MOZ_ENABLE_WAYLAND=1
 
 # keychain
 keychain=`which keychain`
@@ -100,6 +103,7 @@ PATH="/opt/homebrew/bin/:$PATH"
 PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 [ -d /snap/bin ] && PATH="/snap/bin:${PATH}"
 [ -d ~/.yarn/bin ] && PATH="${HOME}/.yarn/bin:${PATH}"
+[ -d ~/.local/bin ] && PATH="${HOME}/.local/bin:${PATH}"
 [ -d ~/bin ] && PATH="${HOME}/bin:${PATH}"
 [ -d ~/go/bin ] && PATH="${HOME}/go/bin:${PATH}"
 PATH="$PATH:/opt/nvim-linux-x86_64/bin"
@@ -114,7 +118,7 @@ kubectl=`which kubectl`
 if [ -x ${kubectl} ]; then
     source <(kubectl completion zsh)
 fi
-export KUBECONFIG=/home/miguel/.kube/config:/home/miguel/.kube/prod-fsn1.yaml:/home/miguel/.kube/dev-fsn1.yaml
+export KUBECONFIG=/home/miguel/.kube/config
 
 # for rust
 [ -f $HOME/.cargo/env ] && . "$HOME/.cargo/env"
@@ -138,10 +142,17 @@ function dpsql {
 
 [ -f ~/.zsh_prompt ] && source ~/.zsh_prompt
 
-# used for iEVM/smlxl
-eval "$(direnv hook zsh)"
-
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Wasmer
+export WASMER_DIR="/home/miguel/.wasmer"
+[ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
+export WASMTIME_HOME="$HOME/.wasmtime"
+export PATH="$WASMTIME_HOME/bin:$PATH"
+. "/home/miguel/.wasmedge/env"
+
+# opencode
+export PATH=/home/miguel/.opencode/bin:$PATH
