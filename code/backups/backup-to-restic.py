@@ -6,8 +6,10 @@ from datetime import datetime
 
 
 DIRPATHS = {
-    "/media/simple/backups/BACKUPS/fotos": ["fotos"],
-    "/media/simple/backups/BACKUPS/GooglePhotosBackup": ["fotos", "googlePhotos"],
+    "/media/simple/backups/BACKUPS/fotos":["fotos"],
+    "/media/simple/backups/BACKUPS/GooglePhotosBackup":["fotos","googlePhotos"],
+    "/media/simple/backups/BACKUPS/icloud":["fotos","videos","icloud"],
+    "/media/simple/backups/BACKUPS/GoogleDrive":["backups","google-drive","document"],
 }
 BLACKLIST = {".zfs", "README.md"}
 
