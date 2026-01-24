@@ -1,0 +1,16 @@
+[Unit]
+Description=Dynamic DNS updater for mfilipe.eu
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=nobody
+Group=nogroup
+EnvironmentFile=/srv/selfhost/ddns/ddns.env
+ExecStart=/srv/selfhost/ddns/ddns
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

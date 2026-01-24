@@ -1,0 +1,11 @@
+[Unit]
+Description=Run DDNS update every 10 minutes
+Requires=ddns.service
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=10min
+Unit=ddns.service
+
+[Install]
+WantedBy=timers.target

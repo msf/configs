@@ -1,9 +1,12 @@
 # Secrets
 env
+.env
 secrets/
 *.key
 *.pem
 *.token
+ddclient/ddclient.conf
+ddns/ddns.env
 
 # Logs
 *.log
