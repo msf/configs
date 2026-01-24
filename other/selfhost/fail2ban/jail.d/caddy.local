@@ -1,0 +1,22 @@
+# Fail2ban jails for Caddy reverse proxy
+# Place in /etc/fail2ban/jail.d/caddy.local
+
+[caddy-auth]
+enabled = true
+port = https,http
+filter = caddy-auth
+logpath = /srv/logs/caddy/access.log
+maxretry = 10
+findtime = 5m
+bantime = 1d
+action = iptables-allports[name=caddy-auth]
+
+[caddy-404]
+enabled = true
+port = https,http
+filter = caddy-404
+logpath = /srv/logs/caddy/access.log
+maxretry = 20
+findtime = 2m
+bantime = 1d
+action = iptables-allports[name=caddy-404]
