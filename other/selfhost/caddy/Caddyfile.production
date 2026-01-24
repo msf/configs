@@ -1,14 +1,6 @@
 {
 	email miguel.filipe@hey.com
 	admin localhost:2019
-	
-	log {
-		output file /srv/logs/caddy/access.log {
-			roll_size 100mb
-			roll_keep 10
-		}
-		format json
-	}
 }
 
 (security) {
@@ -29,6 +21,14 @@
 *.mfilipe.eu {
 	tls {
 		dns gandi {env.GANDI_API_TOKEN}
+	}
+	
+	log {
+		output file /srv/logs/caddy/access.log {
+			roll_size 100mb
+			roll_keep 10
+		}
+		format json
 	}
 	
 	# Jellyfin - tv.mfilipe.eu

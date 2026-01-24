@@ -1,6 +1,6 @@
 # Setup Documentation
 
-**Status**: tv.mfilipe.eu working with HTTPS
+**Status**: tv.mfilipe.eu working with HTTPS, fail2ban active
 
 ---
 
@@ -10,12 +10,19 @@
 - Location: /srv/selfhost/caddy/
 - Config: Caddyfile.production
 - Cert: Let's Encrypt wildcard `*.mfilipe.eu` (DNS-01 via Gandi)
-- Logs: Will be in /srv/logs/caddy/ (not configured yet)
+- Logs: /srv/logs/caddy/access.log (JSON format, HTTP access logs)
 
 **Jellyfin** (systemd):
 - Service: `systemctl status jellyfin`
 - Logs: /var/log/jellyfin/
 - Port: 8096 (localhost only, behind Caddy)
+- Password: Changed (strong)
+
+**Fail2ban** (systemd):
+- Location: /srv/selfhost/fail2ban/ (symlinked to /etc/fail2ban/)
+- Jails: caddy-auth (401/403), caddy-404 (scanner detection)
+- Logs: /var/log/fail2ban.log
+- Ban duration: 1 day
 
 ---
 
@@ -27,6 +34,32 @@ tv.mfilipe.eu  AAAA  2001:818:e3da:f300:63f8:2c40:e3df:65c1
 ```
 
 Managed via Gandi API (see scripts/configure-dns.sh)
+
+---
+
+## Directory Structure
+
+```
+/srv/
+├── selfhost/
+│   ├── caddy/          # Caddy reverse proxy (root:adm 2775)
+│   │   ├── Caddyfile.production
+│   │   ├── docker-compose.production.yml
+│   │   ├── Dockerfile
+│   │   └── env         # Gandi API token (NOT in git)
+│   └── fail2ban/       # Fail2ban configs (root:adm 2775)
+│       ├── filter.d/   # Symlinked to /etc/fail2ban/filter.d/
+│       │   ├── caddy-auth.conf
+│       │   └── caddy-404.conf
+│       └── jail.d/     # Symlinked to /etc/fail2ban/jail.d/
+│           └── caddy.local
+├── logs/
+│   ├── caddy/         # Caddy HTTP access logs (nobody:adm 2775)
+│   │   └── access.log
+│   └── jellyfin -> /var/log/jellyfin
+└── configs/
+    └── jellyfin -> /etc/jellyfin
+```
 
 ---
 
@@ -43,85 +76,32 @@ TZ=Europe/Lisbon
 
 ---
 
-## Deployment
-
-```bash
-# Deploy Caddy changes
-cd ~/configs/other/selfhost/caddy
-scp Caddyfile.production docker-compose.production.yml miguel@192.168.1.15:/srv/selfhost/caddy/
-ssh miguel@192.168.1.15 'cd /srv/selfhost/caddy && docker compose restart caddy'
-
-# View logs
-ssh miguel@192.168.1.15 'docker logs -f caddy'
-
-# Test
-curl -I https://tv.mfilipe.eu
-```
-
----
-
-## Security
-
-**Current**:
-- HTTPS only (Let's Encrypt)
-- Basic security headers
-- No rate limiting
-- No IP banning
-- Basic Jellyfin password
-
-**Immediate**:
-1. Change Jellyfin password at https://tv.mfilipe.eu
-2. Enable persistent logging to /srv/logs/
-3. Install Fail2ban
-4. Setup git repo
-
----
-
-## Monitoring
-
-**Jellyfin logs**:
-```bash
-ssh miguel@192.168.1.15 'tail -f /var/log/jellyfin/jellyfin$(date +%Y%m%d).log'
-```
-
-**Caddy logs** (after logging setup):
-```bash
-ssh miguel@192.168.1.15 'tail -f /srv/logs/caddy/access.log | jq'
-```
-
----
-
-## Fail2ban (TODO)
-
-Install: `sudo apt install fail2ban`
-
-Config: `/etc/fail2ban/jail.d/caddy.conf`
-```ini
-[caddy-jellyfin]
-enabled = true
-port = 443
-filter = caddy-jellyfin
-logpath = /srv/logs/caddy/access.log
-maxretry = 5
-bantime = 3600
-```
-
-Filter: `/etc/fail2ban/filter.d/caddy-jellyfin.conf`
-```ini
-[Definition]
-failregex = .*"status":401.*"remote_ip":"<HOST>".*
-```
-
----
-
 ## Next Actions
 
-1. **Change Jellyfin password** (critical)
-2. **Move Caddy to /srv/selfhost/caddy/**
-3. **Configure logging to /srv/logs/**
-4. **Setup git repo** with .gitignore
-5. **Install Fail2ban**
-6. **Add metrics export** to VictoriaMetrics
+1. **Setup Immich** (photo management at img.mfilipe.eu)
+2. **Add Caddy metrics** export to VictoriaMetrics
+3. **Expose Grafana** at metrics.mfilipe.eu (consider VPN-only)
+
+---
+
+**Caddy**:
+```bash
+cd ~/configs/other/selfhost/caddy
+scp Caddyfile.production docker-compose.production.yml 192.168.1.15:/srv/selfhost/caddy/
+ssh 192.168.1.15 'cd /srv/selfhost/caddy && docker compose restart'
+```
+
+**Fail2ban** (see fail2ban/README.md):
+```bash
+# Copy configs to server
+scp -r ~/configs/other/selfhost/fail2ban 192.168.1.15:/tmp/
+ssh 192.168.1.15 'sudo cp -r /tmp/fail2ban /srv/selfhost/ && sudo chown -R root:adm /srv/selfhost/fail2ban'
+
+# Create symlinks and restart
+ssh 192.168.1.15 'sudo ln -sf /srv/selfhost/fail2ban/filter.d/* /etc/fail2ban/filter.d/ && \
+  sudo ln -sf /srv/selfhost/fail2ban/jail.d/* /etc/fail2ban/jail.d/ && \
+  sudo systemctl restart fail2ban'
+```
 
 ---
 
