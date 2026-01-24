@@ -36,10 +36,6 @@
 	handle @tv {
 		import security
 		
-		# Additional Jellyfin-specific protection
-		# TODO: Consider fail2ban or crowdsec integration
-		# TODO: Consider IP whitelist for admin routes
-		
 		reverse_proxy localhost:8096 {
 			header_up X-Forwarded-For {remote_host}
 			header_up X-Real-IP {remote_host}
@@ -47,11 +43,14 @@
 		encode gzip
 	}
 	
-	# Future: img.mfilipe.eu for Immich
+	# Immich - img.mfilipe.eu
 	@img host img.mfilipe.eu
 	handle @img {
 		import security
-		reverse_proxy localhost:2283
+		reverse_proxy localhost:2283 {
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Real-IP {remote_host}
+		}
 		encode gzip
 	}
 	
