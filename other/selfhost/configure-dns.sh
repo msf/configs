@@ -1,10 +1,16 @@
 #!/bin/bash
-# Configure DNS records for tv.mfilipe.eu via Gandi API
+# Configure DNS records for mfilipe.eu via Gandi API
+# Usage: GANDI_TOKEN=xxx ./configure-dns.sh
 
-TOKEN="1543b819a61d06789ece8df99c3a42f8587dc0d9"
+TOKEN="${GANDI_TOKEN:-YOUR_TOKEN_HERE}"
 DOMAIN="mfilipe.eu"
 IPV4="93.108.195.82"
 IPV6="2001:818:e3da:f300:63f8:2c40:e3df:65c1"
+
+if [ "$TOKEN" = "YOUR_TOKEN_HERE" ]; then
+    echo "ERROR: Set GANDI_TOKEN environment variable"
+    exit 1
+fi
 
 # Delete old CNAME for tail.mfilipe.eu if exists
 curl -X DELETE "https://api.gandi.net/v5/livedns/domains/${DOMAIN}/records/tail/CNAME" \

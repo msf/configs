@@ -1,12 +1,14 @@
 # Secrets
 env
-.env
 secrets/
 *.key
 *.pem
 *.token
-ddclient/ddclient.conf
-ddns/ddns.env
+secrets.tar
+secrets.tar.age.decrypted
+
+# Stale/deprecated
+ddclient/
 
 # Logs
 *.log

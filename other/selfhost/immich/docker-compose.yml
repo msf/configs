@@ -4,11 +4,15 @@ services:
   immich-server:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:release
+    extends:
+      file: hwaccel.transcoding.yml
+      service: vaapi
     volumes:
       - ${UPLOAD_LOCATION}:/data
+      - /media/simple:/mnt/simple:ro
       - /etc/localtime:/etc/localtime:ro
     env_file:
-      - .env
+      - env
     ports:
       - '127.0.0.1:2283:2283'
     depends_on:
@@ -24,7 +28,7 @@ services:
     volumes:
       - model-cache:/cache
     env_file:
-      - .env
+      - env
     restart: unless-stopped
     healthcheck:
       disable: false

@@ -1,93 +1,83 @@
 # Self-Hosted Infrastructure Plan
 
 **Domain**: mfilipe.eu (Gandi)  
-**Server**: hopper (192.168.1.15)  
-**Goal**: Photos (Immich), Media (Jellyfin), Metrics (Grafana) - self-hosted, secure, accessible
+**Server**: hopper (192.168.1.15, Ryzen 5 8500G, ZFS RAID10)  
+**Goal**: Self-hosted services with HTTPS, security, easy deployment
 
 ---
 
-## Requirements
+## What's Working
 
-- HTTPS with valid certs (Let's Encrypt)
-- Easy to remember domains (tv.mfilipe.eu, img.mfilipe.eu, etc)
-- Minimal direct internet exposure
-- Strong security (logging, IP banning, rate limiting)
-- All configs in git, secrets encrypted
-- Logs and monitoring integrated with existing VictoriaMetrics
-
----
-
-## Current Status
-
-✅ **Working**: tv.mfilipe.eu → HTTPS → Jellyfin  
-⏳ **Next**: Logging, Fail2ban, Immich deployment
+✅ **Jellyfin** - tv.mfilipe.eu  
+✅ **Immich** - img.mfilipe.eu (photos, hardware transcoding)  
+✅ **DDNS** - Custom Go service (updates DNS every 10min)  
+✅ **Fail2ban** - IP banning for 401/403/404 abuse  
+✅ **Caddy** - Reverse proxy with wildcard *.mfilipe.eu cert  
 
 ---
 
 ## Architecture
 
 ```
-Internet → tv.mfilipe.eu (DNS A/AAAA → Home IP)
-        → Router :443 → Server :443
-        → Caddy (Let's Encrypt wildcard cert)
-        → Jellyfin :8096
+Internet (Port 443 only)
+  ↓
+Router → hopper:443
+  ↓
+Caddy (Docker) - Let's Encrypt DNS-01
+  ├→ tv.mfilipe.eu  → Jellyfin :8096 (systemd)
+  ├→ img.mfilipe.eu → Immich :2283 (Docker stack)
+  └→ *.mfilipe.eu   → Future services
 ```
 
-**No Tailscale Funnel** - Direct exposure with port 443 only  
-**Why**: Tailscale Funnel terminates TLS, breaks custom domain certs
+**Security Layers**:
+1. Fail2ban - Bans IPs (401/403: 10 tries, 404: 20 tries → 1 day ban)
+2. Caddy - Security headers, rate limiting headers
+3. ZFS - Compression, snapshots, RAID10
 
 ---
 
 ## Services
 
-| Service | Domain | Port | Status |
+| Service | Domain | Tech | Status |
 |---------|--------|------|--------|
-| Jellyfin | tv.mfilipe.eu | 8096 | ✅ Running |
-| Immich | img.mfilipe.eu | 2283 | Planned |
-| Grafana | metrics.mfilipe.eu | 3000 | Planned |
+| Jellyfin | tv.mfilipe.eu | systemd | ✅ Running |
+| Immich | img.mfilipe.eu | Docker | ✅ Running |
+| DDNS | - | systemd timer | ✅ Running |
+| Fail2ban | - | systemd | ✅ Running |
+| Caddy | *.mfilipe.eu | Docker | ✅ Running |
+| Grafana | metrics.mfilipe.eu | systemd | 🔒 Internal only |
 
 ---
 
-## Security Priorities
-
-1. **Logging** - Persistent logs to /srv/logs/
-2. **Fail2ban** - Auto-ban brute force attempts
-3. **Strong passwords** - Jellyfin password change
-4. **Git repo** - Version control with encrypted secrets
-5. **Monitoring** - Export Caddy metrics to VictoriaMetrics
-
----
-
-## File Structure
+## Storage (ZFS)
 
 ```
-/srv/
-├── selfhost/caddy/      # Caddy deployment
-├── logs/caddy/          # Caddy logs
-├── logs/jellyfin/       # Symlink to /var/log/jellyfin
-└── configs/             # Config symlinks
-
-~/configs/other/selfhost/  (Laptop)
-├── caddy/
-├── scripts/
-├── secrets/             # NOT in git
-└── PLAN.md, SETUP.md
+simple/immich          → /media/simple/immich (compression=off)
+simple/immich/postgres → /media/simple/immich/postgres (compression=zstd-fast)
+simple/videos          → /media/simple/videos (compression=off)
+simple/backups         → /media/simple/backups (compression=zstd)
 ```
 
 ---
 
-## FIXMEs
+## Secret Management
 
-- **Secrets**: Currently plaintext in `env` file → Use Age encryption
-- **Logging**: Not persistent yet → Move to /srv/logs/
-- **No IP banning**: Fail2ban needed
-- **Basic password**: Jellyfin vulnerable
+**Encrypted with Age** (`~/.age-key.txt`):
+- `secrets.tar.age` - Contains all `env` files
+- Decrypt: `./deploy.sh`
+- Encrypt: `./encrypt-secrets.sh`
+
+**Files encrypted**:
+- `caddy/env` - Gandi API token
+- `ddns/env` - Gandi API token  
+- `immich/env` - DB password
 
 ---
 
-## TODOs
+## TODO
 
-- Add Caddy metrics → VictoriaMetrics
-- Deploy Immich for photos
-- Consider Crowdsec vs Fail2ban
-- GeoIP filtering (optional)
+- [ ] Caddy metrics → VictoriaMetrics
+- [ ] Immich hardware transcoding (VAAPI working on host, failing in container - using CPU fallback)
+- [ ] Expose Grafana (VPN-only or OAuth)
+- [ ] Backup automation docs
+- [ ] Move repo to github.com/msf/selfhost (separate from configs)
