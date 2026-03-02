@@ -37,7 +37,8 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
 
 [delta]
     navigate = true
-    side-by-side = true
+    line-numbers = true
+    side-by-side = false
 
 [color]
     diff = auto
