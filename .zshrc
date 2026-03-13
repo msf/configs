@@ -137,6 +137,48 @@ function dpsql {
 	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) psql -U ${2} -h ${1}-${2}-db ${2}
 }
 
+# dbsh <env> <service> [dbname]
+# Connects read-only: prefers -db-rr host, falls back to primary;
+# prefers readonly credentials from Secrets Manager, falls back to service user.
+function dbsh {
+  local env="${1}" svc="${2}" db="${3:-${2}}"
+
+  if [[ -z "$env" || -z "$svc" ]]; then
+    echo "usage: dbsh <env> <service> [dbname]" >&2
+    return 1
+  fi
+
+  # Prefer read replica in Tailscale, fall back to primary
+  local rr_host="${env}-${svc}-db-rr"
+  local host
+  if tailscale status 2>/dev/null | grep "  ${rr_host}  " | grep -qv "offline"; then
+    host="$rr_host"
+  else
+    host="${env}-${svc}-db"
+  fi
+
+  # Prefer readonly secret, fall back to service-user secret
+  local secret_ro="${env}_${svc}_db_readonly_user_secret"
+  local secret user
+  if aws secretsmanager describe-secret --secret-id "$secret_ro" &>/dev/null; then
+    secret="$secret_ro"
+    user="readonly"
+  else
+    secret="${env}_${svc}_db_${svc}_user_password"
+    user="$svc"
+  fi
+
+  local password
+  password=$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text 2>/dev/null)
+  if [[ -z "$password" ]]; then
+    echo "error: could not retrieve secret '$secret'" >&2
+    return 1
+  fi
+
+  echo "→ host=${host}  user=${user}  secret=${secret}" >&2
+  PGPASSWORD="$password" psql -U "$user" -h "$host" "$db"
+}
+
 # fzf, manual install
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
