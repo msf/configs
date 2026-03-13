@@ -1,0 +1,12 @@
+[Unit]
+Description=llama.cpp FIM server (Qwen2.5-Coder-3B)
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=%h/bin/llama-server --fim-qwen-3b-default --port 8012 --no-webui
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
