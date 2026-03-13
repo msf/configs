@@ -1,16 +1,45 @@
 #!/bin/bash
+# Framework 13 Strix (Ryzen AI 9 HX 370) — performance profile
+#
+# Uses active amd_pstate with performance bias. CPU firmware still
+# manages transitions but biased toward max throughput.
 
-# Set performance governor  
-sudo cpupower frequency-set -g performance > /dev/null
-# Remove frequency limits
-sudo cpupower frequency-set -u 9.1GHz > /dev/null
-sudo cpupower frequency-set -d 2.0GHz > /dev/null
+set -uo pipefail
 
-# Set AMD P-State to active mode (better performance)
+# Active mode
 echo active | sudo tee /sys/devices/system/cpu/amd_pstate/status > /dev/null 2>&1 || true
 
-echo 0 | sudo tee /proc/sys/vm/laptop_mode > /dev/null
-#
-# USB autosuspend
+# 'performance' in active mode: pseudo-governor biasing CPU firmware toward throughput
+sudo cpupower frequency-set -g performance > /dev/null 2>&1
+
+# EPP = performance: max throughput hint
+for f in /sys/devices/system/cpu/cpufreq/policy*/energy_performance_preference; do
+    echo performance | sudo tee "$f" > /dev/null 2>&1 || true
+done
+
+# ACPI platform profile: max TDP envelope
+echo performance | sudo tee /sys/firmware/acpi/platform_profile > /dev/null
+
+# Enable boost
+echo 1 | sudo tee /sys/devices/system/cpu/cpufreq/boost > /dev/null
+
+# Remove frequency cap — allow full boost range
+for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq; do
+    echo 5157895 | sudo tee "$f" > /dev/null 2>&1 || true
+done
+
+# GPU: auto (dynamic, boosts when needed)
+echo auto | sudo tee /sys/class/drm/card1/device/power_dpm_force_performance_level > /dev/null
+
+# NMI watchdog off — not needed even in high perf
+echo 0 | sudo tee /proc/sys/kernel/nmi_watchdog > /dev/null
+
+# USB autosuspend off — consistent peripheral latency
 echo 0 | sudo tee /sys/module/usbcore/parameters/autosuspend > /dev/null
 
+# Default writeback, no laptop mode
+echo 0 | sudo tee /proc/sys/vm/laptop_mode > /dev/null
+echo 500 | sudo tee /proc/sys/vm/dirty_writeback_centisecs > /dev/null
+
+# controlled by kanshi
+# swaymsg output eDP-1 mode 2880x1920@120Hz > /dev/null 2>&1 || true
