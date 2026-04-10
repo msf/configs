@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# disk-health — ZFS pool + SMART health report
+# Usage: disk-health [--test]   (--test kicks off a short self-test on every drive)
+
+set -uo pipefail
+
+BOLD='\033[1m'; RED='\033[0;31m'; YEL='\033[0;33m'; GRN='\033[0;32m'; DIM='\033[2m'; NC='\033[0m'
+
+RUN_TEST=0
+[[ "${1:-}" == "--test" ]] && RUN_TEST=1
+
+SUDO=""
+[[ $EUID -ne 0 ]] && SUDO="sudo"
+
+ok()   { printf "${GRN}✓${NC} %s\n" "$*"; }
+warn() { printf "${YEL}!${NC} %s\n" "$*"; }
+fail() { printf "${RED}✗${NC} %s\n" "$*"; }
+hdr()  { printf "\n${BOLD}=== %s ===${NC}\n" "$*"; }
+trim() { local s=$1; s="${s#"${s%%[![:space:]]*}"}"; echo "${s%"${s##*[![:space:]]}"}"; }
+
+# ── ZFS Pools ────────────────────────────────────────────────────────────────
+hdr "ZFS Pools"
+while IFS= read -r pool; do
+    state=$(zpool list -H -o health "$pool")
+    case "$state" in
+        ONLINE)   ok   "$pool: $state" ;;
+        DEGRADED) warn "$pool: $state" ;;
+        *)        fail "$pool: $state" ;;
+    esac
+
+    pool_status=$(zpool status "$pool")
+
+    echo "$pool_status" | grep -E '\b(FAULTED|REMOVED|UNAVAIL)\b' | while IFS= read -r line; do
+        fail "  $(trim "$line")"
+    done
+
+    echo "$pool_status" | grep -E '^\s+scan:' | while IFS= read -r line; do
+        printf "  ${DIM}%s${NC}\n" "$(trim "$line")"
+    done
+done < <(zpool list -H -o name)
+
+# ── SMART Attributes ─────────────────────────────────────────────────────────
+hdr "SMART Attributes"
+
+# Extract raw value for a given attribute ID (field 10 avoids trailing annotations)
+smart_attr() { echo "$1" | awk -v id="$2" '$1==id {print $10; exit}'; }
+
+get_smart() {
+    local path=$1
+    local out
+    out=$($SUDO smartctl -a "$path" 2>/dev/null)
+    if ! echo "$out" | grep -q "SMART overall-health\|SMART support"; then
+        out=$($SUDO smartctl -a -d sat "$path" 2>/dev/null)
+    fi
+    echo "$out" | grep -q "SMART overall-health\|SMART support" && echo "$out"
+}
+
+while IFS= read -r dev; do
+    path="/dev/$dev"
+    out=$(get_smart "$path") || { warn "$dev: smartctl failed (run as root?)"; continue; }
+
+    model=$(echo "$out"  | awk -F': *' '/Device Model|Model Number/{gsub(/^ +| +$/,"",$2); print $2; exit}')
+    serial=$(echo "$out" | awk -F': *' '/Serial Number/{gsub(/^ +| +$/,"",$2); print $2; exit}')
+    poh=$(smart_attr "$out" 9)
+    health=$(echo "$out" | awk '/SMART overall-health/{print $NF}')
+
+    printf "\n${BOLD}%s${NC}  %s  s/n:%s  %sh\n" "$dev" "${model:-unknown}" "${serial:-?}" "${poh:-?}"
+    [[ "$health" == "PASSED" ]] && ok "SMART: $health" || fail "SMART: $health"
+
+    _attr() {
+        local id=$1 label=$2 level=$3
+        local raw; raw=$(smart_attr "$out" "$id")
+        [[ -z "$raw" || "$raw" == "0" ]] && return
+        case $level in
+            fail) fail "$label: $raw" ;;
+            warn) warn "$label: $raw" ;;
+        esac
+    }
+    _attr 5   "Reallocated_Sector_Ct"  fail
+    _attr 187 "Reported_Uncorrect"     fail
+    _attr 197 "Current_Pending_Sector" fail
+    _attr 198 "Offline_Uncorrectable"  fail
+    _attr 183 "Runtime_Bad_Block"      warn
+    _attr 188 "Command_Timeout"        warn
+    _attr 199 "UDMA_CRC_Error_Count"   warn
+
+    ata_err=$(echo "$out" | awk '/^ATA Error Count/{print $NF}')
+    [[ -n "$ata_err" && "$ata_err" != "0" ]] && warn "ATA error log: $ata_err entries"
+
+    last=$(echo "$out" | awk '/^# 1 /{print $3, $4, $5; exit}')
+    [[ -n "$last" ]] && printf "  ${DIM}last self-test: %s${NC}\n" "$last"
+
+    if [[ $RUN_TEST -eq 1 ]]; then
+        $SUDO smartctl -t short "$path" >/dev/null && ok "short self-test started"
+    fi
+
+done < <(lsblk -d -o NAME,TYPE | awk '$2=="disk" && $1!~/^zram/{print $1}')
+
+# ── Kernel Disk Errors ───────────────────────────────────────────────────────
+hdr "Kernel Disk Errors (last 24h)"
+journalctl -k --since "24h ago" 2>/dev/null \
+    | grep -iE '\b(error|fail|reset|timeout|ata[0-9]|I/O error)\b' \
+    | grep -ivE '(bluetooth|firmware_class|acpi)' \
+    | tail -30 \
+    || warn "no journal access — add user to adm group or run as root"
+
+printf "\n${DIM}%s${NC}\n" "$(date)"
