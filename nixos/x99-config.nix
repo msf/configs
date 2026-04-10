@@ -213,14 +213,55 @@
     theme = "agnoster";
   };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.miguel = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "docker" "podman"]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "docker" "podman"]; # Enable 'sudo' for the user.
     uid = 1000;
     shell = "/run/current-system/sw/bin/zsh";
     openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIeH/MddmSVsqKwTR8ys07HMW/DDDAYdsm9/lYM6hd1X miguel.filipe@2020" "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCZsY3qNOZP4uL+baYJ+B2lc6SEYWnJeKKPhwZ7azhO/RleAb3SsZ7452ktvCY1YE2fAsHwgHYrZEAXj8sD1DoDUMUWael2MAAzTdnPJWriINO5QeZ1WrSLaFHb5eQ4fUMpidCmFOnEWOl9MUopeTrOgLElKoAaq9mWQvBo3VtRXH4bk4/dkCWhYuI8rpXk9w+oNhTgFr9NumSnRIFDwKazNwZFjNxt0actwKanebg7lDQabTCGc3CuU59YGiYjQmgBpvb7mkQJi5grGdCg0uFeee2NlsSBUmmxBG+OLgrtjFXpbcm2H3IgBxQRRUnN2dho2sZW2c7tV4queKmSVsEtyEQcSpc5NQZrIFE6tVEeXHhfxFtGe2qmEgX6Zmh+/TgrGTJWocsQvvuRaCrJ5jTQkYHl/9rgIoSBc5NtUL/duVlA4DzvUOUsjDyU00WaTAHB0pm767ZICyN+7Zkb3o934+hreYzMszvL60sit1V4y8ORLplUJvGhkNHrljOrtp2VVtluWEPxJLENbiiUMDB6PqQI8c4vEx4BVvFeWaPJcAZLc2y9ZX5w8R6fl2f5VWXiGbjJl4xfTquSWa3YbC//x12KFyOvMzQCctCX6fgvgEg9oGig9Xg3fEoN/R26JBjbKbCeZI5UWSIOZrrTEo50icUsUR6AweIVQ1q2IV5NQ== miguel.filipe@gmail.com" ];
   };
+
+  # OpenClaw bolotas user — system service account for agent operations
+  users.users.bolotas = {
+    isNormalUser = true;
+    extraGroups = [ "docker" "podman" ];
+    uid = 1001;
+    shell = pkgs.bash;
+    openssh.authorizedKeys.keys = [
+      # bolotas@hopper — main OpenClaw instance key
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJdGdApimRlIAcCetxpY2eZc9Ji7NIkmOn+HKOs8boPY bolotas@hopper"
+    ];
+  };
+
+  # Sudo rules for bolotas — disk management and ZFS operations only
+  # Read-only: lsblk, parted (print), smartctl, zpool/zfs status
+  # Write: zpool create/destroy/add/remove, smartctl tests, blkdiscard
+  security.sudo.extraRules = [
+    {
+      users = [ "bolotas" ];
+      commands = [
+        # Disk discovery (read-only)
+        { command = "/run/current-system/sw/bin/lsblk"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/fdisk"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/parted"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/lshw"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/smartctl"; options = [ "NOPASSWD" ]; }
+
+        # ZFS operations (pool create, add, destroy, import, export)
+        { command = "/run/current-system/sw/bin/zpool"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/zfs"; options = [ "NOPASSWD" ]; }
+
+        # Disk prep for ZFS (wipesig, discard)
+        { command = "/run/current-system/sw/bin/wipefs"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/blkdiscard"; options = [ "NOPASSWD" ]; }
+
+        # Mount/umount for verification
+        { command = "/run/current-system/sw/bin/mount"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/umount"; options = [ "NOPASSWD" ]; }
+      ];
+    }
+  ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
