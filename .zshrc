@@ -82,6 +82,8 @@ alias lsof="lsof -n -M"  # don't resolve names nor ports
 #alias docker="podman"
 #alias sudo="doas"
 alias opencode='AWS_PROFILE=default AWS_REGION=eu-west-1 $HOME/.opencode/bin/opencode'
+# personal account
+alias opencode='$HOME/.opencode/bin/opencode'
 
 
 # for sway
@@ -252,10 +254,12 @@ export WASMER_DIR="/home/miguel/.wasmer"
 [ -s "$WASMER_DIR/wasmer.sh" ] && source "$WASMER_DIR/wasmer.sh"
 export WASMTIME_HOME="$HOME/.wasmtime"
 export PATH="$WASMTIME_HOME/bin:$PATH"
-. "/home/miguel/.wasmedge/env"
+# . "/home/miguel/.wasmedge/env"
 
 # opencode
 export PATH=/home/miguel/.opencode/bin:$PATH
+
+alias openclaw='incus exec openclaw -- machinectl shell openclaw@'
 
 # bun completions
 [ -s "/home/miguel/.bun/_bun" ] && source "/home/miguel/.bun/_bun"
