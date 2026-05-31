@@ -7,15 +7,14 @@
 {
   imports =
     [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+      ./x99-hw-config.nix
     ];
+  nixpkgs.config.allowUnfree = true;
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  boot.kernel.sysctl."vm.swapiness" = 10;
 
   # Set your time zone.
   time.timeZone = "UTC";
@@ -61,7 +60,6 @@
        awscli
        btrfs-progs
        docker
-       dstat
        file
        firefox
        fwupd
@@ -98,6 +96,7 @@
        vim
        weechat
        wget
+       xfsprogs
        zfstools
        zsh
        zstd
@@ -136,7 +135,6 @@
       source-code-pro
       terminus_font
       ttf_bitstream_vera
-      ubuntu_font_family
     ];
   };
 
@@ -216,7 +214,7 @@
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.miguel = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "docker" "podman"]; # Enable 'sudo' for the user.
+    extraGroups = [ "wheel" "docker" "podman" "storage"]; # Enable 'sudo' for the user.
     uid = 1000;
     shell = "/run/current-system/sw/bin/zsh";
     openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIeH/MddmSVsqKwTR8ys07HMW/DDDAYdsm9/lYM6hd1X miguel.filipe@2020" "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDCZsY3qNOZP4uL+baYJ+B2lc6SEYWnJeKKPhwZ7azhO/RleAb3SsZ7452ktvCY1YE2fAsHwgHYrZEAXj8sD1DoDUMUWael2MAAzTdnPJWriINO5QeZ1WrSLaFHb5eQ4fUMpidCmFOnEWOl9MUopeTrOgLElKoAaq9mWQvBo3VtRXH4bk4/dkCWhYuI8rpXk9w+oNhTgFr9NumSnRIFDwKazNwZFjNxt0actwKanebg7lDQabTCGc3CuU59YGiYjQmgBpvb7mkQJi5grGdCg0uFeee2NlsSBUmmxBG+OLgrtjFXpbcm2H3IgBxQRRUnN2dho2sZW2c7tV4queKmSVsEtyEQcSpc5NQZrIFE6tVEeXHhfxFtGe2qmEgX6Zmh+/TgrGTJWocsQvvuRaCrJ5jTQkYHl/9rgIoSBc5NtUL/duVlA4DzvUOUsjDyU00WaTAHB0pm767ZICyN+7Zkb3o934+hreYzMszvL60sit1V4y8ORLplUJvGhkNHrljOrtp2VVtluWEPxJLENbiiUMDB6PqQI8c4vEx4BVvFeWaPJcAZLc2y9ZX5w8R6fl2f5VWXiGbjJl4xfTquSWa3YbC//x12KFyOvMzQCctCX6fgvgEg9oGig9Xg3fEoN/R26JBjbKbCeZI5UWSIOZrrTEo50icUsUR6AweIVQ1q2IV5NQ== miguel.filipe@gmail.com" ];
@@ -225,7 +223,7 @@
   # OpenClaw bolotas user — system service account for agent operations
   users.users.bolotas = {
     isNormalUser = true;
-    extraGroups = [ "docker" "podman" ];
+    extraGroups = [ "docker" "podman" "storage"];
     uid = 1001;
     shell = pkgs.bash;
     openssh.authorizedKeys.keys = [
@@ -259,9 +257,37 @@
         # Mount/umount for verification
         { command = "/run/current-system/sw/bin/mount"; options = [ "NOPASSWD" ]; }
         { command = "/run/current-system/sw/bin/umount"; options = [ "NOPASSWD" ]; }
+
+        { command = "/run/current-system/sw/bin/btrfs"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/btrfsck"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/btrfstune"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/mkfs.btrfs"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/xfs_repair"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/e2fsck"; options = [ "NOPASSWD" ]; }
+        { command = "/run/current-system/sw/bin/fsck"; options = [ "NOPASSWD" ]; }
       ];
     }
   ];
+
+  users.groups.storage = {};
+  
+  system.activationScripts.salvage-dir = ''
+  mkdir -p /media/salvage
+  chmod 2775 /media/salvage
+  chown root:storage /media/salvage
+'';
+
+  fileSystems."/media/salvage" = {
+    device = "LABEL=salvage";
+    fsType = "btrfs";
+    options = [ 
+      "compress=zstd:1"
+      "noatime"       
+      "nofail"                          # Boot continues if mount fails
+      "degraded"                        # mount even with missing drives
+    ];
+  };
+
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -293,7 +319,7 @@
   # and migrated your data accordingly.
   #
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
-  system.stateVersion = "24.11"; # Did you read the comment?
+  system.stateVersion = "25.11"; # Did you read the comment?
 
   system.autoUpgrade.enable = true;  # incremental updates are good
   system.autoUpgrade.allowReboot = false;  # not that crazy
@@ -302,9 +328,9 @@
   nix.gc = {
     automatic = true;
     dates = "weekly UTC";
+    options = "--delete-older-than 14d";
   };
 
-  nixpkgs.config.allowUnfree = true;
 
   # servers/services inside containers
   environment.etc = {

@@ -12,6 +12,7 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
+  boot.initrd.systemd.enable = true;
 
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/4c45c2d0-8481-4ba4-beb7-840ed287adc0";
@@ -36,10 +37,14 @@
 
   boot.supportedFilesystems = [ "zfs" "btrfs" ];
   boot.zfs.package = pkgs.zfs_unstable;
-  boot.kernelPackages = pkgs.zfs.latestCompatibleLinuxPackages;
   boot.kernelParams = [
     # "mitigations=off"  # old b0x, need moar sp33d
+    "zswap.enabled=1" # enables zswap
+    "zswap.compressor=lz4" # compression algorithm
+    "zswap.max_pool_percent=20" # maximum percentage of RAM that zswap is allowed to use
+    "zswap.shrinker_enabled=1" # whether to shrink the pool proactively on high memory pressure
   ];
+  boot.kernel.sysctl."vm.swapiness" = 10;
 
   networking.hostName = "x99"; # Define your hostname.
   networking.hostId = "a7ec8faa"; # zfs needs this
