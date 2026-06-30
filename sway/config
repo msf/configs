@@ -1,0 +1,340 @@
+###############################################################################
+# Standalone sway config — migrated from Regolith 3 (Jun 2026)
+# Keybinding comments use the remontoire schema so sway-shortcuts can parse:
+#   ## <Category> // <Action> // <Keybinding> ##
+###############################################################################
+
+set $mod Mod4
+set $alt Mod1
+
+# Programs
+# --gtk-single-instance=false: otherwise the existing ghostty (possibly in
+# another session) opens the window there instead
+set $terminal systemd-run --user --scope ghostty --gtk-single-instance=false
+set $browser systemd-run --user --scope x-www-browser
+set $launcher fuzzel
+set $locker swaylock
+set $wallpaper /usr/share/backgrounds/Province_of_the_south_of_france_by_orbitelambda.jpg
+
+###############################################################################
+# Input
+###############################################################################
+
+input type:keyboard {
+    xkb_layout us
+    # caps = ctrl; right-alt = compose (compose then ,c = ç ; 'a = á ; ~a = ã)
+    xkb_options caps:ctrl_modifier,compose:ralt
+}
+
+input type:touchpad {
+    tap enabled
+    natural_scroll enabled
+}
+
+# Cursor visible immediately and consistently sized on HiDPI
+seat seat0 xcursor_theme Adwaita 24
+
+###############################################################################
+# Outputs
+###############################################################################
+# Static fallback so reload/startup lands in a sane state; kanshi remains the
+# runtime owner (re-applied via SIGHUP in the reload binding) and keeps
+# topology-dependent decisions like eDP-1 refresh. Rules for absent outputs
+# are inert, so laptop-only travel mode is unaffected.
+output eDP-1 scale 1.5 position 757,1440
+output "LG Electronics LG HDR WQHD 0x0004DE8E" mode 3440x1440@75.05Hz scale 1 position 0,0
+
+###############################################################################
+# Session services
+###############################################################################
+
+exec swaybg -i $wallpaper -m fill
+exec mako
+exec kanshi -c ~/.config/regolith3/kanshi/config
+exec /usr/libexec/polkit-mate-authentication-agent-1
+
+
+# Idle/lock — we own this; no regolith-powerd.
+# Wrapper logs to ~/.local/state/swayidle.log (incident classification).
+# lock BEFORE screen-off so a locker always exists when displays wake.
+exec ~/.local/bin/swayidle-run
+
+# Portals/screenshare need the session env in systemd+dbus
+exec dbus-update-activation-environment --systemd \
+    WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+exec systemctl start --user xdg-desktop-portal.service
+
+###############################################################################
+# Appearance
+###############################################################################
+
+default_border pixel 2
+gaps inner 6
+smart_gaps on
+font pango:Hack Nerd Font Mono 11
+
+# ayu-mirage-ish
+# class                 border  bg      text    indicator child_border
+client.focused          #5ccfe6 #1f2d3d #cbccc6 #bae67e   #5ccfe6
+client.focused_inactive #33415e #1b2b34 #707a8c #33415e   #33415e
+client.unfocused        #33415e #1b2b34 #707a8c #33415e   #1b2b34
+client.urgent           #f28779 #3d1f1f #cbccc6 #f28779   #f28779
+
+# Same bar as Regolith: swaybar + i3status-rs, ayu-mirage colors
+bar {
+    position top
+    status_command i3status-rs ~/.config/regolith3/i3status-rust/config.toml
+    font pango:Hack Nerd Font Mono 11
+    separator_symbol " "
+    colors {
+        background #1F2430
+        statusline #707A8C
+        separator  #80BFFF
+        focused_workspace  #2c4162 #2c4162 #707A8C
+        active_workspace   #2c4162 #2c4162 #707A8C
+        inactive_workspace #1F2430 #1F2430 #707A8C
+        urgent_workspace   #FF6666 #FF6666 #1F2430
+    }
+}
+
+###############################################################################
+# Launchers
+###############################################################################
+
+## Launch // Terminal // <> Enter ##
+bindsym $mod+Return exec $terminal
+
+## Launch // Browser // <><Shift> Enter ##
+bindsym $mod+Shift+Return exec $browser
+
+## Launch // Application // <> Space ##
+bindsym $mod+space exec $launcher
+
+## Launch // File Browser // <><Shift> n ##
+bindsym $mod+Shift+n exec nautilus --new-window
+
+## Launch // Keybinding Viewer // <><Shift> ? ##
+bindsym $mod+Shift+question exec ~/.local/bin/sway-shortcuts
+
+## Launch // Display Settings // <> d ##
+bindsym $mod+d exec wdisplays
+
+## Launch // Sound Settings // <> s ##
+# gnome-control-center sound panel works without GNOME shell and has
+# default-device selection + speaker test. pavucontrol stays as fallback.
+bindsym $mod+s exec env XDG_CURRENT_DESKTOP=GNOME gnome-control-center sound
+
+## Launch // Dictation Toggle // <> p ##
+bindsym $mod+p exec ~/play/dictate/scripts/toggle-dictate.sh toggle
+
+###############################################################################
+# Screenshots
+###############################################################################
+
+## Session // Screenshot Region // <Ctrl><Shift> 3 ##
+bindsym Ctrl+Shift+3 exec grimshot --notify savecopy anything
+
+## Session // Screenshot Region // PrtScr ##
+bindsym Print exec grimshot --notify savecopy anything
+
+## Session // Screenshot Window // <> PrtScr ##
+bindsym $mod+Print exec grimshot --notify savecopy active
+
+## Session // Screenshot All // <><Shift> PrtScr ##
+bindsym $mod+Shift+Print exec grimshot --notify save screen
+
+###############################################################################
+# Session
+###############################################################################
+
+## Session // Lock Screen // <> Escape ##
+bindsym $mod+Escape exec $locker
+
+## Session // Force Displays On (wake rescue) // <><Shift> o ##
+# Bindings work even when idle-notify drops input (inhibitor bugs) — this
+# is the keyboard rescue path that previously required SSH+display-recover.
+bindsym --locked $mod+Shift+o exec swaymsg "output * power on"
+
+## Session // Sleep // <><Shift> s ##
+bindsym --locked $mod+Shift+s exec systemctl suspend
+
+## Session // Exit App // <><Shift> q ##
+bindsym $mod+Shift+q kill
+
+## Session // Reload Sway Config // <><Shift> c ##
+# reload resets outputs to config defaults (no output rules here) — HUP
+# makes kanshi re-apply the matching profile right after.
+bindsym $mod+Shift+c reload; exec pkill -HUP -x kanshi
+
+## Session // Logout // <><Shift> e ##
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -B 'Yes' 'swaymsg exit'
+
+###############################################################################
+# Notifications (mako)
+###############################################################################
+
+## Notify // View Notifications // <> n ##
+bindsym $mod+n exec ~/.local/bin/mako-notify-viewer
+
+## Notify // Dismiss All // <><Shift> Delete ##
+bindsym $mod+Shift+Delete exec makoctl dismiss --all
+
+###############################################################################
+# Navigation
+###############################################################################
+
+## Navigate // Relative Window // <> k j h l ##
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+## Navigate // Relative Parent / Child // <> a / z ##
+bindsym $mod+a focus parent
+bindsym $mod+z focus child
+
+## Navigate // Workspaces 1-10 // <> 0..9 ##
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+bindsym $mod+0 workspace number 10
+
+## Navigate // Next/Prev Workspace // <> Tab / <><Shift> Tab ##
+bindsym $mod+Tab workspace next
+bindsym $mod+Shift+Tab workspace prev
+
+## Navigate // Next/Prev Workspace on Output // <><Ctrl> Tab / l h ##
+bindsym $mod+Ctrl+Tab workspace next_on_output
+bindsym $mod+Ctrl+l workspace next_on_output
+bindsym $mod+Ctrl+h workspace prev_on_output
+
+## Navigate // Scratchpad // <><Ctrl> a ##
+bindsym $mod+Ctrl+a scratchpad show
+
+###############################################################################
+# Window manipulation
+###############################################################################
+
+# Mouse: hold $mod and drag — left button moves, right button resizes
+# (nearest corner). Works on floating and tiling windows.
+floating_modifier $mod normal
+
+## Modify // Window Position // <><Shift> k j h l ##
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+## Modify // Move Window to Workspace // <><Shift> 0..9 ##
+bindsym $mod+Shift+1 move container to workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9
+bindsym $mod+Shift+0 move container to workspace number 10
+
+## Modify // Carry Window to Workspace // <><Alt> 0..9 ##
+bindsym $mod+$alt+1 move container to workspace number 1; workspace number 1
+bindsym $mod+$alt+2 move container to workspace number 2; workspace number 2
+bindsym $mod+$alt+3 move container to workspace number 3; workspace number 3
+bindsym $mod+$alt+4 move container to workspace number 4; workspace number 4
+bindsym $mod+$alt+5 move container to workspace number 5; workspace number 5
+bindsym $mod+$alt+6 move container to workspace number 6; workspace number 6
+bindsym $mod+$alt+7 move container to workspace number 7; workspace number 7
+bindsym $mod+$alt+8 move container to workspace number 8; workspace number 8
+bindsym $mod+$alt+9 move container to workspace number 9; workspace number 9
+bindsym $mod+$alt+0 move container to workspace number 10; workspace number 10
+
+## Modify // Containing Workspace to Output // <><Ctrl><Shift> k j h l ##
+bindsym $mod+Ctrl+Shift+h move workspace to output left
+bindsym $mod+Ctrl+Shift+j move workspace to output down
+bindsym $mod+Ctrl+Shift+k move workspace to output up
+bindsym $mod+Ctrl+Shift+l move workspace to output right
+bindsym $mod+Ctrl+Shift+Left move workspace to output left
+bindsym $mod+Ctrl+Shift+Down move workspace to output down
+bindsym $mod+Ctrl+Shift+Up move workspace to output up
+bindsym $mod+Ctrl+Shift+Right move workspace to output right
+
+###############################################################################
+# Layout
+###############################################################################
+
+## Modify // Window Layout Mode // <> t ##
+bindsym $mod+t layout toggle tabbed stacking splith splitv
+
+## Modify // Tile/Float Focus Toggle // <><Shift> t ##
+bindsym $mod+Shift+t focus mode_toggle
+
+## Modify // Window Fullscreen Toggle // <> f ##
+bindsym $mod+f fullscreen toggle
+
+## Modify // Window Floating Toggle // <><Shift> f ##
+bindsym $mod+Shift+f floating toggle
+
+## Modify // Vertical / Horizontal Split // <> v / g ##
+bindsym $mod+v split vertical
+bindsym $mod+g split horizontal
+
+## Modify // Toggle Split Orientation // <> Backspace ##
+bindsym $mod+BackSpace split toggle
+
+## Modify // Move to Scratchpad // <><Ctrl> m ##
+bindsym $mod+Ctrl+m move to scratchpad
+
+## Resize // Enter Resize Mode // <> r ##
+mode "resize" {
+    bindsym h resize shrink width 6 px or 6 ppt
+    bindsym k resize grow height 6 px or 6 ppt
+    bindsym j resize shrink height 6 px or 6 ppt
+    bindsym l resize grow width 6 px or 6 ppt
+    bindsym Left resize shrink width 6 px or 6 ppt
+    bindsym Up resize grow height 6 px or 6 ppt
+    bindsym Down resize shrink height 6 px or 6 ppt
+    bindsym Right resize grow width 6 px or 6 ppt
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+bindsym $mod+r mode "resize"
+
+###############################################################################
+# Media keys
+###############################################################################
+
+# NOTE: no OSD feedback for these keys yet — swayosd planned after 26.04
+bindsym --locked XF86AudioRaiseVolume exec wpctl set-volume -l 1.2 @DEFAULT_AUDIO_SINK@ 5%+
+bindsym --locked XF86AudioLowerVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+bindsym --locked XF86AudioMute exec wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+bindsym --locked XF86AudioMicMute exec wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+bindsym --locked XF86AudioPlay exec playerctl play-pause
+bindsym --locked XF86AudioNext exec playerctl next
+bindsym --locked XF86AudioPrev exec playerctl previous
+bindsym --locked XF86MonBrightnessUp exec light -A 5
+bindsym --locked XF86MonBrightnessDown exec light -U 5
+
+###############################################################################
+# Window rules
+###############################################################################
+
+# Slack / video / isolated stuff floats — adjust to taste
+for_window [app_id="org.gnome.Calculator"] floating enable
+for_window [title="Picture-in-Picture"] floating enable, sticky enable
+
+include ~/.config/sway/config.d/*

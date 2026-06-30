@@ -42,7 +42,7 @@ def removePath(destfile):
 
 def copyConfigDirs():
     """ into .config directory stuff """
-    configdirs = ["awesome"]
+    configdirs = ["awesome", "sway"]
 
     destdir = HOME + ".config/"
     if not os.path.exists(destdir):
