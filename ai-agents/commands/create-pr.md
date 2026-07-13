@@ -5,7 +5,7 @@ subtask: true
 
 Create a pull request for the current branch.
 
-Load the `github-cli` skill before starting.
+If a `github-cli` skill is available, load it before starting; otherwise follow the rules inline below.
 
 This command works with plain `git` + `gh` by default. If your branch is managed by Graphite
 (`gt`), it will use the Graphite submit path instead -- detected automatically below.
@@ -29,9 +29,9 @@ This command works with plain `git` + `gh` by default. If your branch is managed
 User-provided context: $ARGUMENTS
 
 Parse the following from `$ARGUMENTS` (all optional):
-- **Linear issue ID** -- any token matching a pattern like `DWH-123`, `API-456`, `CHAIN-78`.
-- **Reviewers** -- tokens after `--reviewer` or `-r` (comma-separated team slugs or usernames,
-  prefixed with `duneanalytics/` if not already). See the team slug table in the `github-cli` skill.
+- **Linear issue ID** -- any token matching a `TEAM-123` pattern.
+- **Reviewers** -- tokens after `--reviewer` or `-r` (comma-separated team slugs or usernames;
+  prefix team slugs with the GitHub org if not already).
 - **`--ready`** -- if present, mark the PR ready for review after creation. Default is draft.
 - **`--merge`** -- if present, enable auto-merge when ready.
 - Everything else is additional context for the PR description.
@@ -45,7 +45,7 @@ to read the complete diff. You need this to write a good description.
 
 ### Step 2: Write the PR description
 
-Follow the PR Description Style Guide from the `github-cli` skill:
+Follow the PR description style:
 
 - **Small/trivial changes**: empty body or a single sentence
 - **Medium changes**: short prose paragraph explaining what and why
