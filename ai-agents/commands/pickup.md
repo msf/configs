@@ -1,0 +1,1 @@
+/home/miguel/.cache/dune-sietch/commands/pickup.md

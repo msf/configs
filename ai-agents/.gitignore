@@ -1,0 +1,14 @@
+# local junk
+node_modules/
+__pycache__/
+*.pyc
+*.bak.*
+.DS_Store
+
+# private overlays: these paths exist in the working tree as symlinks into
+# ~/configs-private (created by tools/apply.sh). Names are public; contents are not.
+home/.pi/agent/extensions/mcp-bridge/servers.json
+agents/dune-architecture.md
+commands/dune.md
+commands/dune-analyze.md
+commands/add-table-specs.md

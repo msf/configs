@@ -1,0 +1,62 @@
+# Agent-config manifest. Read by tools/{apply,checkpoint,track}.sh
+#
+# Format (one entry per line, whitespace-separated, # for comments):
+#
+#   mirror  <path-rel-to-HOME>
+#       → links $HOME/<path>  →  <public>/home/<path>
+#   pmirror <path-rel-to-HOME>
+#       → links $HOME/<path>  →  ~/configs-private/home/<path>
+#       For content with internal endpoints / org identity / infra topology.
+#       Filenames appearing here are deliberate; contents stay private.
+#   repo    <path-rel-to-HOME>  <target-rel-to-public-repo-root>
+#       → links $HOME/<path>  →  <configs-repo>/<target>
+#   prepo   <path-rel-to-HOME>  <target-rel-to-private-repo-root>
+#       → links $HOME/<path>  →  ~/configs-private/<target>
+#   home    <path-rel-to-HOME>  <other-path-rel-to-HOME>
+#       → links $HOME/<path>  →  $HOME/<other-path>  (symlink chains)
+#
+# Order matters: targets referenced through earlier symlinks (e.g. files
+# placed *inside* a linked dir) must come after the entry creating that dir.
+
+# ── prompt chain: terminates at ai-agents/CLAUDE.md
+repo    .claude/CLAUDE.md             ai-agents/CLAUDE.md
+home    .config/opencode/AGENTS.md    .claude/CLAUDE.md
+home    .pi/agent/AGENTS.md           .config/opencode/AGENTS.md
+
+# ── shared roots (skills / agents / commands)
+repo    .config/opencode/skills            ai-agents/skills
+repo    .config/opencode/agents            ai-agents/agents
+repo    .config/opencode/commands          ai-agents/commands
+prepo   .config/opencode/skills-private    skills
+
+# private files living inside public-linked dirs (gitignored in public tree)
+prepo   .config/opencode/agents/dune-architecture.md    agents/dune-architecture.md
+prepo   .config/opencode/commands/dune.md               commands/dune.md
+prepo   .config/opencode/commands/dune-analyze.md       commands/dune-analyze.md
+prepo   .config/opencode/commands/add-table-specs.md    commands/add-table-specs.md
+
+# ── pi (tool-agnostic personal — easily portable, see README)
+mirror  .pi/agent/settings.json
+mirror  .pi/agent/models.json
+mirror  .pi/agent/extensions/context-meter.ts
+mirror  .pi/agent/extensions/browser-read
+mirror  .pi/agent/extensions/mcp-bridge
+pmirror .pi/agent/extensions/mcp-bridge/servers.json
+mirror  .pi/agent/skills/aws-pricing
+mirror  .pi/agent/skills/slack-mcp
+mirror  .pi/agent/skills/workspace-apps
+mirror  .pi/agent/skills/notion
+mirror  .pi/agent/skills/google-slides
+pmirror .pi/agent/skills/dune-brand
+pmirror .pi/agent/skills/linear-update
+
+# ── opencode (opencode.json embeds internal MCP endpoints → private)
+pmirror .config/opencode/opencode.json
+
+# ── pr-triage identity (org/team/user)
+pmirror .config/pr-triage.conf
+
+# ── dune workspace docs (~/dune entry points; skipped on non-work machines)
+prepo   dune/AGENTS.md        dune-workspace/AGENTS.md
+prepo   dune/GLOSSARY.md      dune-workspace/GLOSSARY.md
+prepo   dune/agent-prompts    dune-workspace/agent-prompts

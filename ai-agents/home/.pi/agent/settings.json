@@ -1,0 +1,31 @@
+{
+  "lastChangelogVersion": "0.80.6",
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-fable-5",
+  "hideThinkingBlock": false,
+  "defaultThinkingLevel": "xhigh",
+  "skills": [
+    "~/.config/opencode/skills",
+    "~/.config/opencode/skills-private"
+  ],
+  "prompts": [
+    "~/.config/opencode/commands"
+  ],
+  "enabledModels": [
+    "anthropic/claude-sonnet-4-6",
+    "openai/gpt-5.4-pro",
+    "openai/gpt-5.4",
+    "anthropic/claude-haiku-4-5",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.5",
+    "anthropic/claude-opus-4-8",
+    "anthropic/claude-opus-4-7",
+    "anthropic/claude-fable-5",
+    "local/qwen35-35b"
+  ],
+  "steeringMode": "all",
+  "followUpMode": "all",
+  "quietStartup": true,
+  "treeFilterMode": "all",
+  "theme": "dark"
+}

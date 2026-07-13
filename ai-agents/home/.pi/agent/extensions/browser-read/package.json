@@ -1,0 +1,9 @@
+{
+  "name": "pi-browser-read",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "0.34.49",
+    "playwright-core": "1.59.1"
+  }
+}
