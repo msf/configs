@@ -16,19 +16,7 @@ return {
 				},
 			})
 			
-			-- Safely try to load extensions
-			local function safe_load_extension(name)
-				pcall(function() require("telescope").load_extension(name) end)
-			end
-			
-			-- Try to load project extension if available
-			safe_load_extension("projects")
 		end,
 	},
-	{
-		"ahmedkhalf/project.nvim",
-		config = function()
-			require("project_nvim").setup({})
-		end,
-	},
+
 }

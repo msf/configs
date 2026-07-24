@@ -37,7 +37,6 @@ return {
     "jdhao/whitespace.nvim",
     "lambdalisue/suda.vim",
     "xiyaowong/nvim-cursorword",
-    "ahmedkhalf/project.nvim",
     "mfussenegger/nvim-dap",
     "rcarriga/nvim-dap-ui",
     "preservim/nerdtree",

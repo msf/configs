@@ -77,6 +77,10 @@ safe_setup("golangci_lint_ls", {
     }),
 })
 safe_setup("gopls", {
+    -- Use the self-managed gopls built with the current Go toolchain.
+    -- Mason prepends its bin to PATH, otherwise nvim would launch a stale
+    -- gopls built with an older Go that cannot type-check newer-Go code.
+    cmd = { vim.fn.expand("~/go/bin/gopls") },
     settings = {
         gopls = {
             gofumpt = true,
