@@ -5,7 +5,11 @@ description: Build and edit on-brand Dune Google Slides decks programmatically v
 
 # Google Slides (Dune-branded, programmatic)
 
-Make Dune-styled decks reproducibly: matplotlib/graphviz assets -> python-pptx -> Google Slides via `gog`. Self-verify every slide with `gog slides thumbnail`. Source of truth is the build script, not the live deck.
+Make Dune-styled decks reproducibly. Two build paths:
+- **New deck**: matplotlib/graphviz assets -> python-pptx -> `gog drive upload --convert-to slides`.
+- **Existing/shared deck (incl. live-edited by peers)**: direct Slides API `batchUpdate` via `scripts/gslides.py` — real editable text slides, in place, at any position.
+
+Self-verify every slide with thumbnails. Source of truth is the build script, not the live deck.
 
 ## Auth (do this first)
 
@@ -65,24 +69,37 @@ gog --account <email> drive upload deck.pptx --convert-to slides   # creates a N
 - Fit an image into a content box by reading its pixel size (PIL) and scaling to the box while preserving aspect.
 - **Self-verify**: `gog slides list-slides <id>` then `gog slides thumbnail <id> p<N> --out /tmp/x.png` (size `large` = 1600x900) and read the PNG.
 
-## Hard limits of `gog` (decide the workflow around these)
+## Full Slides API access: `scripts/gslides.py` (batchUpdate unlocked)
 
-- `--convert-to` **cannot** combine with `--replace`.
-- `--replace` is **refused for native Google files** ("cannot replace content for Google Workspace files") — you cannot push an updated pptx into an existing native Slides file.
-- gog has **no `batchUpdate`** — cannot create an editable text slide at a position, nor place an image freely on a slide.
+gog (v0.14) has no `batchUpdate`, but its keyring is a local file backend (JWE, `GOG_KEYRING_PASSWORD`). `scripts/gslides.py` decrypts the refresh token, mints an access token, and exposes the raw REST API — full editing power on any deck, same link, real editable text:
 
-What gog **can** do on an existing deck (all keep the same file/link):
-- `slides replace-text <id> <find> <repl>` — edit text (global find/replace; use unique strings).
-- `slides insert-text <id> <objectId> <text>` — text into an existing shape.
-- `slides replace-slide <id> <slideId> <image>` — swap the image on a slide in place.
-- `slides add-slide <id> <image>` — append a **full-bleed image** slide (only at the end).
-- `slides delete-slide`, `slides update-notes`, `slides read-slide`, `slides thumbnail`.
-- `drive comments list <id>` — read reviewer comments (author, text, anchor).
+```bash
+source ~/.gog_secret
+G="uv run --quiet --with jwcrypto,requests python <skilldir>/scripts/gslides.py"
+$G get   <deckId> [fieldMask]          # presentation JSON (layouts, elements, transforms)
+$G batch <deckId> <requests.json|->    # any batchUpdate requests
+$G thumbnail <deckId> <pageId> <out.png>
+```
 
-**Consequence — the editability/link trade-off:**
-- **Editable native deck => must be a NEW file each build (new link).** Re-converting always makes a new file.
-- **Same shared link => only in-place edits**: `replace-text` (text), `replace-slide` (chart images), and **new slides appended as images** (user drags into position). Slides added this way are not text-editable.
-- Practical pattern when a link is already shared: update existing slides' images (`replace-slide`) + text (`replace-text`) in place, and **append new slides as images at the end** for the user to reposition.
+**Editing a live shared deck (peers editing concurrently — slide numbers move):**
+- **Anchor by objectId, never by slide number.** Fetch `slides.objectId`, locate your section slide, compute `insertionIndex` at runtime. Positions drift **mid-session** (peers insert/delete while you work): re-fetch before every batch, and when talking to the user identify slides by title, not number.
+- Standard Slides page = **10 x 5.625 in = 9144000 x 5143500 EMU** (not pptx's 13.333x7.5). Verify with `get <deck> pageSize` before placing elements.
+- **Create slides with the deck's own layout** + `placeholderIdMappings` (TITLE/SUBTITLE): text inherits the house theme, stays editable, and gets logo/page-number from the master. Match how peers' slides are built (inspect their slides via `get`).
+- **Prefix your objectIds** (e.g. `smr_win`, `smr_m2a`) and make the build script idempotent: delete `smr_*` slides/elements first, then re-create. Script per deck = source of truth; safe to re-run after every tweak.
+- Slide deletion in batchUpdate is `deleteObject` (there is no `deleteSlide` request type).
+- Layout placeholders are often narrow (title ~4.8in): widen with `updatePageElementTransform` (ABSOLUTE; base size commonly 3000000 EMU square, scaled). 1in = 914400 EMU.
+- `createImage` needs a **fetchable URL**: upload to Drive (`gog drive upload`), `gog drive share <id> --to anyone --role reader`, use `https://drive.google.com/uc?export=download&id=<id>`. The image bytes are **copied** into the deck — revoke/delete the Drive file after.
+- **`deleteText {type: ALL}` on an empty shape is a 400** ("startIndex 0 must be less than endIndex 0"). Guard every clear: fetch text state first, only emit deleteText for shapes that have text. Same root cause makes `gog slides update-notes` fail on slides with empty notes.
+- **Speaker notes need a second phase**: notes BODY shape ids for slides you just created are auto-generated (`SLIDES_API..._N`) and unknown until after the create batch. Batch 1: slides. Then fetch `slides(objectId,slideProperties.notesPage.pageElements(objectId,shape(placeholder,text.textElements)))`, find `placeholder.type==BODY`, batch 2: notes insertText.
+- **Styled metric pattern** (big number + label + detail, one editable text box): `createShape` TEXT_BOX -> `insertText` with `"$3.2\nPER 1K QUERIES\nDetail sentence."` -> per-line `updateTextStyle` with `FIXED_RANGE` indices computed from the string lengths (number: Geist bold 34pt Orange; label: Geist 10pt Gray uppercase; detail: Geist 11pt Off-Black).
+- Dark dashboard screenshots (Grafana) work fine as evidence on light slides; size them from the PIL pixel aspect (`h = w / aspect`), don't eyeball.
+- **Font check**: not every Google-Fonts family exists in the workspace. Geist yes; **Geist Mono no** (silently falls back to Courier — visible in thumbnails). Verify big numbers in a thumbnail before styling everything.
+
+## gog-only limits (when not using gslides.py)
+
+- `--convert-to` cannot combine with `--replace`; `--replace` refused for native Google files.
+- gog can only: `replace-text`, `insert-text`, `replace-slide` (image swap), `add-slide` (append full-bleed image at end), `delete-slide`, `update-notes`, `read-slide`, `thumbnail`, `drive comments list`.
+- Old workaround (append image slides for the user to reposition) is **obsolete** — use `gslides.py batch` instead.
 
 ## Reading reviewer feedback
 
@@ -99,6 +116,17 @@ Returns author, content, `quotedFileContent` (anchor), and replies. Map each com
 6. `gog drive upload deck.pptx --convert-to slides`.
 7. `thumbnail` each slide, iterate on `build_deck.py`, re-upload (new file) until right.
 8. Share the final link; delete orphan intermediate decks (`drive delete <id> --force`).
+
+## Recipe (slides in an existing shared deck)
+
+1. `gslides.py get <deck>` — map slides, find your anchor objectIds, inspect peers' slides for the house layout (which layoutId, where titles/bodies sit, fonts/sizes).
+2. Write an idempotent `build_*_slides.py` that emits batchUpdate requests: fill reserved placeholders, `createSlide` with the house layout + placeholderIdMappings, styled metric text boxes (Geist bold, brand palette), images via Drive-shared URLs.
+3. Run, then `gslides.py thumbnail` **every touched slide** and read the PNGs — the review loop catches real bugs (title/body overlap, font fallback, label wrap); iterate on the script.
+4. Set speaker notes (phase 2). Clean up temp Drive shares when the deck is final.
+
+Worked example (full 6-slide build, all patterns above): `examples/build_shared_deck_slides.py` (frozen copy; deck-specific IDs, adapt before use).
+
+Content discipline that survived review: **one number theme per slide, <=5 across the talk**; put the plan-vs-actual and if-asked numbers in speaker notes, not on slides; a chart beats a second metric box.
 
 ## Gotchas
 

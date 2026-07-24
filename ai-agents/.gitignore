@@ -12,3 +12,21 @@ agents/dune-architecture.md
 commands/dune.md
 commands/dune-analyze.md
 commands/add-table-specs.md
+
+# Dune-specific agents: kept on disk for opencode use, never published.
+# (Contents name internal repos/infra topology.)
+agents/architect.md
+agents/databricks.md
+agents/dune-coding.md
+agents/dune-explore.md
+agents/dune-sql.md
+agents/metabase.md
+
+# dune-sietch-managed agents: these are symlinks into ~/.cache/dune-sietch.
+# Owned by the sietch bundle, not this repo. Never track them here.
+agents/commit-planner.md
+agents/explore.md
+agents/grafana.md
+agents/k8s-debug.md
+agents/log-investigator.md
+agents/simplify-synergy.md

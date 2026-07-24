@@ -1,22 +1,5 @@
 {
   "providers": {
-    "openai-codex": {
-      "modelOverrides": {
-        "gpt-5.6-sol":   { "contextWindow": 258400 },
-        "gpt-5.6-terra": { "contextWindow": 258400 },
-        "gpt-5.6-luna":  { "contextWindow": 258400 }
-      }
-    },
-    "vercel-ai-gateway": {
-      "headers": {
-        "ai-reporting-user": "miguel@dune.com"
-      },
-      "modelOverrides": {
-        "anthropic/claude-opus-4.8":  { "name": "ai-gw-opus-4.8" },
-        "anthropic/claude-sonnet-5":  { "name": "ai-gw-sonnet-5" },
-        "anthropic/claude-fable-5":   { "name": "ai-gw-fable-5" }
-      }
-    },
     "local": {
       "baseUrl": "http://localhost:8080/v1",
       "api": "openai-completions",
@@ -33,26 +16,30 @@
           "name": "Qwen3.6 35B-A3B MTP UD-Q4_K_XL (reasoning)",
           "reasoning": true,
           "contextWindow": 131072,
-          "maxTokens": 32768
+          "maxTokens": 32768,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
         },
         {
           "id": "qwen36-moe-nothink",
           "name": "Qwen3.6 35B-A3B MTP UD-Q4_K_XL (no reasoning)",
           "contextWindow": 131072,
-          "maxTokens": 32768
+          "maxTokens": 32768,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
         },
         {
           "id": "gemma4-26b-qat-mtp",
-          "name": "Gemma 4 26B-A4B QAT UD-Q4_K_XL + MTP (reasoning)",
+          "name": "Gemma 4 26B-A4B QAT UD-Q4_K_XL + smart-Q4_0 MTP (reasoning)",
           "reasoning": true,
           "contextWindow": 131072,
-          "maxTokens": 32768
+          "maxTokens": 32768,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
         },
         {
           "id": "gemma4-26b-qat-mtp-nothink",
-          "name": "Gemma 4 26B-A4B QAT UD-Q4_K_XL + MTP (no reasoning)",
+          "name": "Gemma 4 26B-A4B QAT UD-Q4_K_XL + smart-Q4_0 MTP (no reasoning)",
           "contextWindow": 131072,
-          "maxTokens": 32768
+          "maxTokens": 32768,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
         }
       ]
     }

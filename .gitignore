@@ -1,4 +1,6 @@
 lazy-lock.json
 
-.ssh/id_rsa
-.ssh/id_ed25519
+# SSH: this is a PUBLIC repo. Never track private keys, client config, or
+# known_hosts. Only *.pub may be tracked.
+.ssh/*
+!.ssh/*.pub

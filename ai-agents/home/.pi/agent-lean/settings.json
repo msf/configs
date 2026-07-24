@@ -1,0 +1,44 @@
+{
+  "lastChangelogVersion": "0.81.1",
+  "defaultProvider": "local",
+  "defaultModel": "qwen36-moe",
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": false,
+  "quietStartup": true,
+  "treeFilterMode": "all",
+  "theme": "dark",
+  "steeringMode": "all",
+  "followUpMode": "all",
+  "httpIdleTimeoutMs": 0,
+  "retry": {
+    "enabled": true,
+    "maxRetries": 1,
+    "baseDelayMs": 2000,
+    "provider": {
+      "timeoutMs": 3600000,
+      "maxRetries": 0,
+      "maxRetryDelayMs": 60000
+    }
+  },
+  "compaction": {
+    "enabled": true,
+    "reserveTokens": 32768,
+    "keepRecentTokens": 49152
+  },
+  "branchSummary": {
+    "reserveTokens": 32768
+  },
+  "enabledModels": [
+    "local/qwen36-moe",
+    "local/qwen36-moe-nothink",
+    "local/gemma4-26b-qat-mtp",
+    "local/gemma4-26b-qat-mtp-nothink"
+  ],
+  "skills": [
+    "~/.config/opencode/skills",
+    "~/.config/opencode/skills-private"
+  ],
+  "prompts": [
+    "~/.config/opencode/commands"
+  ]
+}

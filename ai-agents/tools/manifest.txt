@@ -60,3 +60,10 @@ pmirror .config/pr-triage.conf
 prepo   dune/AGENTS.md        dune-workspace/AGENTS.md
 prepo   dune/GLOSSARY.md      dune-workspace/GLOSSARY.md
 prepo   dune/agent-prompts    dune-workspace/agent-prompts
+mirror  .pi/agent/agents/scout.md
+mirror  .pi/agent/agents/reviewer.md
+mirror  .pi/agent/agents/planner.md
+mirror  .pi/agent/agents/worker.md
+mirror  .pi/agent/agents/worker-xhigh.md
+mirror  .pi/agent-lean/settings.json
+mirror  .pi/agent-lean/models.json
