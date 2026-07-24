@@ -81,3 +81,5 @@ recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(c
     insteadOf = https://bitbucket.org/
 [url "https://@github.com/"]
 	insteadOf = https://github.com/
+[init]
+	defaultBranch = main
