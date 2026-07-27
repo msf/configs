@@ -113,6 +113,7 @@ PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 [ -d ~/go/bin ] && PATH="${HOME}/go/bin:${PATH}"
 PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 PATH="/opt/homebrew/opt/llvm@19/bin:${PATH}"
+PATH="/home/miguel/.local/share/pi-node/current/bin/:${PATH}"
 export PATH CLASSPATH
 export PATH=/home/miguel/.tiup/bin:$PATH
 export GOPRIVATE="github.com/duneanalytics"
