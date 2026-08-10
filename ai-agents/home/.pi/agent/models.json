@@ -18,7 +18,7 @@
       }
     },
     "local": {
-      "baseUrl": "http://localhost:8080/v1",
+      "baseUrl": "http://localhost:8090/v1",
       "api": "openai-completions",
       "apiKey": "llama-swap",
       "compat": {
@@ -29,28 +29,16 @@
       },
       "models": [
         {
-          "id": "qwen36-moe",
-          "name": "Qwen3.6 35B-A3B MTP UD-Q4_K_XL (reasoning)",
+          "id": "qwen-27b-mtp",
+          "name": "Qwen3.6 27B dense + MTP (reasoning)",
           "reasoning": true,
           "contextWindow": 131072,
           "maxTokens": 32768
         },
         {
-          "id": "qwen36-moe-nothink",
-          "name": "Qwen3.6 35B-A3B MTP UD-Q4_K_XL (no reasoning)",
-          "contextWindow": 131072,
-          "maxTokens": 32768
-        },
-        {
-          "id": "gemma4-26b-qat-mtp",
-          "name": "Gemma 4 26B-A4B QAT UD-Q4_K_XL + MTP (reasoning)",
+          "id": "gemma-31b-qat",
+          "name": "Gemma 31B QAT (reasoning)",
           "reasoning": true,
-          "contextWindow": 131072,
-          "maxTokens": 32768
-        },
-        {
-          "id": "gemma4-26b-qat-mtp-nothink",
-          "name": "Gemma 4 26B-A4B QAT UD-Q4_K_XL + MTP (no reasoning)",
           "contextWindow": 131072,
           "maxTokens": 32768
         }

@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.81.1",
   "defaultProvider": "local",
-  "defaultModel": "qwen36-moe",
+  "defaultModel": "qwen-27b-mtp",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
   "quietStartup": true,
@@ -29,10 +29,8 @@
     "reserveTokens": 32768
   },
   "enabledModels": [
-    "local/qwen36-moe",
-    "local/qwen36-moe-nothink",
-    "local/gemma4-26b-qat-mtp",
-    "local/gemma4-26b-qat-mtp-nothink"
+    "local/qwen-27b-mtp",
+    "local/gemma-31b-qat"
   ],
   "skills": [
     "~/.config/opencode/skills",

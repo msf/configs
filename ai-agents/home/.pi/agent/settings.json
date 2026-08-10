@@ -1,7 +1,7 @@
 {
-  "lastChangelogVersion": "0.81.1",
+  "lastChangelogVersion": "0.83.0",
   "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-4-8",
+  "defaultModel": "claude-opus-5",
   "hideThinkingBlock": false,
   "defaultThinkingLevel": "xhigh",
   "compaction": {
@@ -17,14 +17,10 @@
     "~/.config/opencode/commands"
   ],
   "enabledModels": [
-    "openai/gpt-5.5",
-    "anthropic/claude-opus-4-8",
     "anthropic/claude-sonnet-5",
-    "anthropic/claude-fable-5",
-    "local/qwen36-moe",
-    "openai-codex/gpt-5.6-sol",
-    "openai-codex/gpt-5.6-terra",
-    "openai-codex/gpt-5.6-luna"
+    "anthropic/claude-opus-5",
+    "local/qwen-27b-mtp",
+    "local/gemma-31b-qat"
   ],
   "steeringMode": "all",
   "followUpMode": "all",
