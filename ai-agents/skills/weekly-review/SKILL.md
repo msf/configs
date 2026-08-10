@@ -92,8 +92,8 @@ subagent with instructions to:
 ### 3. Read context files
 
 While agents run, read:
-- `~/.config/opencode/AGENTS.md`
-- `~/.config/opencode/lessons.md`
+- `~/.claude/CLAUDE.md`
+- `~/.claude/lessons.md`
 
 ### 4. Reflection loops
 

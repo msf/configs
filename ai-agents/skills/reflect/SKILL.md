@@ -6,25 +6,23 @@ compatibility: opencode
 
 ## What this is
 
-This is my autonomous self-improvement ritual — not a collaborative session review (that's the `/reflect` command). This runs at session start when it's time, without being asked. The human should see a brief summary of what changed, not a lengthy report.
+This is the compaction pass over the lessons journal — not a collaborative session review (that's the `/reflect` command). It runs **only when asked**. The human should see a brief summary of what changed, not a lengthy report.
 
 ## What I do
-- Compact raw corrections in `~/.config/opencode/lessons.md` into generalizable principles.
+- Compact raw corrections in `~/.claude/lessons.md` into generalizable principles.
 - Prune stale or project-specific trivia that doesn't transfer across contexts.
 - Identify compliance gaps: are recent mistakes violations of known principles?
 - Evaluate the learning system itself: is the structure working? Are principles actionable?
 
 ## When to trigger
-At session start, after reading `~/.config/opencode/lessons.md`:
-- Check the `last_reflected` date in the HTML comment at the top.
-- If it's been **3+ days** since last reflection, run this workflow before doing other work.
-- If there are **20+ raw entries**, run regardless of date.
+On explicit request only. Never at session start, never on a count or date threshold —
+the journal is append-only and compaction is a deliberate act, not a chore.
 
 ## Workflow
 
 ### 1. Read and assess
-- Read `~/.config/opencode/lessons.md` fully.
-- Read `~/.config/opencode/AGENTS.md` to know what's already encoded as hard rules.
+- Read `~/.claude/lessons.md` fully.
+- Read `~/.claude/CLAUDE.md` to know what's already encoded as hard rules.
 - Count raw entries. Note their dates and themes.
 - Are any existing principles stale, redundant, or too vague?
 
@@ -57,7 +55,7 @@ Ask yourself:
 - Is the `/reflect` command producing deep enough analysis, or is the user having to push for a second pass?
 
 ### 6. Write back
-- Update `~/.config/opencode/lessons.md` with the compacted result.
+- Update `~/.claude/lessons.md` with the compacted result.
 - Update `last_reflected` date to today.
 - Keep the file structure: `last_reflected` comment, Principles section, then Raw section.
 - Principles use `[YYYY-MM]` timestamps. Raw entries use `[YYYY-MM-DD]`.
