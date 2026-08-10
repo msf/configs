@@ -4,3 +4,4 @@ lazy-lock.json
 # known_hosts. Only *.pub may be tracked.
 .ssh/*
 !.ssh/*.pub
+__pycache__/
