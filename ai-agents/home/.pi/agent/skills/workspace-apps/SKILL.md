@@ -79,7 +79,16 @@ For recent context in a known channel, prefer MCP channel reads over broad searc
 
 ## Google Workspace: Drive / Docs / Sheets / Gmail / Calendar
 
-Backed by `gog` (`steipete/gogcli`) on pi's `PATH`. It uses official Google APIs and stores OAuth refresh tokens in the OS keyring or encrypted file keyring. Prefer read-only OAuth scopes. Ask before writing files, editing Docs/Sheets, changing permissions/sharing, sending or modifying email, or creating/updating/deleting/responding to calendar events.
+Backed by `gog` (`openclaw/gogcli`, formerly `steipete/gogcli`). Check it first — it is not installed on every machine:
+
+```bash
+command -v gog || echo 'gog not installed'
+gog --version
+# install (Go toolchain present; GOTOOLCHAIN=auto fetches the go version go.mod asks for):
+go install github.com/openclaw/gogcli/cmd/gog@latest
+```
+
+The command surface below was written against gog v0.14; current releases are v0.35+ and have renamed some subcommands (e.g. `gog auth credentials set <file>`, `gog auth doctor --check`). Confirm with `gog <group> --help` before trusting a flag. It uses official Google APIs and stores OAuth refresh tokens in the OS keyring or encrypted file keyring. Prefer read-only OAuth scopes. Ask before writing files, editing Docs/Sheets, changing permissions/sharing, sending or modifying email, or creating/updating/deleting/responding to calendar events.
 
 On this machine, `$HOME/bin/gog` loads the encrypted-file-keyring password from the mode-0600 `$HOME/.gog_secret`; never source that file manually or bypass the wrapper. Before debugging or reauthorizing, verify the actual agent entrypoint:
 
