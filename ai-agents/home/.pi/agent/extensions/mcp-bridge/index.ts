@@ -356,8 +356,15 @@ export default function (pi: ExtensionAPI) {
       : dirname(fileURLToPath(import.meta.url));
   const configPath = resolve(extDir, "servers.json");
 
+  // servers.json is per-machine and optional: this extension ships public, the
+  // config carries private endpoints. Absent config means "no MCP servers".
   function readConfig(): Config {
-    return JSON.parse(readFileSync(configPath, "utf-8"));
+    try {
+      return JSON.parse(readFileSync(configPath, "utf-8"));
+    } catch (e: any) {
+      if (e?.code === "ENOENT") return { servers: {} };
+      throw e;
+    }
   }
 
   async function connectServer(name: string, cfg: ServerConfig): Promise<number> {
