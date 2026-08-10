@@ -29,6 +29,40 @@ repo    .config/opencode/agents            ai-agents/agents
 repo    .config/opencode/commands          ai-agents/commands
 prepo   .config/opencode/skills-private    skills
 
+# ── claude code
+# Claude Code has ONE flat namespace for ~/.claude/skills and ~/.claude/commands,
+# unlike pi's separate skills:/prompts: roots. So these are per-file, not per-dir:
+# a whole-dir link would collide with Claude Code's own built-in skills and with
+# our own commands. Verified empirically 2026-07-31, not assumed.
+repo    .claude/skills/coding             ai-agents/skills/coding
+repo    .claude/skills/go-development     ai-agents/skills/go-development
+repo    .claude/skills/k8s-debug          ai-agents/skills/k8s-debug
+repo    .claude/skills/log-investigator   ai-agents/skills/log-investigator
+repo    .claude/skills/pr-triage          ai-agents/skills/pr-triage
+repo    .claude/skills/send-pr            ai-agents/skills/send-pr
+repo    .claude/skills/web-tool-routing   ai-agents/skills/web-tool-routing
+repo    .claude/skills/weekly-review      ai-agents/skills/weekly-review
+# skipped: code-review (built-in /code-review supersedes it, incl. `ultra`),
+#          reflect (the /reflect command below is the collaborative review;
+#          the skill is the on-demand compaction pass, same name → conflict)
+repo    .claude/commands/commit.md        ai-agents/commands/commit.md
+repo    .claude/commands/create-pr.md     ai-agents/commands/create-pr.md
+repo    .claude/commands/handoff.md       ai-agents/commands/handoff.md
+repo    .claude/commands/pickup.md        ai-agents/commands/pickup.md
+repo    .claude/commands/reflect.md       ai-agents/commands/reflect.md
+repo    .claude/commands/review-pr.md     ai-agents/commands/review-pr.md
+repo    .claude/commands/review-week.md   ai-agents/commands/review-week.md
+# skipped: code-review.md / review.md / simplify.md (built-ins of the same name),
+#          send-pr.md (thin wrapper around the send-pr skill linked above)
+# agents/ is not linked: code-reviewer.md is opencode-format (mode:, permission:,
+# model: openai/*) which Claude Code cannot read, and Claude ships its own.
+prepo   .claude/skills/grafana            skills/grafana
+prepo   .claude/skills/wiki               skills/wiki
+prepo   .claude/identity.md               identity.md
+
+# one lessons journal for every harness (canonical file lives in $HOME, untracked)
+home    .config/opencode/lessons.md       .claude/lessons.md
+
 # private files living inside public-linked dirs (gitignored in public tree)
 prepo   .config/opencode/agents/dune-architecture.md    agents/dune-architecture.md
 prepo   .config/opencode/commands/dune.md               commands/dune.md
