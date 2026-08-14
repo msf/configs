@@ -54,6 +54,8 @@ pmirror .pi/agent/skills/linear-update
 
 mirror  .pi/agent/skills/coding
 
+mirror  .pi/agent/skills/send-pr
+
 # ── opencode (opencode.json embeds internal MCP endpoints → private)
 pmirror .config/opencode/opencode.json
 
