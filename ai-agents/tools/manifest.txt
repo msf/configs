@@ -47,6 +47,8 @@ mirror  .pi/agent/skills/slack-mcp
 mirror  .pi/agent/skills/workspace-apps
 mirror  .pi/agent/skills/notion
 mirror  .pi/agent/skills/google-slides
+mirror  .pi/agent/skills/simplified-technical-english
+mirror  .pi/agent/skills/tech-writing
 pmirror .pi/agent/skills/dune-brand
 pmirror .pi/agent/skills/linear-update
 
