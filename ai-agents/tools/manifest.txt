@@ -64,6 +64,8 @@ mirror  .pi/agent/skills/code-review
 
 mirror  .pi/agent/skills/web-tool-routing
 
+mirror  .pi/agent/skills/reflect
+
 # ── opencode (opencode.json embeds internal MCP endpoints → private)
 pmirror .config/opencode/opencode.json
 
