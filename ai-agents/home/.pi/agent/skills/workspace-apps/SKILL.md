@@ -73,13 +73,21 @@ pi-slack users --query person@example.com
 pi-slack user <USER_ID_OR_EMAIL>
 ```
 
-Slack MCP is also available through the lazy MCP bridge: `/mcp-load slack`, or prompts containing `slack`. It uses Slack's first-party endpoint at `https://mcp.slack.com/mcp`, reuses Claude Code's official Slack plugin OAuth cache in `~/.claude/.credentials.json`, and filters obvious mutating tools by default. Use Slack MCP when the user asks for MCP-backed Slack access or needs server-side Slack search/read/user/canvas context; use `pi-slack` only when MCP auth is unavailable or a quick CLI query is simpler.
+Slack MCP is also available through the lazy MCP bridge: `/mcp-load slack`, or prompts containing `slack`. It uses Slack's first-party endpoint at `https://mcp.slack.com/mcp`, stores OAuth in Pi's mode-0600 `~/.pi/agent/mcp-auth.json`, and filters obvious mutating tools by default. Run `/mcp-login slack` when authentication expires. Use Slack MCP for server-side Slack search/read/user/canvas context; use `pi-slack` only when MCP auth is unavailable or a quick CLI query is simpler.
 
 For recent context in a known channel, prefer MCP channel reads over broad search. For a message with replies, use MCP thread reads with the root timestamp.
 
 ## Google Workspace: Drive / Docs / Sheets / Gmail / Calendar
 
 Backed by `gog` (`steipete/gogcli`) on pi's `PATH`. It uses official Google APIs and stores OAuth refresh tokens in the OS keyring or encrypted file keyring. Prefer read-only OAuth scopes. Ask before writing files, editing Docs/Sheets, changing permissions/sharing, sending or modifying email, or creating/updating/deleting/responding to calendar events.
+
+On this machine, `$HOME/bin/gog` loads the encrypted-file-keyring password from the mode-0600 `$HOME/.gog_secret`; never source that file manually or bypass the wrapper. Before debugging or reauthorizing, verify the actual agent entrypoint:
+
+```bash
+[[ "$(command -v gog)" == "$HOME/bin/gog" ]] && gog --no-input auth list --check
+```
+
+If this fails, fix the wrapper/PATH first. Reauthorization does not fix a missing `GOG_KEYRING_PASSWORD` in the invoking process.
 
 One-time setup requires a Google OAuth Desktop client JSON with the needed APIs enabled. Prefer read-only when only reading:
 
