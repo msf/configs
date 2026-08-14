@@ -84,6 +84,8 @@ alias lsof="lsof -n -M"  # don't resolve names nor ports
 alias opencode='AWS_PROFILE=default AWS_REGION=eu-west-1 $HOME/.opencode/bin/opencode'
 # personal account
 alias opencode='$HOME/.opencode/bin/opencode'
+alias day='gsettings set org.gnome.desktop.interface color-scheme prefer-light'
+alias night='gsettings set org.gnome.desktop.interface color-scheme prefer-dark'
 
 
 # for sway
