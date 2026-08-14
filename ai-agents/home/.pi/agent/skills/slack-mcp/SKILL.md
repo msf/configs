@@ -1,76 +1,51 @@
 ---
 name: slack-mcp
-description: Use official Slack MCP from Pi for Slack workspace search/read tasks. Load when the user asks about Slack, Slack channels/threads/DMs/canvases/users, Dune team channels like DWH/warehouse, or asks what they/someone wrote in a work channel.
+description: Use official Slack MCP from Pi for Slack workspace search/read tasks. Load when the user asks about Slack channels, threads, messages, DMs, canvases, users, or workspace activity.
 ---
 
 # Slack MCP
 
-Use this as the primary Slack path. Do not fall back to `pi-slack` unless Slack MCP auth is unavailable or the user explicitly asks for the old CLI.
+Use the official Slack MCP as the primary Slack path.
 
-## Auth and transport
+## Load and authenticate
 
-- Official Slack MCP endpoint: `https://mcp.slack.com/mcp`.
-- Pi MCP bridge config: `~/.pi/agent/extensions/mcp-bridge/servers.json`, server `slack`.
-- Auth reuses Claude Code's official Slack plugin OAuth cache: `~/.claude/.credentials.json`, entry `plugin:slack:slack`.
+- MCP endpoint: `https://mcp.slack.com/mcp`.
+- Pi MCP bridge server: `slack`.
+- If `slack__*` tools are not visible, run `/mcp-load slack`.
+- If loading or authentication fails, report the bridge error and stop. Do not read another harness's credential cache or hand-roll authenticated requests.
 - Never print, paste, copy, or summarize OAuth tokens.
-- Slack audit attribution is Claude Code's Slack plugin client because Pi reuses that OAuth client.
 
-## Preferred access
+## Tools
 
-If `slack__...` tools are visible, use them directly:
+- `slack__slack_search_channels`: find channel IDs.
+- `slack__slack_search_public_and_private`: search authorized public/private channels, DMs, and MPIMs.
+- `slack__slack_search_public`: search public channels only.
+- `slack__slack_read_channel`: read channel history by channel ID.
+- `slack__slack_read_thread`: read a thread by channel ID and root message timestamp.
+- `slack__slack_search_users` and `slack__slack_read_user_profile`: resolve users and read profiles.
+- `slack__slack_read_canvas`: read canvases.
 
-- `slack__slack_search_channels` — find channel IDs.
-- `slack__slack_search_public_and_private` — search authorized public/private channels, DMs, and MPIMs.
-- `slack__slack_search_public` — public-only search.
-- `slack__slack_read_channel` — read channel history by channel ID.
-- `slack__slack_read_thread` — read a thread by channel ID and root message timestamp.
-- `slack__slack_search_users` / `slack__slack_read_user_profile` — user lookup/profile.
-- `slack__slack_read_canvas` — read canvases.
+## Workflow
 
-If the tools are not visible or the MCP server has not been loaded, use the local helper CLI. It connects to Slack MCP on demand and closes the connection:
+1. Resolve user and channel IDs instead of relying on remembered IDs or another tool's cache.
+2. Prefer a channel read for recent context in a known channel.
+3. Use search when the channel is unknown or the request spans channels.
+4. Scope searches by user, channel, and date when possible.
+5. Read the root thread when a matching message has replies.
+6. Return only the context needed to answer the request.
 
-```bash
-pi-slack-mcp tools
-pi-slack-mcp channels 'dwh'
-pi-slack-mcp search 'from:<@U049PC9R8GZ> in:<#C0123ABCDEF>' --limit 3 --sort timestamp --sort-dir desc
-pi-slack-mcp read-channel C0123ABCDEF --limit 20
-pi-slack-mcp read-thread C0123ABCDEF 1777389208.337769 --limit 100
-pi-slack-mcp user U049PC9R8GZ
-pi-slack-mcp call slack_search_public_and_private '{"query":"from:<@U049PC9R8GZ> in:<#C0123ABCDEF>","content_types":"messages","limit":3,"sort":"timestamp","sort_dir":"desc","include_context":false}'
+Useful Slack search query shapes:
+
+```text
+from:<@USER_ID> in:<#CHANNEL_ID>
+"exact phrase" after:YYYY-MM-DD
+query terms in:<#CHANNEL_ID> after:YYYY-MM-DD
 ```
-
-In interactive Pi, `/reload` picks up extension/skill edits. `/mcp-load slack` manually loads the Slack MCP server; prompts containing `slack` also lazy-load it.
 
 ## Safety
 
-- Read/search tools are okay when the user asks for Slack information.
-- Mutating tools are denied by `servers.json` and by `pi-slack-mcp` unless explicitly overridden. Ask before sending/scheduling messages, creating drafts, or creating/updating canvases.
-- Quote only necessary Slack excerpts. Slack output may be sensitive.
-- Prefer `include_context=false` for search unless context is needed.
-
-## Known user/channel context
-
-- Miguel's Slack user ID: `U049PC9R8GZ`.
-- Team channel names/IDs: resolve with `slack_search_channels` / `pi-slack-mcp channels`; a local cache may exist at `~/.config/opencode/secrets/slack-channels.md` (not tracked here).
-
-## Search patterns
-
-- Latest messages by Miguel in a channel:
-
-```bash
-pi-slack-mcp search 'from:<@U049PC9R8GZ> in:<#CHANNEL_ID>' --limit 5 --sort timestamp --sort-dir desc --format detailed
-```
-
-- Find DWH-ish channels:
-
-```bash
-pi-slack-mcp channels 'dwh'
-pi-slack-mcp channels 'warehouse'
-pi-slack-mcp channels 'team dwh'
-```
-
-- Search workspace/private-visible messages:
-
-```bash
-pi-slack-mcp search 'query terms after:2026-04-01' --limit 10 --sort timestamp --sort-dir desc
-```
+- Read and search only when the user asks for Slack information.
+- Ask before sending or scheduling messages, creating drafts, or creating or updating canvases.
+- Treat Slack output as sensitive. Quote only necessary excerpts.
+- Prefer `include_context=false` for search unless adjacent messages are needed.
+- Do not broaden a private-channel or DM request beyond the people and period needed.
