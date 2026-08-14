@@ -58,6 +58,10 @@ mirror  .pi/agent/skills/send-pr
 
 mirror  .pi/agent/skills/go-development
 
+mirror  .pi/agent/agents/code-reviewer.md
+
+mirror  .pi/agent/skills/code-review
+
 # ── opencode (opencode.json embeds internal MCP endpoints → private)
 pmirror .config/opencode/opencode.json
 
