@@ -15,7 +15,6 @@ Idempotent: deletes previously created smr_* slides/elements before re-creating.
 Also sets speaker notes (phase 2, after slide creation).
 
 Run:
-  source ~/.gog_secret
   uv run --quiet --with jwcrypto,requests python build_ah_slides.py [--dry-run]
 
 Storyboard (2026-07-15 review): recap -> costs -> margin -> users -> joke -> ask.

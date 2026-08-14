@@ -5,7 +5,7 @@ gog (v0.14) has no batchUpdate, so it cannot create editable text slides at a
 position, style runs, or place images freely. This helper unlocks the full
 Slides REST API by minting an access token from gog's file-backend keyring.
 
-Requires: GOG_KEYRING_PASSWORD in env (source ~/.gog_secret). Never prints secrets.
+Loads GOG_KEYRING_PASSWORD from the environment or ~/.gog_secret. Never prints secrets.
 
 Usage:
   uv run --quiet --with jwcrypto,requests python gslides.py get <presentationId> [fields]
@@ -20,6 +20,8 @@ import base64
 import glob
 import json
 import os
+from pathlib import Path
+import shlex
 import sys
 
 import requests
@@ -30,11 +32,31 @@ CREDS_PATH = "~/.config/gogcli/credentials.json"
 SLIDES = "https://slides.googleapis.com/v1/presentations"
 
 
+def keyring_password() -> str:
+    if password := os.environ.get("GOG_KEYRING_PASSWORD"):
+        return password
+
+    try:
+        lines = (Path.home() / ".gog_secret").read_text().splitlines()
+    except OSError:
+        lines = []
+
+    for line in lines:
+        assignment = line.strip().removeprefix("export ").strip()
+        name, separator, value = assignment.partition("=")
+        if separator and name.strip() == "GOG_KEYRING_PASSWORD":
+            try:
+                parsed = shlex.split(value, comments=True)
+            except ValueError:
+                break
+            if len(parsed) == 1:
+                return parsed[0]
+
+    sys.exit("GOG_KEYRING_PASSWORD missing from environment and ~/.gog_secret")
+
+
 def access_token(account: str | None = None) -> str:
-    pw = os.environ.get("GOG_KEYRING_PASSWORD")
-    if not pw:
-        sys.exit("GOG_KEYRING_PASSWORD not set (source ~/.gog_secret)")
-    key = jwk.JWK.from_password(pw)
+    key = jwk.JWK.from_password(keyring_password())
     refresh = None
     for f in sorted(glob.glob(os.path.expanduser(KEYRING_GLOB))):
         token = jwe.JWE()

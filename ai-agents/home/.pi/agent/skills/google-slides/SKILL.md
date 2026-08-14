@@ -17,9 +17,9 @@ Self-verify every slide with thumbnails. Source of truth is the build script, no
 - **Enable the Slides API** on the OAuth project: https://console.developers.google.com/apis/api/slides.googleapis.com/overview
 - **Re-auth with the slides scope, keeping existing ones** (omitted services get revoked):
   `gog auth add <email> --services calendar,docs,drive,gmail,sheets,slides` (no `--readonly` for writes)
-- Non-interactive shells (agents) need `GOG_KEYRING_PASSWORD`. Source it from the user's secret file, never print it:
-  `source ~/.gog_secret 2>/dev/null` then `gog --account <email> ...`
-- Smoke test: `gog --account <email> slides list-slides <id>`
+- On this machine, `$HOME/bin/gog` automatically loads `GOG_KEYRING_PASSWORD` from the mode-0600 `$HOME/.gog_secret`. Never source that file manually or bypass the wrapper.
+- Auth smoke test: `[[ "$(command -v gog)" == "$HOME/bin/gog" ]] && gog --no-input auth list --check`
+- Slides smoke test: `gog --account <email> slides list-slides <id>`
 
 ## Brand system (extract from the style guide, don't guess)
 
@@ -73,8 +73,9 @@ gog --account <email> drive upload deck.pptx --convert-to slides   # creates a N
 
 gog (v0.14) has no `batchUpdate`, but its keyring is a local file backend (JWE, `GOG_KEYRING_PASSWORD`). `scripts/gslides.py` decrypts the refresh token, mints an access token, and exposes the raw REST API — full editing power on any deck, same link, real editable text:
 
+`scripts/gslides.py` loads `$HOME/.gog_secret` itself when the environment lacks `GOG_KEYRING_PASSWORD`.
+
 ```bash
-source ~/.gog_secret
 G="uv run --quiet --with jwcrypto,requests python <skilldir>/scripts/gslides.py"
 $G get   <deckId> [fieldMask]          # presentation JSON (layouts, elements, transforms)
 $G batch <deckId> <requests.json|->    # any batchUpdate requests
