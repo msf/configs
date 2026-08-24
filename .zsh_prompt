@@ -1,35 +1,16 @@
-#!/usr/bin/env zsh
+autoload -Uz vcs_info
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:git:*' check-for-changes true
+zstyle ':vcs_info:git:*' stagedstr '✚'
+zstyle ':vcs_info:git:*' unstagedstr '±'
+zstyle ':vcs_info:git:*' formats '  %F{magenta} %b%f %F{yellow}%u%c%f'
+zstyle ':vcs_info:git:*' actionformats '  %F{magenta} %b|%a%f %F{yellow}%u%c%f'
 
-# get the name of the branch we are on
-my_vcs_info() {
-    vcs_info
-    echo "$vcs_info_msg_0_"
+setopt prompt_subst
+precmd() {
+  local exit_code=$?
+  vcs_info
+  (( exit_code )) && prompt_end='%F{red}%f' || prompt_end='%F{green}%f'
 }
 
-setprompt_simple() {
-    autoload -U colors
-    colors
-    autoload -Uz vcs_info
-    vcs_info
-    zstyle ':vcs_info:*' formats "(%s)[%b] "
-    zstyle ':vcs_info:*' actionformats "(%s)[%b|%a] "
-    setopt prompt_subst
-
-    for COLOR in BLUE RED GREEN YELLOW WHITE GREY BLACK PURPLE CYAN; do
-        eval PR_$COLOR='%{$fg[${(L)COLOR}]%}'
-        eval PR_BOLD_$COLOR='%{$fg_bold[${(L)COLOR}]%}'
-    done
-
-    PR_RESET="%{$reset_color%}"
-
-    PROMPT='$PR_BLUE%n$PR_WHITE@$PR_BOLD_YELLOW%m $PR_BLUE%c $PR_RESET$(my_vcs_info)$PR_BLUE%% $PR_RESET'
-}
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-if [ -f ~/powerlevel10k/powerlevel10k.zsh-theme ]; then
-    source ~/powerlevel10k/powerlevel10k.zsh-theme
-else
-    eval "$(starship init zsh)"
-    # setprompt_simple
-fi
+PROMPT='%F{blue}%n@%m%f  %F{cyan}%~%f${vcs_info_msg_0_} $prompt_end '

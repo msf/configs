@@ -248,12 +248,6 @@
   sound.enable = true;
   hardware.pulseaudio.enable = true;
 
-  programs.zsh.ohMyZsh = {
-    enable = true;
-    plugins = [ "git" "python" "man" "docker" "golang" "kubectl" ];
-    theme = "agnoster";
-  };
-
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.miguel = {
     isNormalUser = true;
