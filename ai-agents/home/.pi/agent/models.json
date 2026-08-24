@@ -7,16 +7,6 @@
         "gpt-5.6-luna":  { "contextWindow": 258400 }
       }
     },
-    "vercel-ai-gateway": {
-      "headers": {
-        "ai-reporting-user": "miguel@dune.com"
-      },
-      "modelOverrides": {
-        "anthropic/claude-opus-4.8":  { "name": "ai-gw-opus-4.8" },
-        "anthropic/claude-sonnet-5":  { "name": "ai-gw-sonnet-5" },
-        "anthropic/claude-fable-5":   { "name": "ai-gw-fable-5" }
-      }
-    },
     "local": {
       "baseUrl": "http://localhost:8090/v1",
       "api": "openai-completions",
