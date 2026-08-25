@@ -1,0 +1,4 @@
+profile {
+	output "BNQ BenQ EW2790U NBR0403901Q" mode 3840x2160@59.997Hz position 0,0 transform normal scale 1 enable
+	output "Unknown Unknown Unknown" mode 2880x1920@120Hz position 978,2160 transform normal scale 1.5 enable
+}

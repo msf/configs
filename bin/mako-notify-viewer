@@ -1,0 +1,51 @@
+#!/bin/sh
+# mako-notify-viewer: list pending + history notifications via fuzzel
+# Select a pending notification to dismiss it.
+
+pending=$(makoctl list | jq -r '
+  [.data[][] | {
+    id: .id.data,
+    app: .["app-name"].data,
+    summary: .summary.data,
+    body: .body.data,
+    type: "pending"
+  }] | .[] | "\(.id)\t\(.type)\t[\(.app)] \(.summary) — \(.body)"
+' 2>/dev/null)
+
+history=$(makoctl history | jq -r '
+  [.data[][] | {
+    id: .id.data,
+    app: .["app-name"].data,
+    summary: .summary.data,
+    body: .body.data,
+    type: "history"
+  }] | .[] | "\(.id)\t\(.type)\t[\(.app)] \(.summary) — \(.body)"
+' 2>/dev/null)
+
+all=""
+[ -n "$pending" ] && all="$pending"
+[ -n "$history" ] && {
+  [ -n "$all" ] && all="$all
+"
+  all="${all}$history"
+}
+
+if [ -z "$all" ]; then
+  notify-send -t 2000 "Notifications" "No notifications"
+  exit 0
+fi
+
+# Show display column only (hide id and type)
+display=$(printf '%s\n' "$all" | cut -f3)
+
+selected=$(printf '%s\n' "$display" | fuzzel --dmenu -p "Notifications: " -w 80 -l 15)
+[ -z "$selected" ] && exit 0
+
+# Find matching line to get id and type
+line=$(printf '%s\n' "$all" | grep -F "$selected" | head -1)
+id=$(printf '%s' "$line" | cut -f1)
+type=$(printf '%s' "$line" | cut -f2)
+
+if [ "$type" = "pending" ]; then
+  makoctl dismiss -n "$id"
+fi

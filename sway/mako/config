@@ -1,0 +1,41 @@
+sort=-time
+layer=overlay
+background-color=#282828
+text-color=#ebdbb2
+width=600
+height=100
+padding=14,16
+border-size=2
+border-color=#458588
+border-radius=6
+icons=1
+font=Cousine Nerd Font 14
+max-icon-size=64
+default-timeout=8000
+ignore-timeout=0
+max-visible=5
+anchor=top-right
+margin=10
+
+[urgency=low]
+border-color=#3c3836
+default-timeout=5000
+
+[urgency=normal]
+border-color=#a89984
+
+[urgency=high]
+border-color=#d65d0e
+default-timeout=0
+
+[app-name="Google Chrome" summary="calendar.google.com"]
+border-color=#d65d0e
+background-color=#3c3836
+default-timeout=0
+ignore-timeout=1
+
+[app-name="Chromium" summary="calendar.google.com"]
+border-color=#d65d0e
+background-color=#3c3836
+default-timeout=0
+ignore-timeout=1

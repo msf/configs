@@ -50,14 +50,14 @@ output "LG Electronics LG HDR WQHD 0x0004DE8E" mode 3440x1440@75.05Hz scale 1 po
 
 exec swaybg -i $wallpaper -m fill
 exec mako
-exec kanshi -c ~/.config/regolith3/kanshi/config
+exec kanshi -c ~/.config/kanshi/config
 exec /usr/libexec/polkit-mate-authentication-agent-1
 
 
 # Idle/lock — we own this; no regolith-powerd.
 # Wrapper logs to ~/.local/state/swayidle.log (incident classification).
 # lock BEFORE screen-off so a locker always exists when displays wake.
-exec ~/.local/bin/swayidle-run
+exec ~/bin/swayidle-run
 
 # Portals/screenshare need the session env in systemd+dbus
 exec dbus-update-activation-environment --systemd \
@@ -83,7 +83,7 @@ client.urgent           #f28779 #3d1f1f #cbccc6 #f28779   #f28779
 # Same bar as Regolith: swaybar + i3status-rs, ayu-mirage colors
 bar {
     position top
-    status_command i3status-rs ~/.config/regolith3/i3status-rust/config.toml
+    status_command i3status-rs ~/.config/i3status-rust/config.toml
     font pango:Hack Nerd Font Mono 11
     separator_symbol " "
     colors {
@@ -114,7 +114,7 @@ bindsym $mod+space exec $launcher
 bindsym $mod+Shift+n exec nautilus --new-window
 
 ## Launch // Keybinding Viewer // <><Shift> ? ##
-bindsym $mod+Shift+question exec ~/.local/bin/sway-shortcuts
+bindsym $mod+Shift+question exec ~/bin/sway-shortcuts
 
 ## Launch // Display Settings // <> d ##
 bindsym $mod+d exec wdisplays
@@ -174,7 +174,7 @@ bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -B 'Yes' 'swaymsg e
 ###############################################################################
 
 ## Notify // View Notifications // <> n ##
-bindsym $mod+n exec ~/.local/bin/mako-notify-viewer
+bindsym $mod+n exec ~/bin/mako-notify-viewer
 
 ## Notify // Dismiss All // <><Shift> Delete ##
 bindsym $mod+Shift+Delete exec makoctl dismiss --all

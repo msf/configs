@@ -1,0 +1,4 @@
+profile {
+	output "LG Electronics LG HDR WQHD 0x0004DE8E" mode 3440x1440@75.05Hz position 0,0 transform normal scale 1 enable
+	output "Unknown Unknown Unknown" mode 2880x1920@120Hz position 757,1440 transform normal scale 1.5 enable
+}

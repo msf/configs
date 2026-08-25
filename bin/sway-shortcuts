@@ -1,0 +1,14 @@
+#!/bin/bash
+# Keybinding viewer: parses remontoire-style comments from the sway config
+#   ## <Category> // <Action> // <Keybinding> ##
+# and shows them in fuzzel. Replacement for Regolith's ilia/remontoire viewer.
+
+CONFIGS=("$HOME/.config/sway/config" "$HOME"/.config/sway/config.d/*)
+
+grep -h '^## ' "${CONFIGS[@]}" 2>/dev/null \
+    | sed -E 's/^## (.*) \/\/ (.*) \/\/ (.*) ##.*/\3\t\1: \2/' \
+    | sed -e 's/<><Shift>/Meta+Shift/g' -e 's/<><Ctrl><Shift>/Meta+Ctrl+Shift/g' \
+          -e 's/<><Ctrl>/Meta+Ctrl/g' -e 's/<><Alt>/Meta+Alt/g' -e 's/<>/Meta/g' \
+    | awk -F'\t' '{printf "%-28s %s\n", $1, $2}' \
+    | sort -k2 \
+    | fuzzel --dmenu --width 70 --lines 30 >/dev/null

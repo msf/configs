@@ -1,0 +1,22 @@
+# swaylock config — see swaylock(1)
+ignore-empty-password
+show-failed-attempts
+daemonize
+
+color=1b2b34
+indicator-idle-visible
+indicator-radius=120
+indicator-thickness=12
+
+# ring: idle / typing / wrong
+ring-color=33415e
+ring-ver-color=5ccfe6
+ring-wrong-color=f28779
+inside-color=1f2d3d
+inside-ver-color=1f2d3d
+inside-wrong-color=3d1f1f
+key-hl-color=bae67e
+bs-hl-color=f28779
+text-color=cbccc6
+text-ver-color=5ccfe6
+text-wrong-color=f28779

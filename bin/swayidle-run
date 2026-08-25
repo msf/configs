@@ -1,0 +1,14 @@
+#!/bin/sh
+# Idle/lock daemon for the standalone sway session.
+# Logs every timeout/resume so wake failures can be classified post-hoc.
+# See ~/.config/regolith3/DISPLAY_WAKE_TROUBLESHOOTING.md
+
+LOG="$HOME/.local/state/swayidle.log"
+
+exec swayidle -w \
+    timeout 600 "echo \"\$(date -Is) idle300: lock\" >> $LOG; pgrep -x swaylock || swaylock" \
+    timeout 700 "echo \"\$(date -Is) idle600: power off\" >> $LOG; swaymsg 'output * power off'" \
+        resume   "echo \"\$(date -Is) resume600: power on\" >> $LOG; swaymsg 'output * power on'" \
+    timeout 900 "echo \"\$(date -Is) idle900: suspend check\" >> $LOG; on_ac_power || systemctl suspend" \
+    before-sleep "echo \"\$(date -Is) before-sleep: lock\" >> $LOG; pgrep -x swaylock || swaylock" \
+    after-resume "echo \"\$(date -Is) after-resume: power on\" >> $LOG; swaymsg 'output * power on'"

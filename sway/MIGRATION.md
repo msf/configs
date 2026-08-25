@@ -20,17 +20,17 @@ kanshi profiles, swaylock). This migration evicts the rest.
 - `~/.config/sway/config` — standalone, no trawl/Xresources, literal values.
   Keybinding comments keep the remontoire schema
   (`## Category // Action // Binding ##`) so the shortcut viewer works.
-- `~/.local/bin/sway-shortcuts` — Meta+Shift+? viewer (parses the schema,
-  shows in fuzzel). Replaces ilia/remontoire.
+- `~/bin/sway-shortcuts` — Meta+Shift+? viewer (parses the schema, shows in
+  fuzzel). Replaces ilia/remontoire.
 - `~/.config/fuzzel/fuzzel.ini` — launcher: ayu-mirage colors, Arc icon theme.
 - `~/.config/xdg-desktop-portal/sway-portals.conf` — REQUIRED. Without it no
   Settings/FileChooser portal backend matches a `sway` desktop and every GTK
   app stalls ~20s at launch (this was the "slow startup, feels broken"
   symptom in the first trials). gtk default + wlr for screenshot/screencast.
 - `~/.config/swaylock/config` — lock screen (see wake-troubleshooting doc).
-- Reused unchanged: `~/.config/regolith3/i3status-rust/config.toml` (bar),
-  `~/.config/regolith3/kanshi/config` + profiles, `~/.config/mako/config`,
-  `~/bin/fw13-*` power scripts, `~/bin/display-recover`.
+- Tracked here and linked into `~/.config`: i3status-rust, kanshi profiles,
+  mako, fuzzel, swaylock, and portal configuration.
+- Helper scripts live in `~/bin`; `~/bin` links to `~/configs/bin`.
 
 ## Binding decisions (deltas from Regolith defaults)
 
@@ -94,7 +94,7 @@ Mutations applied (Jun 12):
   done by hand). Keyring left in place. **Packages NOT removed**:
   `sway-regolith` owns `/usr/bin/sway`, so purging waits for the upstream
   `sway` package swap at 26.04 time.
-- swayidle now runs via `~/.local/bin/swayidle-run`, logging every
+- swayidle now runs via `~/bin/swayidle-run`, logging every
   timeout/resume to `~/.local/state/swayidle.log` (incident classification).
 - `bindsym --locked $mod+Shift+o` → `output * power on`: keyboard wake
   rescue; bindings work even when idle-notify drops input. No more SSH for
