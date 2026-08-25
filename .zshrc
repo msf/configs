@@ -56,8 +56,6 @@ alias day='gsettings set org.gnome.desktop.interface color-scheme prefer-light'
 alias night='gsettings set org.gnome.desktop.interface color-scheme prefer-dark'
 
 
-# for sway
-export XKB_DEFAULT_OPTIONS=caps:ctrl
 # firefox on wayland
 export MOZ_ENABLE_WAYLAND=1
 
