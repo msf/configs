@@ -1,5 +1,31 @@
+*dune-sietch*
+
 # SSH: this is a PUBLIC repo. Never track private keys, client config, or
 # known_hosts. Only *.pub may be tracked.
 .ssh/*
 !.ssh/*.pub
 __pycache__/
+
+# Machine-installed binaries and generated output
+.vim/.netrwhist
+bin/Telegram
+bin/build/
+bin/clickhouse
+bin/duckdb
+bin/ectool
+bin/flux
+bin/kubectl
+bin/llama-cli
+bin/llama-server
+bin/nohup.out
+bin/ntn
+bin/rpk
+bin/sim
+bin/sops
+bin/trino
+bin/trino-cli-*
+bin/trufflehog
+bin/tuple
+bin/wazero
+bin/yt-dlp
+bin/zig
