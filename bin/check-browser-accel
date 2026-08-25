@@ -1,0 +1,57 @@
+#!/bin/bash
+# Browser hardware acceleration validator
+
+echo "╔════════════════════════════════════════════╗"
+echo "║  Browser Hardware Acceleration Check      ║"
+echo "╚════════════════════════════════════════════╝"
+
+# Chrome check
+echo ""
+echo "▶ Chrome/Chromium:"
+CHROME_PID=$(pgrep -f "chrome.*ozone-platform" | head -1)
+if [ -n "$CHROME_PID" ]; then
+    echo "  ✓ Running with Wayland (PID: $CHROME_PID)"
+    cmdline=$(tr '\0' ' ' < /proc/$CHROME_PID/cmdline)
+    echo "$cmdline" | grep -q "vulkan" && echo "  ✓ Vulkan flags set" || echo "  ✗ Vulkan flags not found"
+    ls -l /proc/$CHROME_PID/fd/ 2>/dev/null | grep -q "renderD" && echo "  ✓ GPU access (renderD128)" || echo "  ✗ No GPU access"
+else
+    echo "  ✗ Not running or not using Wayland flags"
+    echo "    Launch: google-chrome-wayland.desktop from ilia"
+fi
+
+# Firefox check
+echo ""
+echo "▶ Firefox:"
+FF_PID=$(pgrep -o firefox)
+if [ -n "$FF_PID" ]; then
+    echo "  ✓ Running (PID: $FF_PID)"
+    grep -qz "MOZ_ENABLE_WAYLAND=1" /proc/$FF_PID/environ 2>/dev/null && \
+        echo "  ✓ Wayland enabled" || echo "  ✗ Wayland not enabled"
+    ls -l /proc/$FF_PID/fd/ 2>/dev/null | grep -q "renderD" && \
+        echo "  ✓ GPU access (renderD128)" || echo "  ✗ No GPU access"
+    ls -l /proc/$FF_PID/fd/ 2>/dev/null | grep -q "wayland-cursor" && \
+        echo "  ✓ Wayland native" || echo "  ✗ Not using Wayland"
+else
+    echo "  ✗ Not running"
+    echo "    Launch: firefox-wayland.desktop from ilia"
+fi
+
+# System check
+echo ""
+echo "▶ System:"
+if vulkaninfo --summary 2>&1 | grep -q "AMD Radeon 890M"; then
+    echo "  ✓ Vulkan working (RADV driver)"
+else
+    echo "  ✗ Vulkan not detected"
+fi
+
+if vainfo 2>&1 | grep -q "VAProfileH264.*VAEntrypointEncSlice"; then
+    echo "  ✓ VA-API hardware encode"
+else
+    echo "  ✗ VA-API not working"
+fi
+
+echo ""
+echo "▶ Manual verification:"
+echo "  Chrome:  chrome://gpu  (check 'Vulkan: Enabled')"
+echo "  Firefox: about:support (check 'Window Protocol: wayland')"

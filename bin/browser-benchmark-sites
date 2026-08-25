@@ -1,0 +1,61 @@
+#!/bin/bash
+# Browser performance testing sites
+
+cat << 'EOF'
+╔════════════════════════════════════════════════════════════╗
+║  Browser GPU/Performance Testing Sites                    ║
+╚════════════════════════════════════════════════════════════╝
+
+▶ GPU Rendering Tests:
+  • https://webglsamples.org/aquarium/aquarium.html
+    (WebGL aquarium - adjust fish count, watch FPS)
+
+  • https://get.webgl.org/
+    (Quick WebGL availability check)
+
+  • https://threejs.org/examples/#webgl_animation_skinning_morph
+    (Three.js demos - various 3D scenes)
+
+▶ Video Decode (Hardware Acceleration):
+  • YouTube 4K/8K video
+    Watch with: chrome://media-internals or about:media
+    Look for: "Hardware video decoder"
+
+  • https://www.youtube.com/watch?v=LXb3EKWsInQ
+    (8K HDR test - should use ~10% CPU if HW decode works)
+
+▶ Comprehensive Benchmarks:
+  • https://browserbench.org/Speedometer3.0/
+    (Overall browser performance)
+
+  • https://basemark.com/benchmarks/basemark-web/
+    (GPU + CPU comprehensive test)
+
+▶ Canvas/Rendering:
+  • https://testdrive-archive.azurewebsites.net/performance/fishietank/
+    (HTML5 Fish Tank - classic test)
+
+  • https://www.kevs3d.co.uk/dev/phoria/
+    (3D rendering demos)
+
+▶ Real-time Validation:
+  While testing, monitor in another terminal:
+
+  # Watch GPU usage
+  $ radeontop
+
+  # Watch CPU usage (should be LOW with HW accel)
+  $ htop
+
+  # Check video decoder
+  Chrome: chrome://media-internals
+  Firefox: about:media (less detailed)
+
+▶ What to look for:
+  ✓ High FPS (60+ for GPU tests)
+  ✓ Low CPU usage during video (<15%)
+  ✓ GPU usage spike in radeontop during 3D
+  ✓ No frame drops or stuttering
+  ✓ chrome://gpu shows "Vulkan: Enabled"
+
+EOF
