@@ -1,0 +1,177 @@
+#!/usr/bin/zsh
+# prs: List open PRs with PR number, branch, worktree mapping, and review status
+#
+# Usage:
+#   prs              # all open PRs
+#   prs <filter>     # filter by repo name (regex)
+
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  echo "Usage: prs [filter]"
+  echo "  List your open GitHub PRs with status, diff stats, and worktree mapping."
+  echo ""
+  echo "  filter    Optional regex to filter by repo name (e.g. 'core', 'internal')"
+  echo ""
+  echo "  Shows: PR number, title, review status, +/-  diff stats, branch,"
+  echo "         worktree path (if found under ~/dune/), and GitHub URL."
+  return 0
+fi
+
+local repo_filter="$1"
+local json api_stderr_file api_stderr api_exit
+
+api_stderr_file=$(mktemp)
+json=$(gh api graphql -f query='
+{
+  search(query: "is:pr is:open author:@me", type: ISSUE, first: 100) {
+    nodes {
+      ... on PullRequest {
+        number
+        title
+        url
+        isDraft
+        headRefName
+        reviewDecision
+        additions
+        deletions
+        repository {
+          nameWithOwner
+          name
+        }
+      }
+    }
+  }
+}' 2>"$api_stderr_file")
+api_exit=$?
+api_stderr=$(<"$api_stderr_file")
+rm -f "$api_stderr_file"
+
+if [[ $api_exit -ne 0 || -z "$json" ]]; then
+  echo "Failed to fetch PRs from GitHub API (exit code: $api_exit)"
+  [[ -n "$api_stderr" ]] && echo "  $api_stderr"
+  echo "  Check: gh auth status"
+  return 1
+fi
+
+# Check for GraphQL errors in the response
+local api_errors
+api_errors=$(echo "$json" | jq -r '.errors // empty | .[].message' 2>/dev/null)
+if [[ -n "$api_errors" ]]; then
+  echo "GitHub API returned errors:"
+  echo "$api_errors" | while IFS= read -r err_line; do
+    echo "  $err_line"
+  done
+  return 1
+fi
+
+local nodes
+nodes=$(echo "$json" | jq -r '.data.search.nodes')
+
+if [[ -z "$nodes" || "$nodes" == "[]" || "$nodes" == "null" ]]; then
+  echo "No open PRs found."
+  return 0
+fi
+
+# Colors
+local red=$'\e[31m' green=$'\e[32m' yellow=$'\e[33m' cyan=$'\e[36m'
+local magenta=$'\e[35m' dim=$'\e[2m' bold=$'\e[1m' reset=$'\e[0m'
+
+# Collect unique repo names from PRs to only scan relevant worktree dirs
+local -aU pr_repos
+pr_repos=(${(f)"$(echo "$nodes" | jq -r '.[].repository.name' 2>/dev/null)"})
+
+# Build branch -> worktree path map, only for repos that have PRs
+typeset -A wt_map
+local repo_dir repo_base wt_line wt_path="" wt_branch=""
+for repo_base in "${pr_repos[@]}"; do
+  repo_dir="$HOME/dune/$repo_base"
+  [[ -d "$repo_dir/.git" ]] || continue
+  while IFS= read -r wt_line; do
+    if [[ "$wt_line" == worktree\ * ]]; then
+      wt_path="${wt_line#worktree }"
+    elif [[ "$wt_line" == branch\ * ]]; then
+      wt_branch="${wt_line#branch refs/heads/}"
+      wt_map[${repo_base}:${wt_branch}]="$wt_path"
+    elif [[ -z "$wt_line" ]]; then
+      wt_path="" wt_branch=""
+    fi
+  done < <(git -C "$repo_dir" worktree list --porcelain 2>/dev/null; echo)
+done
+
+# Process PRs with jq, then render with shell for worktree lookup
+local pr_data
+pr_data=$(echo "$nodes" | jq -r --arg filter "$repo_filter" '
+  (if $filter != "" then [.[] | select(.repository.nameWithOwner | test($filter; "i"))] else . end) |
+  if length == 0 then empty
+  else
+    group_by(.repository.nameWithOwner) |
+    sort_by(.[0].repository.nameWithOwner) |
+    .[] | sort_by(.number) | .[] |
+    [
+      .repository.nameWithOwner,
+      .repository.name,
+      (.number | tostring),
+      .title,
+      .headRefName,
+      .url,
+      (if .isDraft then
+         (if .reviewDecision == "APPROVED" then "draft_approved"
+          elif .reviewDecision == "CHANGES_REQUESTED" then "draft_changes_requested"
+          elif .reviewDecision == "REVIEW_REQUIRED" then "draft_review_pending"
+          else "draft" end)
+       elif .reviewDecision == "APPROVED" then "approved"
+       elif .reviewDecision == "CHANGES_REQUESTED" then "changes_requested"
+       elif .reviewDecision == "REVIEW_REQUIRED" then "review_pending"
+       else "no_reviews" end),
+      ((.additions // 0) | tostring),
+      ((.deletions // 0) | tostring)
+    ] | join("\t")
+  end')
+
+if [[ -z "$pr_data" ]]; then
+  echo "No PRs matching filter."
+  return 0
+fi
+
+local current_repo="" repo_full repo_name pr_num title branch url review_st additions deletions
+local status_str diff_str wt_str wt_key wt_short
+while IFS=$'\t' read -r repo_full repo_name pr_num title branch url review_st additions deletions; do
+  # Repo header
+  if [[ "$repo_full" != "$current_repo" ]]; then
+    [[ -n "$current_repo" ]] && echo ""
+    echo "${bold}${repo_full}${reset}"
+    current_repo="$repo_full"
+  fi
+
+  # Status indicator
+  case "$review_st" in
+    draft)                    status_str="${dim}draft${reset}" ;;
+    draft_approved)           status_str="${dim}draft${reset} ${green}approved${reset}" ;;
+    draft_changes_requested)  status_str="${dim}draft${reset} ${red}changes requested${reset}" ;;
+    draft_review_pending)     status_str="${dim}draft${reset} ${yellow}review pending${reset}" ;;
+    approved)                 status_str="${green}approved${reset}" ;;
+    changes_requested)        status_str="${red}changes requested${reset}" ;;
+    review_pending)           status_str="${yellow}review pending${reset}" ;;
+    no_reviews)               status_str="${dim}no reviews${reset}" ;;
+  esac
+
+  # Diff stats
+  diff_str=""
+  if (( additions > 0 || deletions > 0 )); then
+    diff_str=" ${green}+${additions}${reset} ${red}-${deletions}${reset}"
+  fi
+
+  # Worktree mapping
+  wt_str=""
+  wt_key="${repo_name}:${branch}"
+  if [[ -n "${wt_map[$wt_key]}" ]]; then
+    wt_short="${wt_map[$wt_key]/$HOME/~}"
+    wt_str=" ${dim}wt:${reset}${cyan}${wt_short}${reset}"
+  fi
+
+  # PR line: #123 title (status) +10 -5
+  printf "  ${magenta}#%-5s${reset} %s ${dim}(%s)${reset}%s\n" \
+    "$pr_num" "$title" "$status_str" "$diff_str"
+  # Branch + worktree + URL line
+  printf "         ${cyan}%s${reset}%s ${dim}%s${reset}\n" "$branch" "$wt_str" "$url"
+
+done <<< "$pr_data"
