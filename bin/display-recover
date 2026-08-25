@@ -1,0 +1,94 @@
+#!/bin/bash
+# Run over SSH when display is stuck black
+# Usage: ssh miguel@192.168.1.20 display-recover
+# Logs appended to ~/display-recover.log
+
+LOG_FILE="$HOME/display-recover.log"
+LOCKERS="gtklock|swaylock"
+
+export SWAYSOCK=$(find /run/user/$(id -u)/ -name "sway-ipc.*" -print -quit 2>/dev/null)
+if [ -z "$SWAYSOCK" ]; then
+    echo "ERROR: No sway socket found" | tee -a "$LOG_FILE"
+    exit 1
+fi
+
+{
+    echo ""
+    echo "========== $(date -Iseconds) =========="
+
+    echo "=== DPMS state ==="
+    swaymsg -t get_outputs | jq '.[] | {name, dpms, power, active}'
+
+    echo ""
+    echo "=== lock processes (gtklock/swaylock) ==="
+    pgrep -xa "$LOCKERS" || echo "(none)"
+
+    echo ""
+    echo "=== swayidle processes ==="
+    pgrep -a swayidle || echo "(none)"
+
+    echo ""
+    echo "=== configured lock command (trawler) ==="
+    trawlcat wm.program.lock_sway "(trawler unavailable: would fall back to gtklock)" 2>/dev/null
+
+    echo ""
+    echo "=== regolith-init-powerd ==="
+    systemctl --user is-active regolith-init-powerd.service
+    systemctl --user show regolith-init-powerd.service -p MainPID,ActiveEnterTimestamp --value
+
+    echo ""
+    echo "=== idle/lock/display processes (pid ppid elapsed cmd) ==="
+    ps -eo pid,ppid,etime,args \
+        | grep -E 'swayidle|regolith-powerd|kanshi|displayd|gtklock|swaylock' \
+        | grep -vE 'grep|display-recover' | cut -c1-160 || echo "(none)"
+
+    echo ""
+    echo "=== misconfiguration checks ==="
+    if pgrep -a swayidle | grep -q gtklock && ! trawlcat wm.program.lock_sway 2>/dev/null | grep -q swaylock; then
+        echo "WARN: lock path resolves to gtklock (deadlock-prone)"
+    else
+        echo "ok: lock path resolves to swaylock"
+    fi
+    n_lockers=$(pgrep -xc "$LOCKERS")
+    # swaylock -f legitimately shows 2 processes; >2 means stacking
+    [ "$n_lockers" -gt 2 ] && echo "WARN: $n_lockers locker processes (stacking)"
+
+    echo ""
+    echo "=== recent idle/lock journal (last 20 entries) ==="
+    journalctl --user -b --no-pager -n 300 2>/dev/null \
+        | grep -iE 'swayidle|gtklock|swaylock|dpms|session.lock' | tail -20
+
+    echo ""
+    echo "=== recent kernel DRM/GPU errors ==="
+    journalctl -k -b --no-pager -n 1000 2>/dev/null \
+        | grep -iE 'drm|i915|amdgpu' | grep -iE 'error|fail|timeout|hang' | tail -10 \
+        || echo "(none or no permission)"
+
+    echo ""
+    echo "--- Forcing DPMS on ---"
+    swaymsg "output * dpms on"
+    swaymsg "output * power on"
+    sleep 1
+
+    echo ""
+    echo "=== DPMS state after power-on ==="
+    swaymsg -t get_outputs | jq '.[] | {name, dpms, power, active}'
+
+    echo ""
+    echo "--- Locker handling ---"
+    # gtklock (input-inhibitor): killing it is the rescue for the old deadlock.
+    if pkill -x gtklock 2>/dev/null; then echo "killed gtklock"; fi
+    # swaylock (ext-session-lock): NEVER kill it. If the session is locked but
+    # swaylock died, sway shows a solid red screen and eats all input; the
+    # rescue is to spawn a fresh swaylock so it takes over the lock.
+    if ! pgrep -x swaylock >/dev/null 2>&1; then
+        echo "no swaylock running; spawning one in case session is in dead-locker limbo (red screen)"
+        swaymsg 'exec swaylock' >/dev/null && echo "spawned swaylock — type password on the laptop to unlock"
+    else
+        echo "swaylock alive; leaving it alone — type password on the laptop"
+    fi
+
+    echo ""
+    echo "=== DPMS state after recovery ==="
+    swaymsg -t get_outputs | jq '.[] | {name, dpms, power, active}'
+} 2>&1 | tee -a "$LOG_FILE"
