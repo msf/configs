@@ -282,7 +282,7 @@
       backend = "podman";
       containers = {
         kostal2influx = {
-          image = "ghcr.io/msf/kostal2influx:v0.6";
+          image = "ghcr.io/msf/kostal2influx:v0.9";
           user = "nobody:nogroup";
           extraOptions = ["--network=host"];
           environment = {
