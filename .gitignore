@@ -1,5 +1,3 @@
-lazy-lock.json
-
 # SSH: this is a PUBLIC repo. Never track private keys, client config, or
 # known_hosts. Only *.pub may be tracked.
 .ssh/*
