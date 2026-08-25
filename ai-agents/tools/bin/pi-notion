@@ -1,0 +1,305 @@
+#!/usr/bin/env python3
+"""Small Notion CLI for pi. Uses only the stdlib and the official Notion HTTP API."""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from typing import Any
+
+NOTION_VERSION = os.environ.get("NOTION_VERSION", "2022-06-28")
+TOKEN_CANDIDATES = [
+    ("NOTION_TOKEN", os.environ.get("NOTION_TOKEN")),
+    ("NOTION_API_KEY", os.environ.get("NOTION_API_KEY")),
+]
+TOKEN_FILES = [
+    os.environ.get("NOTION_TOKEN_FILE"),
+    os.path.expanduser("~/.config/pi-workspace/notion.token"),
+]
+
+
+def die(message: str, code: int = 1) -> None:
+    print(f"pi-notion: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def read_token() -> tuple[str, str]:
+    for source, value in TOKEN_CANDIDATES:
+        if value:
+            return value.strip(), source
+    for path in TOKEN_FILES:
+        if not path:
+            continue
+        path = os.path.expanduser(path)
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                value = f.read().strip()
+            if value:
+                return value, path
+    die(
+        "missing token. Set NOTION_TOKEN or create ~/.config/pi-workspace/notion.token "
+        "with a Notion internal integration secret. Invite that integration to pages/databases first."
+    )
+
+
+def notion_request(method: str, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    token, _ = read_token()
+    data = None if body is None else json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(
+        f"https://api.notion.com/v1/{path.lstrip('/')}",
+        data=data,
+        method=method,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Notion-Version": NOTION_VERSION,
+            "Content-Type": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", errors="replace")
+        die(f"Notion API {e.code} for {method} {path}: {detail}")
+    except urllib.error.URLError as e:
+        die(f"Notion API request failed: {e}")
+
+
+def normalize_id(value: str) -> str:
+    value = value.strip()
+    compact = value.replace("-", "")
+    if re.fullmatch(r"[0-9a-fA-F]{32}", compact):
+        return compact
+    match = re.search(r"([0-9a-fA-F]{32})", value.replace("-", ""))
+    if match:
+        return match.group(1)
+    return value
+
+
+def plain_rich_text(items: list[dict[str, Any]] | None) -> str:
+    return "".join(i.get("plain_text") or i.get("text", {}).get("content", "") for i in (items or []))
+
+
+def title_of(obj: dict[str, Any]) -> str:
+    if obj.get("object") == "database":
+        return plain_rich_text(obj.get("title")) or "(untitled database)"
+    props = obj.get("properties") or {}
+    for prop in props.values():
+        if prop.get("type") == "title":
+            title = plain_rich_text(prop.get("title"))
+            if title:
+                return title
+    for key in ("Name", "Title"):
+        prop = props.get(key)
+        if prop and prop.get("type") in ("title", "rich_text"):
+            title = plain_rich_text(prop.get(prop["type"]))
+            if title:
+                return title
+    return "(untitled page)"
+
+
+def block_text(block: dict[str, Any]) -> str:
+    typ = block.get("type", "unsupported")
+    data = block.get(typ) or {}
+    if typ in {"paragraph", "heading_1", "heading_2", "heading_3", "quote", "callout"}:
+        return plain_rich_text(data.get("rich_text"))
+    if typ in {"bulleted_list_item", "numbered_list_item", "to_do", "toggle"}:
+        return plain_rich_text(data.get("rich_text"))
+    if typ == "code":
+        return plain_rich_text(data.get("rich_text"))
+    if typ in {"child_page", "child_database"}:
+        return data.get("title", "")
+    return ""
+
+
+def render_block(block: dict[str, Any], indent: int = 0) -> list[str]:
+    typ = block.get("type", "unsupported")
+    data = block.get(typ) or {}
+    text = block_text(block)
+    pad = "  " * indent
+    if typ == "paragraph":
+        return [pad + text] if text else []
+    if typ == "heading_1":
+        return [pad + "# " + text]
+    if typ == "heading_2":
+        return [pad + "## " + text]
+    if typ == "heading_3":
+        return [pad + "### " + text]
+    if typ == "bulleted_list_item":
+        return [pad + "- " + text]
+    if typ == "numbered_list_item":
+        return [pad + "1. " + text]
+    if typ == "to_do":
+        return [pad + ("- [x] " if data.get("checked") else "- [ ] ") + text]
+    if typ == "toggle":
+        return [pad + "<toggle> " + text]
+    if typ == "quote":
+        return [pad + "> " + text]
+    if typ == "callout":
+        return [pad + "> [callout] " + text]
+    if typ == "code":
+        lang = data.get("language") or ""
+        return [pad + f"```{lang}", text, pad + "```"]
+    if typ == "divider":
+        return [pad + "---"]
+    if typ == "child_page":
+        return [pad + f"- child page: {text} ({block.get('id')})"]
+    if typ == "child_database":
+        return [pad + f"- child database: {text} ({block.get('id')})"]
+    if typ in {"image", "file", "pdf", "video", "bookmark", "embed", "link_preview"}:
+        url = data.get("url") or data.get("external", {}).get("url") or data.get("file", {}).get("url") or ""
+        return [pad + f"[{typ}] {url}".rstrip()]
+    if typ == "unsupported":
+        return []
+    return [pad + f"[{typ}] {text}".rstrip()]
+
+
+def get_block_children(block_id: str) -> list[dict[str, Any]]:
+    children: list[dict[str, Any]] = []
+    cursor = None
+    while True:
+        query = {"page_size": "100"}
+        if cursor:
+            query["start_cursor"] = cursor
+        path = f"blocks/{normalize_id(block_id)}/children?{urllib.parse.urlencode(query)}"
+        res = notion_request("GET", path)
+        children.extend(res.get("results", []))
+        if not res.get("has_more"):
+            return children
+        cursor = res.get("next_cursor")
+
+
+def render_children(block_id: str, depth: int, indent: int = 0) -> list[str]:
+    lines: list[str] = []
+    for block in get_block_children(block_id):
+        lines.extend(render_block(block, indent))
+        if depth > 0 and block.get("has_children"):
+            lines.extend(render_children(block["id"], depth - 1, indent + 1))
+    return lines
+
+
+def cmd_status(args: argparse.Namespace) -> None:
+    token, source = read_token()
+    print(f"token: {source} ({len(token)} bytes)")
+    print(f"notion_version: {NOTION_VERSION}")
+    if args.check:
+        me = notion_request("GET", "users/me")
+        print(json.dumps({"bot_id": me.get("bot", {}).get("owner", {}).get("workspace"), "name": me.get("name"), "type": me.get("type")}, indent=2))
+
+
+def cmd_search(args: argparse.Namespace) -> None:
+    payload: dict[str, Any] = {"query": args.query, "page_size": min(args.limit, 100)}
+    if args.type:
+        payload["filter"] = {"property": "object", "value": args.type}
+    results: list[dict[str, Any]] = []
+    while len(results) < args.limit:
+        payload["page_size"] = min(100, args.limit - len(results))
+        res = notion_request("POST", "search", payload)
+        results.extend(res.get("results", []))
+        if not res.get("has_more"):
+            break
+        payload["start_cursor"] = res.get("next_cursor")
+    if args.json:
+        print(json.dumps(results, indent=2))
+        return
+    for obj in results:
+        print(f"{obj.get('object')}\t{obj.get('id')}\t{title_of(obj)}\t{obj.get('url', '')}\t{obj.get('last_edited_time', '')}")
+
+
+def cmd_page(args: argparse.Namespace) -> None:
+    page_id = normalize_id(args.page)
+    page = notion_request("GET", f"pages/{page_id}")
+    if args.json:
+        out: dict[str, Any] = {"page": page}
+        if args.blocks:
+            out["blocks"] = get_block_children(page_id)
+        print(json.dumps(out, indent=2))
+        return
+    print(f"# {title_of(page)}")
+    print(f"id: {page.get('id')}")
+    if page.get("url"):
+        print(f"url: {page['url']}")
+    if page.get("last_edited_time"):
+        print(f"last_edited: {page['last_edited_time']}")
+    print()
+    print("\n".join(render_children(page_id, args.depth)).strip())
+
+
+def cmd_blocks(args: argparse.Namespace) -> None:
+    if args.json:
+        print(json.dumps(get_block_children(args.block), indent=2))
+        return
+    print("\n".join(render_children(args.block, args.depth)).strip())
+
+
+def cmd_database_query(args: argparse.Namespace) -> None:
+    body: dict[str, Any] = {"page_size": min(args.limit, 100)}
+    if args.filter_json:
+        body["filter"] = json.loads(args.filter_json)
+    if args.sorts_json:
+        body["sorts"] = json.loads(args.sorts_json)
+    results: list[dict[str, Any]] = []
+    while len(results) < args.limit:
+        body["page_size"] = min(100, args.limit - len(results))
+        res = notion_request("POST", f"databases/{normalize_id(args.database)}/query", body)
+        results.extend(res.get("results", []))
+        if not res.get("has_more"):
+            break
+        body["start_cursor"] = res.get("next_cursor")
+    if args.json:
+        print(json.dumps(results, indent=2))
+        return
+    for page in results:
+        print(f"page\t{page.get('id')}\t{title_of(page)}\t{page.get('url', '')}\t{page.get('last_edited_time', '')}")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description="Notion CLI for pi (search, read pages/blocks, query databases).")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    s = sub.add_parser("status", help="Show token source; use --check to call users/me")
+    s.add_argument("--check", action="store_true")
+    s.set_defaults(func=cmd_status)
+
+    s = sub.add_parser("search", help="Search pages/databases visible to the integration")
+    s.add_argument("query")
+    s.add_argument("--limit", type=int, default=10)
+    s.add_argument("--type", choices=["page", "database"])
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_search)
+
+    s = sub.add_parser("page", help="Render a Notion page as compact markdown-ish text")
+    s.add_argument("page", help="page id or URL")
+    s.add_argument("--depth", type=int, default=2, help="child block recursion depth")
+    s.add_argument("--blocks", action="store_true", help="include first-level blocks with --json")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_page)
+
+    s = sub.add_parser("blocks", help="Render block children")
+    s.add_argument("block", help="block/page id or URL")
+    s.add_argument("--depth", type=int, default=2)
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_blocks)
+
+    s = sub.add_parser("database-query", help="Query a Notion database")
+    s.add_argument("database", help="database id or URL")
+    s.add_argument("--limit", type=int, default=20)
+    s.add_argument("--filter-json", help="Notion filter JSON")
+    s.add_argument("--sorts-json", help="Notion sorts JSON array")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_database_query)
+    return p
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

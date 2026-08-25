@@ -8,7 +8,7 @@ Do not pad the report. If a section is empty, omit it unless it communicates an 
 
 ```text
 PR #<n> - <title>
-- Context: <PR | Linear MCP | dune-explore | coding | go-development | CI logs | ...>
+- Context: <PR | Linear | dune-explore | coding | go-development | CI logs | ...>
 - Verdict: <approved | approved, with suggestions | changes requested | significant issues>
 
 My suggestion is: <approve | approve with suggestions | request changes | leave comments only>

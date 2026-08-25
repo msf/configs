@@ -1,37 +1,16 @@
 #!/usr/bin/env bash
-# track.sh [--private] <path>  — start tracking a new file or directory.
-#
-# Default: `mirror` entry in the public tree ($ROOT/home/<rel>).
-# --private: `pmirror` entry in the private repo ($PRIVATE_DIR/home/<rel>).
-#   Use --private for anything with internal endpoints, org/team identity,
-#   schemas, or infra topology. Filenames may still appear in the public
-#   manifest — contents never do.
-#
-# <path> can be absolute (under $HOME) or relative to $HOME.
-# Steps (all idempotent-friendly, backs up before moving):
-#   1. Compute target path under the chosen mirror root
-#   2. Backup $HOME/<rel>
-#   3. Move $HOME/<rel> into the mirror
-#   4. Symlink it back
-#   5. Append manifest entry if not already present
-#
-# Usage:
-#   tools/track.sh ~/.pi/agent/extensions/foo.ts
-#   tools/track.sh --private ~/.config/some-internal.conf
+# track.sh [--private] <path> — start tracking a new managed path.
 set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-KIND=mirror
-MIRROR_ROOT=$HOME_MIRROR
+PRIVATE=0
 if [ "${1:-}" = --private ]; then
-	KIND=pmirror
-	MIRROR_ROOT=$PRIVATE_MIRROR
+	PRIVATE=1
 	shift
 fi
 [ $# -eq 1 ] || die "usage: tools/track.sh [--private] <path>"
 input=$1
 
-# Normalize to a path relative to $HOME.
 case "$input" in
 	/*)
 		case "$input" in
@@ -43,32 +22,72 @@ case "$input" in
 esac
 
 h=$HOME/$rel
-r=$MIRROR_ROOT/$rel
-
 [ -e "$h" ] || [ -L "$h" ] || die "no such path: $h"
 [ -L "$h" ] && die "already a symlink: $h"
 
-if grep -qE "^[[:space:]]*p?mirror[[:space:]]+${rel//\//\\/}([[:space:]]|$)" "$MANIFEST"; then
+kind=mirror
+target=$HOME_MIRROR/$rel
+manifest_target=
+
+if [ "$PRIVATE" = 1 ]; then
+	kind=pmirror
+	target=$PRIVATE_MIRROR/$rel
+	case "$rel" in
+		.pi/agent/skills/*)
+			suffix=${rel#.pi/agent/skills/}
+			kind=prepo; manifest_target=skills/$suffix; target=$PRIVATE_DIR/$manifest_target ;;
+		.pi/agent/agents/*)
+			suffix=${rel#.pi/agent/agents/}
+			kind=prepo; manifest_target=agents/pi/$suffix; target=$PRIVATE_DIR/$manifest_target ;;
+		.pi/agent/extensions/*)
+			suffix=${rel#.pi/agent/extensions/}
+			kind=prepo; manifest_target=tools/extensions/$suffix; target=$PRIVATE_DIR/$manifest_target ;;
+		.pi/agent/lessons.md)
+			kind=prepo; manifest_target=lessons.md; target=$PRIVATE_DIR/$manifest_target ;;
+	esac
+else
+	case "$rel" in
+		.pi/agent/skills/*)
+			suffix=${rel#.pi/agent/skills/}
+			kind=repo; manifest_target=ai-agents/skills/$suffix; target=$REPO_DIR/$manifest_target ;;
+		.pi/agent/agents/*)
+			suffix=${rel#.pi/agent/agents/}
+			kind=repo; manifest_target=ai-agents/agents/pi/$suffix; target=$REPO_DIR/$manifest_target ;;
+		.pi/agent/prompts/*)
+			suffix=${rel#.pi/agent/prompts/}
+			kind=repo; manifest_target=ai-agents/commands/$suffix; target=$REPO_DIR/$manifest_target ;;
+		.pi/agent/extensions/*)
+			suffix=${rel#.pi/agent/extensions/}
+			kind=repo; manifest_target=ai-agents/tools/extensions/$suffix; target=$REPO_DIR/$manifest_target ;;
+		.pi/agent/bin/*)
+			suffix=${rel#.pi/agent/bin/}
+			kind=repo; manifest_target=ai-agents/tools/bin/$suffix; target=$REPO_DIR/$manifest_target ;;
+	esac
+fi
+
+escaped_rel=${rel//\//\/}
+manifest_pattern="^[[:space:]]*(mirror|pmirror|repo|prepo|home)[[:space:]]+${escaped_rel}([[:space:]]|$)"
+if grep -qE "$manifest_pattern" "$MANIFEST"; then
 	warn "already in manifest: $rel"
 fi
 
-run mkdir -p -- "$(dirname "$r")"
-if [ -e "$r" ] || [ -L "$r" ]; then
-	backup "$r"
-	run rm -rf -- "$r"
+run mkdir -p -- "$(dirname "$target")"
+if [ -e "$target" ] || [ -L "$target" ]; then
+	backup "$target"
+	run rm -rf -- "$target"
 fi
 backup "$h"
-run mv -- "$h" "$r"
-run ln -s -- "$r" "$h"
+run mv -- "$h" "$target"
+run ln -s -- "$target" "$h"
 
-if ! grep -qE "^[[:space:]]*p?mirror[[:space:]]+${rel//\//\\/}([[:space:]]|$)" "$MANIFEST"; then
-	printf '%s  %s\n' "$KIND" "$rel" >> "$MANIFEST"
-	log "manifest: appended  $KIND  $rel"
+if ! grep -qE "$manifest_pattern" "$MANIFEST"; then
+	if [ -n "$manifest_target" ]; then
+		printf '%-7s %s  %s\n' "$kind" "$rel" "$manifest_target" >> "$MANIFEST"
+	else
+		printf '%-7s %s\n' "$kind" "$rel" >> "$MANIFEST"
+	fi
+	log "manifest: appended $kind $rel${manifest_target:+ $manifest_target}"
 fi
 
-log "tracked: $h  →  $r"
-if [ "$KIND" = pmirror ]; then
-	log "next:    git -C $PRIVATE_DIR add home/$rel   # and commit the manifest in the public repo"
-else
-	log "next:    git -C $REPO_DIR add ${ROOT_DIR#$REPO_DIR/}/home/$rel ${ROOT_DIR#$REPO_DIR/}/tools/manifest.txt"
-fi
+log "tracked: $h → $target"
+log "next: commit $target and $MANIFEST in their owning repositories"

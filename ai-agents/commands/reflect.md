@@ -29,7 +29,7 @@ How the user could be more effective:
 - Useful context to provide proactively
 
 ### 5. Deep analysis: contrast with existing rules
-Read `~/.claude/lessons.md` and `~/.claude/CLAUDE.md` before presenting findings.
+Read `~/.pi/agent/lessons.md` and `~/.pi/agent/AGENTS.md` before presenting findings.
 
 For each mistake or correction found in steps 1-4, check:
 - Does a rule or principle ALREADY exist that should have prevented this?
@@ -46,4 +46,4 @@ The goal is to go one level deeper than "here's what went wrong." The question i
 
 Present findings concisely. Each rule must be specific enough to guide future behavior — no vague observations.
 
-After discussion with the user, append agreed-upon lessons to `~/.claude/lessons.md` under the Raw section with today's date as `[YYYY-MM-DD]` timestamps.
+After discussion with the user, append agreed-upon lessons to `~/.pi/agent/lessons.md` under the Raw section with today's date as `[YYYY-MM-DD]` timestamps.

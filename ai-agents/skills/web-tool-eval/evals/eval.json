@@ -1,0 +1,191 @@
+{
+  "name": "web-tool-routing 15-case eval",
+  "executor": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5",
+    "thinking": "high",
+    "runs_per_case": 1
+  },
+  "cases": [
+    {
+      "id": "search-current-go-release",
+      "category": "natural-search",
+      "prompt": "Search online for the latest stable Go release. Report its version and release date, and link the official Go source you actually read.",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "The agent retrieves an official go.dev source rather than answering only from memory or search snippets.",
+        "The version and date are supported by the retrieved official source, with a link.",
+        "No more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "search-postgres-nulls-not-distinct",
+      "category": "natural-search",
+      "prompt": "Look online for the official PostgreSQL documentation for NULLS NOT DISTINCT. Explain what it changes for a unique constraint and link the official page you read.",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "The agent retrieves official postgresql.org documentation.",
+        "The explanation is supported by retrieved text and links the page read.",
+        "No more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "search-exact-quote-discovery",
+      "category": "natural-search",
+      "prompt": "Search online for the exact sentence ‘My guess is you have an actual memory leak’ and identify the upstream project and issue where it appears. Explain the surrounding technical context and link the authoritative page you actually read.",
+      "max_network_attempts": 5,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "The agent uses a search or discovery endpoint before opening the authoritative target rather than claiming a remembered source.",
+        "The identified project, issue, and surrounding context are supported by the retrieved authoritative page.",
+        "The evidence is linked and no more than five network attempts are made."
+      ]
+    },
+    {
+      "id": "github-search-issue",
+      "category": "github",
+      "prompt": "Search online for Trino issue 13660 about ZGC allocation stalls. Summarize the reported symptom, the suspected cause, and any workaround or resolution. Include links to the evidence you actually read.",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "Usable content is retrieved from the relevant public GitHub issue or an authoritative GitHub endpoint.",
+        "The answer distinguishes symptom, suspected cause, and workaround or resolution without inventing missing evidence.",
+        "Evidence is linked and no more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "github-blob-read",
+      "category": "github",
+      "prompt": "Read https://github.com/delta-io/delta-rs/blob/main/docs/usage/read-cdf.md and explain the documented Python methods for reading a Delta change data feed. Link the source you read.",
+      "max_network_attempts": 3,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "The GitHub file is acquired through raw content, an API, or another usable authoritative route.",
+        "The methods reported are present in the retrieved file and the source is linked.",
+        "No more than three network attempts are made."
+      ]
+    },
+    {
+      "id": "github-repository-search",
+      "category": "github",
+      "prompt": "Search GitHub for Bytebase's PostgreSQL parser implementation. Identify the repository directory containing it and the repository's license, linking the GitHub pages or raw files you actually read.",
+      "max_network_attempts": 5,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "The agent performs GitHub discovery rather than claiming a remembered path without retrieval.",
+        "The reported parser directory and license are supported by authoritative repository content and linked.",
+        "No more than five network attempts are made."
+      ]
+    },
+    {
+      "id": "huggingface-api-metadata",
+      "category": "api-raw",
+      "prompt": "Search online for the official Hugging Face metadata for Qwen/Qwen3-8B. Report its pipeline tag, library name, license, and last-modified timestamp, and link the official records you read.",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "The Hugging Face API or another official machine-readable endpoint is used instead of repeated rendered-page browsing.",
+        "Each reported field is present in retrieved official data; absent fields are identified rather than guessed.",
+        "The official record is linked and no more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "huggingface-catalog-search",
+      "category": "api-raw",
+      "prompt": "Search Hugging Face's model catalog for the three most-downloaded text-generation models owned by Qwen. Report their model IDs and download counts exactly as returned, and link the official API query you read.",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "An official Hugging Face API query filters by owner and text-generation pipeline and sorts by downloads.",
+        "Exactly three model IDs and download counts are reported from the retrieved API response without guessing or silently changing filters.",
+        "The API query is linked and no more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "raw-github-jvm-config",
+      "category": "api-raw",
+      "prompt": "Read https://raw.githubusercontent.com/trinodb/trino/master/core/docker/default/etc/jvm.config. List the garbage-collector-related options present in the file and link the source you read.",
+      "max_network_attempts": 2,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "The raw file is fetched directly without using a rendered browser page.",
+        "The reported options occur in the retrieved raw file and the source is linked.",
+        "No more than two network attempts are made."
+      ]
+    },
+    {
+      "id": "shimano-official-specs",
+      "category": "rendered-blocked",
+      "prompt": "Read Shimano's official BR-MT520 product information and tell me the specified brake hose and recommended compatible brake lever. Cite the official evidence you actually read; if it cannot be acquired, say so rather than guessing. Official product URL: https://bike.shimano.com/en-US/product/component/shimano/BR-MT520.html",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "Official Shimano evidence is acquired, or inability to acquire it is stated after bounded fallback attempts.",
+        "Hose and lever compatibility are not inferred from memory, retailer snippets, or blocked/error pages.",
+        "No blocked/error page is treated as evidence and no more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "decathlon-support-read",
+      "category": "rendered-blocked",
+      "prompt": "Use official Decathlon sources to identify the stock brake model and any explicitly stated front and rear rotor sizes for the Velocargo R500 E. Start with the support page below. If that page does not state the details, inspect at least one official Decathlon manual or PDF linked from it before concluding they are absent. Report exactly which official sources you read. URL: https://support.decathlon.pt/bicicleta-velocargo-r500-e",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "The support page is acquired and, when it lacks the requested details, at least one linked official Decathlon manual or PDF is inspected before concluding they are absent.",
+        "Brake model and rotor sizes are reported only when explicitly supported by acquired official content, with every inspected source linked.",
+        "No blocked/error page is treated as evidence and no more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "reddit-block-handling",
+      "category": "rendered-blocked",
+      "prompt": "Read this Reddit post and tell me what travel disruption it reports and whether the comments add firsthand confirmation. Cite only content you actually retrieve: https://www.reddit.com/r/LisbonPortugalTravel/comments/strike_dec_12_15_airport_flights_leaving_lisbon/",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "A browser-capable route is attempted for Reddit.",
+        "If Reddit blocks access, the answer says the content was not acquired and does not reconstruct it from snippets or memory.",
+        "No challenge/block page is treated as evidence and no more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "medium-block-handling",
+      "category": "rendered-blocked",
+      "prompt": "Read this Medium article and summarize its main claim and concrete recommendations. Cite only article content you actually retrieve: https://medium.com/simon-systems/your-kubernetes-autoscaler-is-killing-your-workloads-and-youre-paying-extra-for-it-6ddcf0e8a807",
+      "max_network_attempts": 4,
+      "expectations": [
+        "The routing skill is loaded before the first network attempt.",
+        "A browser-capable route is attempted for Medium unless a cheaper route already returns the full article.",
+        "The summary and recommendations are supported by acquired article content; blocked access is reported instead of guessed around.",
+        "No challenge/block page is treated as evidence and no more than four network attempts are made."
+      ]
+    },
+    {
+      "id": "negative-url-concept",
+      "category": "negative-control",
+      "prompt": "Without looking anything up, explain in two sentences how a URL differs from a URI. Do not use any tools.",
+      "max_network_attempts": 0,
+      "expectations": [
+        "No network attempt or other tool call is made.",
+        "The web routing skill is not loaded for a conceptual question that explicitly forbids lookup.",
+        "The response answers the conceptual question directly in no more than two sentences.",
+        "No files or external state are modified."
+      ]
+    },
+    {
+      "id": "negative-local-code-search",
+      "category": "negative-control",
+      "prompt": "In the local files under /home/miguel/configs, find where the browser_read_url tool is registered and report the source file path and registration call. Do not search online.",
+      "max_network_attempts": 0,
+      "expectations": [
+        "No network attempt is made.",
+        "The web routing skill need not be loaded for this explicitly local task.",
+        "The answer identifies the local extension source and registration call from files actually read.",
+        "No files or external state are modified."
+      ]
+    }
+  ]
+}

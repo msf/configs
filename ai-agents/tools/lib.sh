@@ -47,6 +47,17 @@ backup() {
 		*)         rel=$p ;;
 	esac
 	local bak=$BACKUP_ROOT/$TS/$rel
+	local parent
+	parent=$(dirname "$bak")
+	while [ "$parent" != "$BACKUP_ROOT/$TS" ] && [ "$parent" != / ]; do
+		if [ -L "$parent" ]; then
+			# A parent manifest entry was backed up as a symlink. Store nested
+			# overlays separately instead of trying to create files through it.
+			bak=$BACKUP_ROOT/$TS/overlays/$rel
+			break
+		fi
+		parent=$(dirname "$parent")
+	done
 	if [ -e "$bak" ] || [ -L "$bak" ]; then return 0; fi
 	run mkdir -p -- "$(dirname "$bak")"
 	# cp -a preserves symlinks-as-symlinks, perms, timestamps

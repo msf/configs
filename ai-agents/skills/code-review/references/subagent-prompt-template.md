@@ -6,6 +6,11 @@ When invoking the `code-reviewer` subagent, inject this context into the prompt.
 Review <repo> PR #<number>.
 Local path: <local-path>
 Base branch: <base-branch>
+Hard deadline: <absolute-deadline>, no more than 10 minutes after launch.
+
+## Coordination deadline
+
+The parent enforces the hard deadline externally. Stop exploration early enough to return the best high-confidence findings before it. If the complete review cannot fit, report the unchecked areas under `Unverified`; do not keep exploring past the deadline. Do not run builds or tests unless the task explicitly requests them and includes them within this same budget.
 
 ## Review stance
 
@@ -13,9 +18,11 @@ This is a bar-raiser self-review. Be skeptical until proven shippable. Run simpl
 
 ## Coding guidelines
 
-<Paste the content of the `coding` skill here — the subagent cannot load skills.>
+Read these skill files in full before reviewing:
+- `~/.pi/agent/skills/coding/SKILL.md`
+- <each relevant language/domain skill path, for example `~/.pi/agent/skills/go-development/SKILL.md`>
 
-<If language-specific skill was loaded (e.g. go-development), paste its content here too.>
+Treat those files as review policy. If a path is unavailable, report the missing guideline instead of guessing.
 
 <If Linear ticket was found>
 ## Linear context

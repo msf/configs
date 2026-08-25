@@ -1,7 +1,6 @@
 ---
 name: coding
 description: Language-agnostic coding principles for writing and reviewing code. Covers simplicity, naming, types, error handling, boundaries, and testing fundamentals. Use as the foundation when writing, reviewing, or discussing code quality in any language.
-compatibility: opencode
 ---
 
 ## Simplicity

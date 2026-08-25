@@ -1,7 +1,6 @@
 ---
 name: go-development
 description: Go-specific coding practices, architecture, testing, and Makefile workflows for service and library repositories. Builds on the language-agnostic `coding` skill. Use when writing, reviewing, or discussing Go code.
-compatibility: opencode
 ---
 
 Load the `coding` skill first for language-agnostic principles (simplicity, naming, errors, boundaries, tests). Everything below is Go-specific.

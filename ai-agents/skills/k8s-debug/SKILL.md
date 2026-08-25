@@ -1,7 +1,6 @@
 ---
 name: k8s-debug
 description: Navigate and diagnose Kubernetes problems across clusters, namespaces, workloads, and GitOps sources. Use this whenever the user mentions `kubectl`, pods, deployments, Flux, Helm, ingress, DNS, crash loops, pending workloads, or wants to map a live object back to code under `~/dune/`.
-compatibility: opencode
 ---
 
 ## What I do

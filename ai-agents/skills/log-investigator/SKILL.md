@@ -1,7 +1,6 @@
 ---
 name: log-investigator
 description: Investigate application failures from logs in local processes, containers, and Kubernetes. Use this whenever the user mentions logs, `stern`, `kubectl logs`, error bursts, missing traces, or wants to correlate a failure across services or repos under `~/dune/`, especially when the owning repo or worktree is unclear.
-compatibility: opencode
 ---
 
 ## What I do

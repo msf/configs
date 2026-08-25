@@ -1,28 +1,27 @@
 ---
 name: reflect
-description: Autonomous self-improvement ritual. Compact raw corrections into generalizable principles, prune stale entries, check compliance, and evaluate the learning system itself.
-compatibility: opencode
+description: Compact raw corrections into generalizable principles, prune stale entries, check compliance, and evaluate the learning system. Use only when the user invokes /skill:reflect or explicitly asks to reflect.
 ---
 
 ## What this is
 
-This is the compaction pass over the lessons journal — not a collaborative session review (that's the `/reflect` command). It runs **only when asked**. The human should see a brief summary of what changed, not a lengthy report.
+This is Pi's deliberate self-improvement ritual. It runs only when the user invokes it; ordinary startup must not mutate instruction or lesson files. The user should see a brief summary of what changed, not a lengthy report.
 
 ## What I do
-- Compact raw corrections in `~/.claude/lessons.md` into generalizable principles.
+- Compact raw corrections in `~/.pi/agent/lessons.md` into generalizable principles.
 - Prune stale or project-specific trivia that doesn't transfer across contexts.
 - Identify compliance gaps: are recent mistakes violations of known principles?
 - Evaluate the learning system itself: is the structure working? Are principles actionable?
 
 ## When to trigger
-On explicit request only. Never at session start, never on a count or date threshold —
-the journal is append-only and compaction is a deliberate act, not a chore.
+
+Only after `/skill:reflect` or an explicit request to reflect. The date and raw-entry count are signals to mention during a weekly review, not authority to run or mutate files autonomously.
 
 ## Workflow
 
 ### 1. Read and assess
-- Read `~/.claude/lessons.md` fully.
-- Read `~/.claude/CLAUDE.md` to know what's already encoded as hard rules.
+- Read `~/.pi/agent/lessons.md` fully.
+- Read `~/.pi/agent/AGENTS.md` to know what's already encoded as hard rules.
 - Count raw entries. Note their dates and themes.
 - Are any existing principles stale, redundant, or too vague?
 
@@ -55,7 +54,7 @@ Ask yourself:
 - Is the `/reflect` command producing deep enough analysis, or is the user having to push for a second pass?
 
 ### 6. Write back
-- Update `~/.claude/lessons.md` with the compacted result.
+- Update `~/.pi/agent/lessons.md` with the compacted result.
 - Update `last_reflected` date to today.
 - Keep the file structure: `last_reflected` comment, Principles section, then Raw section.
 - Principles use `[YYYY-MM]` timestamps. Raw entries use `[YYYY-MM-DD]`.
@@ -73,4 +72,4 @@ Show the user a brief summary (3-5 lines):
 - Keep the total principles list under ~15. Beyond that, merge or promote.
 - Raw entries older than 30 days that haven't been compacted: force-evaluate. Generalize or discard.
 - If promoting a rule to AGENTS.md, actually edit the file — don't just suggest it.
-- This is not a conversation. Do the work, show the summary, move on to the user's actual task.
+- Invocation authorizes the reflection edits described here, not unrelated changes. Do the work, show the summary, and stop.

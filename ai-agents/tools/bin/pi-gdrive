@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+"""Thin Google Drive CLI for pi, backed by rclone."""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from typing import Any
+
+DEFAULT_REMOTE = os.environ.get("PI_GDRIVE_REMOTE", "gdrive")
+TEXT_FORMATS = {"txt", "text", "md", "markdown", "csv", "tsv", "html"}
+
+
+def die(message: str, code: int = 1) -> None:
+    print(f"pi-gdrive: {message}", file=sys.stderr)
+    raise SystemExit(code)
+
+
+def require_rclone() -> None:
+    if not shutil.which("rclone"):
+        die("rclone is not installed or not on PATH")
+
+
+def run(args: list[str], capture: bool = True, check: bool = True) -> subprocess.CompletedProcess[str]:
+    require_rclone()
+    proc = subprocess.run(args, text=True, capture_output=capture)
+    if check and proc.returncode != 0:
+        stderr = (proc.stderr or "").strip()
+        stdout = (proc.stdout or "").strip()
+        die(f"command failed: {' '.join(args)}\n{stderr or stdout}")
+    return proc
+
+
+def list_remotes() -> list[str]:
+    proc = run(["rclone", "listremotes"], check=False)
+    return [line.rstrip(":") for line in proc.stdout.splitlines() if line.strip()]
+
+
+def remote_spec(path: str | None = None, remote: str = DEFAULT_REMOTE) -> str:
+    path = (path or "").strip()
+    if ":" in path.split("/", 1)[0]:
+        return path
+    return f"{remote}:{path}"
+
+
+def configured(remote: str) -> bool:
+    return remote.rstrip(":") in list_remotes()
+
+
+def cmd_status(args: argparse.Namespace) -> None:
+    require_rclone()
+    version = run(["rclone", "version"]).stdout.splitlines()[0]
+    remotes = list_remotes()
+    print(version)
+    print(f"target_remote: {args.remote} ({'configured' if configured(args.remote) else 'missing'})")
+    print("configured_remotes: " + (", ".join(remotes) if remotes else "none"))
+    if configured(args.remote):
+        about = run(["rclone", "about", remote_spec(remote=args.remote), "--json"], check=False)
+        if about.returncode == 0 and about.stdout.strip():
+            print(about.stdout.strip())
+
+
+def cmd_setup(args: argparse.Namespace) -> None:
+    remote = args.remote.rstrip(":")
+    command = ["rclone", "config", "create", remote, "drive", "scope", args.scope]
+    if args.run:
+        print("Running: " + " ".join(command), file=sys.stderr)
+        raise SystemExit(subprocess.call(command))
+    print("Google Drive is best handled through rclone for pi: no extra LLM tool schemas, OAuth stays in rclone config.")
+    print("Run this once in a terminal (it will open a browser for OAuth):")
+    print("  " + " ".join(command))
+    print()
+    print("Then verify:")
+    print(f"  PI_GDRIVE_REMOTE={remote} pi-gdrive status")
+    print(f"  PI_GDRIVE_REMOTE={remote} pi-gdrive ls / --limit 20")
+
+
+def cmd_drives(args: argparse.Namespace) -> None:
+    if not configured(args.remote):
+        die(f"remote {args.remote!r} is not configured. Run: pi-gdrive setup {args.remote}")
+    proc = run(["rclone", "backend", "drives", remote_spec(remote=args.remote)])
+    print(proc.stdout.strip())
+
+
+def cmd_ls(args: argparse.Namespace) -> None:
+    if not configured(args.remote):
+        die(f"remote {args.remote!r} is not configured. Run: pi-gdrive setup {args.remote}")
+    cmd = ["rclone", "lsjson", remote_spec(args.path, args.remote), "--max-depth", str(args.depth)]
+    proc = run(cmd)
+    rows = json.loads(proc.stdout or "[]")
+    rows = rows[: args.limit]
+    if args.json:
+        print(json.dumps(rows, indent=2))
+        return
+    for item in rows:
+        kind = "dir" if item.get("IsDir") else "file"
+        size = item.get("Size", "")
+        mime = item.get("MimeType", "")
+        print(f"{kind}\t{item.get('Path', item.get('Name', ''))}\t{size}\t{mime}")
+
+
+def cmd_search(args: argparse.Namespace) -> None:
+    if not configured(args.remote):
+        die(f"remote {args.remote!r} is not configured. Run: pi-gdrive setup {args.remote}")
+    # This is intentionally simple and local-side: narrow --path when the drive is large.
+    cmd = ["rclone", "lsjson", remote_spec(args.path, args.remote), "--recursive"]
+    if args.files_only:
+        cmd.append("--files-only")
+    proc = run(cmd)
+    rows = json.loads(proc.stdout or "[]")
+    q = args.query.lower()
+    matches: list[dict[str, Any]] = []
+    for item in rows:
+        haystack = " ".join(str(item.get(k, "")) for k in ("Path", "Name", "MimeType")).lower()
+        if q in haystack:
+            matches.append(item)
+            if len(matches) >= args.limit:
+                break
+    if args.json:
+        print(json.dumps(matches, indent=2))
+        return
+    for item in matches:
+        kind = "dir" if item.get("IsDir") else "file"
+        print(f"{kind}\t{item.get('Path', item.get('Name', ''))}\t{item.get('Size', '')}\t{item.get('MimeType', '')}")
+
+
+def cmd_link(args: argparse.Namespace) -> None:
+    if not configured(args.remote):
+        die(f"remote {args.remote!r} is not configured. Run: pi-gdrive setup {args.remote}")
+    proc = run(["rclone", "link", remote_spec(args.path, args.remote)])
+    print(proc.stdout.strip())
+
+
+def cmd_read(args: argparse.Namespace) -> None:
+    if not configured(args.remote):
+        die(f"remote {args.remote!r} is not configured. Run: pi-gdrive setup {args.remote}")
+    fmt = args.format.lower()
+    rclone_fmt = {"text": "txt", "markdown": "md"}.get(fmt, fmt)
+    cmd = ["rclone", "cat", remote_spec(args.path, args.remote), "--drive-export-formats", rclone_fmt]
+    proc = run(cmd, check=False)
+    if proc.returncode != 0:
+        die(
+            "rclone cat failed. For Google Docs/Sheets, try a different --format (txt,csv,html) "
+            f"or export to a file: pi-gdrive export {args.path!r} --format {rclone_fmt}\n{proc.stderr.strip()}"
+        )
+    output = proc.stdout
+    if args.max_bytes and len(output.encode("utf-8", errors="replace")) > args.max_bytes:
+        encoded = output.encode("utf-8", errors="replace")[: args.max_bytes]
+        output = encoded.decode("utf-8", errors="replace") + f"\n[truncated to {args.max_bytes} bytes]"
+    print(output, end="" if output.endswith("\n") else "\n")
+
+
+def cmd_export(args: argparse.Namespace) -> None:
+    if not configured(args.remote):
+        die(f"remote {args.remote!r} is not configured. Run: pi-gdrive setup {args.remote}")
+    fmt = args.format.lower()
+    suffix = "." + {"text": "txt", "markdown": "md"}.get(fmt, fmt)
+    if args.out:
+        out = Path(args.out).expanduser()
+    else:
+        safe_name = Path(args.path.rstrip("/")).name or "gdrive-export"
+        out = Path(tempfile.gettempdir()) / f"{safe_name}{suffix}"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    run(["rclone", "copyto", remote_spec(args.path, args.remote), str(out), "--drive-export-formats", fmt])
+    print(str(out))
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description="Google Drive CLI for pi, backed by rclone.")
+    p.add_argument("--remote", default=DEFAULT_REMOTE, help="rclone remote name (default: env PI_GDRIVE_REMOTE or gdrive)")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    s = sub.add_parser("status", help="Show rclone and remote status")
+    s.set_defaults(func=cmd_status)
+
+    s = sub.add_parser("setup", help="Print or run one-time rclone Google Drive OAuth setup")
+    s.add_argument("remote", nargs="?", default=DEFAULT_REMOTE)
+    s.add_argument("--scope", default="drive.readonly", help="rclone Drive OAuth scope")
+    s.add_argument("--run", action="store_true", help="actually run rclone config create")
+    s.set_defaults(func=cmd_setup)
+
+    s = sub.add_parser("drives", help="List Shared Drives visible to the account")
+    s.set_defaults(func=cmd_drives)
+
+    s = sub.add_parser("ls", help="List a Drive path")
+    s.add_argument("path", nargs="?", default="/")
+    s.add_argument("--depth", type=int, default=1)
+    s.add_argument("--limit", type=int, default=100)
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_ls)
+
+    s = sub.add_parser("search", help="Search names under a Drive path (narrow --path for large drives)")
+    s.add_argument("query")
+    s.add_argument("--path", default="/")
+    s.add_argument("--limit", type=int, default=50)
+    s.add_argument("--files-only", action="store_true")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(func=cmd_search)
+
+    s = sub.add_parser("read", help="Print a file or exported Google Doc/Sheet text")
+    s.add_argument("path")
+    s.add_argument("--format", default="txt", help="Google export format preference: txt,csv,html,pdf,xlsx,...")
+    s.add_argument("--max-bytes", type=int, default=200_000)
+    s.set_defaults(func=cmd_read)
+
+    s = sub.add_parser("export", help="Export/copy a Drive file to a local file and print the output path")
+    s.add_argument("path")
+    s.add_argument("--format", default="txt")
+    s.add_argument("--out")
+    s.set_defaults(func=cmd_export)
+
+    s = sub.add_parser("link", help="Create/get a shareable link for a Drive path if permitted")
+    s.add_argument("path")
+    s.set_defaults(func=cmd_link)
+    return p
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

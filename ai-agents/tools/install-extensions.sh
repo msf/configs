@@ -12,8 +12,8 @@ set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 EXTS=(
-	"$HOME_MIRROR/.pi/agent/extensions/browser-read"
-	"$HOME_MIRROR/.pi/agent/extensions/mcp-bridge"
+	"$TOOLS_DIR/extensions/browser-read"
+	"$TOOLS_DIR/extensions/mcp-bridge"
 )
 
 fail=0

@@ -1,7 +1,6 @@
 ---
 name: pr-triage
 description: Proactively surface open PRs that need the user's review — PRs where they are a requested reviewer and PRs authored by their team. Use when the user asks for daily review queue, "what should I review today", PR triage, or any variation of proactively checking for review work.
-compatibility: opencode
 ---
 
 ## Purpose

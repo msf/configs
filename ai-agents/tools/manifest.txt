@@ -6,128 +6,118 @@
 #       → links $HOME/<path>  →  <public>/home/<path>
 #   pmirror <path-rel-to-HOME>
 #       → links $HOME/<path>  →  ~/configs-private/home/<path>
-#       For content with internal endpoints / org identity / infra topology.
-#       Filenames appearing here are deliberate; contents stay private.
 #   repo    <path-rel-to-HOME>  <target-rel-to-public-repo-root>
 #       → links $HOME/<path>  →  <configs-repo>/<target>
 #   prepo   <path-rel-to-HOME>  <target-rel-to-private-repo-root>
 #       → links $HOME/<path>  →  ~/configs-private/<target>
 #   home    <path-rel-to-HOME>  <other-path-rel-to-HOME>
-#       → links $HOME/<path>  →  $HOME/<other-path>  (symlink chains)
+#       → links $HOME/<path>  →  $HOME/<other-path>
 #
-# Order matters: targets referenced through earlier symlinks (e.g. files
-# placed *inside* a linked dir) must come after the entry creating that dir.
+# Order matters: targets referenced through earlier symlinks must come after
+# the entry creating that directory.
 
-# ── prompt chain: terminates at ai-agents/CLAUDE.md
-repo    .claude/CLAUDE.md             ai-agents/CLAUDE.md
+# ── shared harness instructions
+repo    .claude/CLAUDE.md             ai-agents/AGENTS.md
 home    .config/opencode/AGENTS.md    .claude/CLAUDE.md
-home    .pi/agent/AGENTS.md           .config/opencode/AGENTS.md
+repo    .pi/agent/AGENTS.md           ai-agents/AGENTS.md
+prepo   .pi/agent/lessons.md          lessons.md
 
-# ── shared roots (skills / agents / commands)
-repo    .config/opencode/skills            ai-agents/skills
-repo    .config/opencode/agents            ai-agents/agents
-repo    .config/opencode/commands          ai-agents/commands
+# ── OpenCode roots
+repo    .config/opencode/skills       ai-agents/skills
+repo    .config/opencode/agents       ai-agents/agents/opencode
+repo    .config/opencode/commands     ai-agents/commands
 prepo   .config/opencode/skills-private    skills
 
-# ── claude code
-# Claude Code has ONE flat namespace for ~/.claude/skills and ~/.claude/commands,
-# unlike pi's separate skills:/prompts: roots. So these are per-file, not per-dir:
-# a whole-dir link would collide with Claude Code's own built-in skills and with
-# our own commands. Verified empirically 2026-07-31, not assumed.
-repo    .claude/skills/coding             ai-agents/skills/coding
-repo    .claude/skills/go-development     ai-agents/skills/go-development
-repo    .claude/skills/k8s-debug          ai-agents/skills/k8s-debug
-repo    .claude/skills/log-investigator   ai-agents/skills/log-investigator
-repo    .claude/skills/pr-triage          ai-agents/skills/pr-triage
-repo    .claude/skills/send-pr            ai-agents/skills/send-pr
-repo    .claude/skills/web-tool-routing   ai-agents/skills/web-tool-routing
-repo    .claude/skills/weekly-review      ai-agents/skills/weekly-review
-# skipped: code-review (built-in /code-review supersedes it, incl. `ultra`),
-#          reflect (the /reflect command below is the collaborative review;
-#          the skill is the on-demand compaction pass, same name → conflict)
-repo    .claude/commands/commit.md        ai-agents/commands/commit.md
-repo    .claude/commands/create-pr.md     ai-agents/commands/create-pr.md
-repo    .claude/commands/handoff.md       ai-agents/commands/handoff.md
-repo    .claude/commands/pickup.md        ai-agents/commands/pickup.md
-repo    .claude/commands/reflect.md       ai-agents/commands/reflect.md
-repo    .claude/commands/review-pr.md     ai-agents/commands/review-pr.md
-repo    .claude/commands/review-week.md   ai-agents/commands/review-week.md
-# skipped: code-review.md / review.md / simplify.md (built-ins of the same name),
-#          send-pr.md (thin wrapper around the send-pr skill linked above)
-# agents/ is not linked: code-reviewer.md is opencode-format (mode:, permission:,
-# model: openai/*) which Claude Code cannot read, and Claude ships its own.
-prepo   .claude/skills/grafana            skills/grafana
-prepo   .claude/skills/wiki               skills/wiki
-prepo   .claude/identity.md               identity.md
-
-# one lessons journal for every harness (canonical file lives in $HOME, untracked)
-home    .config/opencode/lessons.md       .claude/lessons.md
-
-# private files living inside public-linked dirs (gitignored in public tree)
-prepo   .config/opencode/agents/dune-architecture.md    agents/dune-architecture.md
+# Private files living inside public-linked OpenCode dirs.
+prepo   .config/opencode/agents/dune-architecture.md    agents/opencode/dune-architecture.md
 prepo   .config/opencode/commands/dune.md               commands/dune.md
 prepo   .config/opencode/commands/dune-analyze.md       commands/dune-analyze.md
 prepo   .config/opencode/commands/add-table-specs.md    commands/add-table-specs.md
 
-# ── pi (tool-agnostic personal — easily portable, see README)
+# ── Pi core settings
 mirror  .pi/agent/settings.json
 mirror  .pi/agent/models.json
-mirror  .pi/agent/extensions/context-meter.ts
-mirror  .pi/agent/extensions/browser-read
-mirror  .pi/agent/extensions/mcp-bridge
-pmirror .pi/agent/extensions/mcp-bridge/servers.json
-mirror  .pi/agent/skills/aws-pricing
-mirror  .pi/agent/skills/slack-mcp
-mirror  .pi/agent/skills/workspace-apps
-mirror  .pi/agent/skills/notion
-mirror  .pi/agent/skills/google-slides
-mirror  .pi/agent/skills/simplified-technical-english
-mirror  .pi/agent/skills/tech-writing
-pmirror .pi/agent/skills/dune-brand
-pmirror .pi/agent/skills/linear-update
 
-mirror  .pi/agent/skills/coding
+# ── Pi command wrappers
+repo    .pi/agent/bin/pi-gdrive       ai-agents/tools/bin/pi-gdrive
+repo    .pi/agent/bin/pi-notion       ai-agents/tools/bin/pi-notion
+repo    .pi/agent/bin/pi-slack        ai-agents/tools/bin/pi-slack
+repo    .pi/agent/bin/pi-slack-mcp    ai-agents/tools/bin/pi-slack-mcp
 
-mirror  .pi/agent/skills/send-pr
+# ── Pi extensions
+repo    .pi/agent/extensions/context-meter.ts    ai-agents/tools/extensions/context-meter.ts
+repo    .pi/agent/extensions/browser-read        ai-agents/tools/extensions/browser-read
+repo    .pi/agent/extensions/mcp-bridge          ai-agents/tools/extensions/mcp-bridge
+prepo   .pi/agent/extensions/mcp-bridge/servers.json    tools/extensions/mcp-bridge/servers.json
+repo    .pi/agent/extensions/subagent            ai-agents/tools/extensions/subagent
 
-mirror  .pi/agent/skills/go-development
+# ── Pi prompt templates
+repo    .pi/agent/prompts/implement.md             ai-agents/commands/implement.md
+repo    .pi/agent/prompts/implement-and-review.md  ai-agents/commands/implement-and-review.md
+repo    .pi/agent/prompts/scout-and-plan.md        ai-agents/commands/scout-and-plan.md
 
-mirror  .pi/agent/agents/code-reviewer.md
+# ── Pi agents
+prepo   .pi/agent/agents/analyst-sol-max.md       agents/pi/analyst-sol-max.md
+repo    .pi/agent/agents/code-reviewer.md         ai-agents/agents/pi/code-reviewer.md
+repo    .pi/agent/agents/doc-reviewer-terra.md    ai-agents/agents/pi/doc-reviewer-terra.md
+prepo   .pi/agent/agents/doc-style-reviewer-sol.md agents/pi/doc-style-reviewer-sol.md
+repo    .pi/agent/agents/planner.md               ai-agents/agents/pi/planner.md
+repo    .pi/agent/agents/reviewer.md              ai-agents/agents/pi/reviewer.md
+repo    .pi/agent/agents/scout.md                 ai-agents/agents/pi/scout.md
+repo    .pi/agent/agents/skill-applier.md         ai-agents/agents/pi/skill-applier.md
+repo    .pi/agent/agents/ste-distiller-sol.md      ai-agents/agents/pi/ste-distiller-sol.md
+repo    .pi/agent/agents/worker.md                ai-agents/agents/pi/worker.md
+repo    .pi/agent/agents/worker-xhigh.md          ai-agents/agents/pi/worker-xhigh.md
 
-mirror  .pi/agent/skills/code-review
+# ── Pi public skills (shared source with OpenCode)
+repo    .pi/agent/skills/aws-pricing                  ai-agents/skills/aws-pricing
+repo    .pi/agent/skills/code-review                  ai-agents/skills/code-review
+repo    .pi/agent/skills/coding                       ai-agents/skills/coding
+repo    .pi/agent/skills/go-development               ai-agents/skills/go-development
+repo    .pi/agent/skills/google-slides                ai-agents/skills/google-slides
+repo    .pi/agent/skills/k8s-debug                    ai-agents/skills/k8s-debug
+repo    .pi/agent/skills/log-investigator             ai-agents/skills/log-investigator
+repo    .pi/agent/skills/notion                       ai-agents/skills/notion
+repo    .pi/agent/skills/pi-skill-import              ai-agents/skills/pi-skill-import
+repo    .pi/agent/skills/pr-triage                    ai-agents/skills/pr-triage
+repo    .pi/agent/skills/reflect                      ai-agents/skills/reflect
+repo    .pi/agent/skills/send-pr                      ai-agents/skills/send-pr
+repo    .pi/agent/skills/simplified-technical-english ai-agents/skills/simplified-technical-english
+repo    .pi/agent/skills/skill-creator                ai-agents/skills/skill-creator
+repo    .pi/agent/skills/slack-mcp                    ai-agents/skills/slack-mcp
+repo    .pi/agent/skills/tech-writing                 ai-agents/skills/tech-writing
+repo    .pi/agent/skills/web-tool-eval                ai-agents/skills/web-tool-eval
+repo    .pi/agent/skills/web-tool-routing             ai-agents/skills/web-tool-routing
+repo    .pi/agent/skills/weekly-review                ai-agents/skills/weekly-review
+repo    .pi/agent/skills/workspace-apps               ai-agents/skills/workspace-apps
 
-mirror  .pi/agent/skills/web-tool-routing
+# ── Pi private skills (shared source with OpenCode private root)
+prepo   .pi/agent/skills/dbsh              skills/dbsh
+prepo   .pi/agent/skills/dune-brand        skills/dune-brand
+prepo   .pi/agent/skills/dune-explore      skills/dune-explore
+prepo   .pi/agent/skills/grafana-metrics   skills/grafana-metrics
+prepo   .pi/agent/skills/linear-update     skills/linear-update
+prepo   .pi/agent/skills/trino-bench       skills/trino-bench
+prepo   .pi/agent/skills/trino-heapdump    skills/trino-heapdump
 
-mirror  .pi/agent/skills/reflect
-
-# ── opencode (opencode.json embeds internal MCP endpoints → private)
+# ── private application config
 pmirror .config/opencode/opencode.json
-
-# ── pr-triage identity (org/team/user)
 pmirror .config/pr-triage.conf
 
-# ── dune workspace docs (~/dune entry points; skipped on non-work machines)
+# ── Dune workspace docs
 prepo   dune/AGENTS.md        dune-workspace/AGENTS.md
 prepo   dune/GLOSSARY.md      dune-workspace/GLOSSARY.md
 prepo   dune/agent-prompts    dune-workspace/agent-prompts
-# ── pi subagents
-mirror  .pi/agent/agents/scout.md
-mirror  .pi/agent/agents/reviewer.md
-mirror  .pi/agent/agents/planner.md
-mirror  .pi/agent/agents/worker.md
-mirror  .pi/agent/agents/worker-xhigh.md
 
-# ── pi-lean: local-model profile (launched via bin/pi-lean, PI_CODING_AGENT_DIR).
-# Overrides settings/models; shares everything else with agent/ via symlink chains.
-# apply.sh skips any 'home' target that doesn't exist on this machine.
+# ── pi-lean local-model profile
 mirror  .pi/agent-lean/settings.json
 mirror  .pi/agent-lean/models.json
 home    .pi/agent-lean/AGENTS.md              .pi/agent/AGENTS.md
 home    .pi/agent-lean/auth.json              .pi/agent/auth.json
 home    .pi/agent-lean/agents                 .pi/agent/agents
-home    .pi/agent-lean/bin                     .pi/agent/bin
-home    .pi/agent-lean/browser-read            .pi/agent/browser-read
-home    .pi/agent-lean/prompts                 .pi/agent/prompts
+home    .pi/agent-lean/bin                    .pi/agent/bin
+home    .pi/agent-lean/browser-read           .pi/agent/browser-read
+home    .pi/agent-lean/prompts                .pi/agent/prompts
 home    .pi/agent-lean/extensions/browser-read .pi/agent/extensions/browser-read
 home    .pi/agent-lean/extensions/mcp-bridge   .pi/agent/extensions/mcp-bridge
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent

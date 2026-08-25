@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+set -euo pipefail
+exec node "$HOME/.pi/agent/extensions/mcp-bridge/slack-mcp-cli.mjs" "$@"

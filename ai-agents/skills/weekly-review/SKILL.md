@@ -1,7 +1,6 @@
 ---
 name: weekly-review
 description: Analyze recent sessions to find patterns, recurring mistakes, and propose improvements to AGENTS.md and lessons.md.
-compatibility: opencode
 ---
 
 ## What this is
@@ -16,7 +15,7 @@ User runs `/review-week`. Not autonomous — this is a deliberate review.
 
 ## Inputs
 
-- `$ARGUMENTS`: optional time range in days (default: 7). Example: `/review-week 14`
+- Optional time range supplied by the user (default: 7 days). Example: `/skill:weekly-review 14`.
 
 ## Data sources
 
@@ -62,8 +61,8 @@ Count messages per session to find the substantive ones (>3 messages).
 
 ### 2. Dispatch parallel agents
 
-Group substantive sessions into 3-5 batches. For each batch, launch a `general`
-subagent with instructions to:
+Group substantive sessions into 3-5 batches. For each batch, launch a Pi `worker`
+subagent in parallel with read-only instructions to:
 
 1. Extract conversation text.
 
@@ -92,8 +91,8 @@ subagent with instructions to:
 ### 3. Read context files
 
 While agents run, read:
-- `~/.claude/CLAUDE.md`
-- `~/.claude/lessons.md`
+- `~/.pi/agent/AGENTS.md`
+- `~/.pi/agent/lessons.md`
 
 ### 4. Reflection loops
 

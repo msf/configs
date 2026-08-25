@@ -23,8 +23,8 @@ if [ $# -gt 0 ]; then
 	LOCKS=("$@")
 else
 	LOCKS=(
-		"$HOME_MIRROR/.pi/agent/extensions/browser-read/package-lock.json"
-		"$HOME_MIRROR/.pi/agent/extensions/mcp-bridge/package-lock.json"
+		"$TOOLS_DIR/extensions/browser-read/package-lock.json"
+		"$TOOLS_DIR/extensions/mcp-bridge/package-lock.json"
 	)
 fi
 
