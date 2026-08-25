@@ -1,0 +1,4 @@
+#!/bin/sh
+
+. "$HOME/.gog_secret"
+exec "$HOME/.local/bin/gog" "$@"
