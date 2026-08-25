@@ -1,7 +1,7 @@
 #!/bin/sh
 # Idle/lock daemon for the standalone sway session.
 # Logs every timeout/resume so wake failures can be classified post-hoc.
-# See ~/.config/regolith3/DISPLAY_WAKE_TROUBLESHOOTING.md
+# Wake-failure history is documented in ~/.config/sway/MIGRATION.md.
 
 LOG="$HOME/.local/state/swayidle.log"
 

@@ -1,8 +1,7 @@
 # Regolith → vanilla sway migration
 
 Work log. Started 2026-06-09, trial validated 2026-06-10.
-Related: `~/.config/regolith3/DISPLAY_WAKE_TROUBLESHOOTING.md` (the lock/wake
-saga that motivated this).
+The lock/wake investigation that motivated this is summarized below.
 
 ## Why
 
@@ -80,8 +79,7 @@ session: outputs `power: false`, swaylock healthy, swayidle alive, but the
 (regolith package unit, auto-started because the GDM session pulls
 `graphical-session.target`) toggling the wlroots idle inhibitor on browser
 audio. wlroots 0.17.1 `notify_activity()` returns early while inhibited —
-real keypresses are invisible to swayidle, so resume never fires. Full
-write-up: `~/.config/regolith3/DISPLAY_WAKE_TROUBLESHOOTING.md`.
+real keypresses are invisible to swayidle, so resume never fires.
 
 Mutations applied (Jun 12):
 
