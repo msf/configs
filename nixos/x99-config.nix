@@ -264,7 +264,7 @@
   ];
 
   users.groups.storage = {};
-  
+
   system.activationScripts.salvage-dir = ''
   mkdir -p /media/salvage
   chmod 2775 /media/salvage
@@ -274,9 +274,9 @@
   fileSystems."/media/salvage" = {
     device = "LABEL=salvage";
     fsType = "btrfs";
-    options = [ 
+    options = [
       "compress=zstd:1"
-      "noatime"       
+      "noatime"
       "nofail"                          # Boot continues if mount fails
       "degraded"                        # mount even with missing drives
     ];

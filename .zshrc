@@ -56,12 +56,15 @@ alias day='gsettings set org.gnome.desktop.interface color-scheme prefer-light'
 alias night='gsettings set org.gnome.desktop.interface color-scheme prefer-dark'
 
 
+# for sway
+export XKB_DEFAULT_OPTIONS=caps:ctrl
 # firefox on wayland
 export MOZ_ENABLE_WAYLAND=1
 
 # Environment
 export GOPRIVATE=github.com/duneanalytics
 export KUBECONFIG=$HOME/.kube/config
+export PYENV_ROOT=$HOME/.pyenv
 export SDKMAN_DIR=$HOME/.sdkman
 export WASMER_DIR=$HOME/.wasmer
 export WASMER_CACHE_DIR=$WASMER_DIR/cache
@@ -76,6 +79,8 @@ path=(
   $HOME/go/bin
   $HOME/.cargo/bin
   $HOME/.fzf/bin
+  $PYENV_ROOT/bin
+  $PYENV_ROOT/shims
   $HOME/.tiup/bin
   $HOME/.wasmer/bin
   $WASMTIME_HOME/bin
@@ -83,6 +88,8 @@ path=(
   $BUN_INSTALL/bin
   $HOME/.yarn/bin
   /snap/bin
+  /opt/homebrew/opt/llvm@19/bin
+  /opt/homebrew/opt/coreutils/libexec/gnubin
   /opt/homebrew/bin
   /usr/local/go/bin
   /usr/local/bin
@@ -93,46 +100,35 @@ path=(
   /opt/nvim-linux-x86_64/bin
 )
 
-# Tool initialization
-if [[ ! -S $SSH_AUTH_SOCK ]] && command -v keychain >/dev/null; then
+if [[ ! -S $SSH_AUTH_SOCK ]] && (( $+commands[keychain] )); then
   keychain -q $HOME/.ssh/id_ed25519
   keychain_file=$HOME/.keychain/${HOST}-sh
   [[ -r $keychain_file ]] && source $keychain_file
   unset keychain_file
 fi
 
-if command -v kubectl >/dev/null; then
-  source <(kubectl completion zsh)
+if (( $+commands[kubectl] )); then
+  _kubectl() {
+    unfunction _kubectl
+    source <(kubectl completion zsh)
+    _kubectl "$@"
+  }
+  compdef _kubectl kubectl k
 fi
 
-[[ -f $SDKMAN_DIR/bin/sdkman-init.sh ]] && source $SDKMAN_DIR/bin/sdkman-init.sh
+(( $+commands[pyenv] )) && eval "$(pyenv init -)"
 
-export NVM_DIR=$HOME/.nvm
-if [[ -s $NVM_DIR/nvm.sh ]]; then
-  source $NVM_DIR/nvm.sh --no-use
-  node_version=$(nvm version default)
-  if [[ $node_version != N/A ]]; then
-    export NVM_BIN=$NVM_DIR/versions/node/$node_version/bin
-    path=($NVM_BIN $path)
-  fi
-  unset node_version
-fi
-
-if [[ -x $HOME/bin/launch-meridian.sh ]] && command -v pi >/dev/null; then
-  pi() {
-    $HOME/bin/launch-meridian.sh
-    command pi "$@"
+if [[ -s $SDKMAN_DIR/bin/sdkman-init.sh ]]; then
+  path=($SDKMAN_DIR/candidates/*/current/bin(N) $path)
+  sdk() {
+    unfunction sdk
+    source $SDKMAN_DIR/bin/sdkman-init.sh
+    sdk "$@"
   }
 fi
 
-# Machine-specific settings
 [[ -f $HOME/.zshrc_private ]] && source $HOME/.zshrc_private
 
-# Shell integration
-[[ -f $HOME/.fzf.zsh ]] && source $HOME/.fzf.zsh
-[[ -f $HOME/.zsh_prompt ]] && source $HOME/.zsh_prompt
-
-# Database helpers
 function dpsql {
 	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) pgcli -U ${2} -h ${1}-${2}-db ${2}
 }
@@ -235,3 +231,26 @@ function db-root-sh {
 
   PGPASSWORD="$password" pgcli -U "$user" -h "$host" "$db"
 }
+
+[[ -t 0 && -t 1 ]] && (( $+commands[fzf] )) && source <(fzf --zsh)
+[[ -f $HOME/.zsh_prompt ]] && source $HOME/.zsh_prompt
+
+export NVM_DIR=$HOME/.nvm
+if [[ -s $NVM_DIR/nvm.sh ]]; then
+  source $NVM_DIR/nvm.sh --no-use
+  node_version=$(nvm version default)
+  if [[ $node_version != N/A ]]; then
+    export NVM_BIN=$NVM_DIR/versions/node/$node_version/bin
+    path=($NVM_BIN $path)
+  fi
+  unset node_version
+fi
+
+alias openclaw='incus exec openclaw -- machinectl shell openclaw@'
+
+if [[ -x $HOME/bin/launch-meridian.sh ]] && (( $+commands[pi] )); then
+  pi() {
+    $HOME/bin/launch-meridian.sh
+    command pi "$@"
+  }
+fi
