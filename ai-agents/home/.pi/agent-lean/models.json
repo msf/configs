@@ -12,16 +12,16 @@
       },
       "models": [
         {
-          "id": "qwen-27b-mtp",
-          "name": "Qwen3.6 27B dense + MTP (reasoning)",
+          "id": "qwen36-moe",
+          "name": "Qwen3.6 35B-A3B MTP UD-Q4_K_XL (reasoning)",
           "reasoning": true,
           "contextWindow": 131072,
           "maxTokens": 32768,
           "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
         },
         {
-          "id": "gemma-31b-qat",
-          "name": "Gemma 31B QAT (reasoning)",
+          "id": "gemma4-26b-qat-mtp",
+          "name": "Gemma 4 26B-A4B QAT UD-Q4_K_XL + smart-Q4_0 MTP (reasoning)",
           "reasoning": true,
           "contextWindow": 131072,
           "maxTokens": 32768,

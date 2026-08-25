@@ -1,7 +1,7 @@
 {
-  "lastChangelogVersion": "0.83.0",
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-opus-5",
+  "lastChangelogVersion": "0.84.3",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-sol",
   "hideThinkingBlock": false,
   "defaultThinkingLevel": "xhigh",
   "compaction": {
@@ -9,22 +9,27 @@
     "reserveTokens": 13601,
     "keepRecentTokens": 20000
   },
-  "skills": [
-    "~/.config/opencode/skills",
-    "~/.config/opencode/skills-private"
-  ],
-  "prompts": [
-    "~/.config/opencode/commands"
-  ],
   "enabledModels": [
-    "anthropic/claude-sonnet-5",
+    "anthropic/claude-fable-5",
     "anthropic/claude-opus-5",
-    "local/qwen-27b-mtp",
-    "local/gemma-31b-qat"
+    "local/gemma4-26b-qat-mtp",
+    "local/qwen36-moe",
+    "openai-codex/gpt-5.6-sol",
+    "openai-codex/gpt-5.6-terra",
+    "anthropic/claude-sonnet-5"
   ],
   "steeringMode": "all",
   "followUpMode": "all",
   "quietStartup": true,
   "treeFilterMode": "all",
-  "theme": "dark"
+  "theme": "dark",
+  "terminal": {
+    "imageWidthCells": 80,
+    "showTerminalProgress": true
+  },
+  "showCacheMissNotices": false,
+  "collapseChangelog": true,
+  "packages": [
+    "git:github.com/DietrichGebert/ponytail"
+  ]
 }
