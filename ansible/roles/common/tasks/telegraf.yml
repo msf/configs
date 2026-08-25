@@ -1,6 +1,0 @@
-- name: Telegraf.conf
-  copy:
-    src: telegraf.conf
-    dest: /etc/telegraf.conf
-
-
