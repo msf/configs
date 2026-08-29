@@ -68,3 +68,11 @@ Published in `~/configs` commit `42df2bc10d206ba6be39562fcb4fc16fee8c7dd9`:
 - Kept Pi and OpenCode agents under explicit format-specific subdirectories; skills are shared.
 - Updated `track.sh`, the manifest, ownership audit, dependency tooling, and docs so new resources cannot recreate the deep mirror layout.
 - Backed up the pre-migration sources under `~/.agents-backup/20260825-020027/layout-migration/`.
+
+## 2026-08-29: Pi extension usage accounting
+
+- Reconciled the owned `subagent` extension against the Pi `0.84.4` packaged example (`sha256:4facaa61c9c781748dd000eb5d2ec0a75289986d1a6e11ce13971ca5653dc252`).
+- Retained local context-isolation, model-dispatch, and project-agent confirmation behavior.
+- Added complete child usage propagation, including nested tool and compaction usage, to the parent tool result.
+- Updated `context-meter` to count assistant, tool, compaction, and branch-summary usage using Pi's session-accounting semantics, with a fallback for subagent usage recorded by older sessions only in tool details.
+- Validated both extensions through Pi's loader, synthetic usage smoke tests, manifest verification, and the Pi ownership audit.

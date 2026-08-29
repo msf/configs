@@ -17,7 +17,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
-import type { Message } from "@earendil-works/pi-ai";
+import type { Message, Usage } from "@earendil-works/pi-ai";
 import { StringEnum } from "@earendil-works/pi-ai";
 import {
 	CONFIG_DIR_NAME,
@@ -42,25 +42,14 @@ function formatTokens(count: number): string {
 	return `${(count / 1000000).toFixed(1)}M`;
 }
 
-function formatUsageStats(
-	usage: {
-		input: number;
-		output: number;
-		cacheRead: number;
-		cacheWrite: number;
-		cost: number;
-		contextTokens?: number;
-		turns?: number;
-	},
-	model?: string,
-): string {
+function formatUsageStats(usage: UsageStats, model?: string): string {
 	const parts: string[] = [];
 	if (usage.turns) parts.push(`${usage.turns} turn${usage.turns > 1 ? "s" : ""}`);
 	if (usage.input) parts.push(`↑${formatTokens(usage.input)}`);
 	if (usage.output) parts.push(`↓${formatTokens(usage.output)}`);
 	if (usage.cacheRead) parts.push(`R${formatTokens(usage.cacheRead)}`);
 	if (usage.cacheWrite) parts.push(`W${formatTokens(usage.cacheWrite)}`);
-	if (usage.cost) parts.push(`$${usage.cost.toFixed(4)}`);
+	if (usage.cost.total) parts.push(`$${usage.cost.total.toFixed(4)}`);
 	if (usage.contextTokens && usage.contextTokens > 0) {
 		parts.push(`ctx:${formatTokens(usage.contextTokens)}`);
 	}
@@ -136,14 +125,63 @@ function formatToolCall(
 	}
 }
 
-interface UsageStats {
-	input: number;
-	output: number;
-	cacheRead: number;
-	cacheWrite: number;
-	cost: number;
+interface UsageStats extends Usage {
 	contextTokens: number;
 	turns: number;
+}
+
+function createUsageStats(): UsageStats {
+	return {
+		input: 0,
+		output: 0,
+		cacheRead: 0,
+		cacheWrite: 0,
+		totalTokens: 0,
+		cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+		contextTokens: 0,
+		turns: 0,
+	};
+}
+
+function addUsage(total: UsageStats, usage: Usage): void {
+	total.input += usage.input;
+	total.output += usage.output;
+	total.cacheRead += usage.cacheRead;
+	total.cacheWrite += usage.cacheWrite;
+	total.totalTokens += usage.totalTokens;
+	total.cost.input += usage.cost.input;
+	total.cost.output += usage.cost.output;
+	total.cost.cacheRead += usage.cost.cacheRead;
+	total.cost.cacheWrite += usage.cost.cacheWrite;
+	total.cost.total += usage.cost.total;
+	if (usage.cacheWrite1h !== undefined) {
+		total.cacheWrite1h = (total.cacheWrite1h ?? 0) + usage.cacheWrite1h;
+	}
+	if (usage.reasoning !== undefined) {
+		total.reasoning = (total.reasoning ?? 0) + usage.reasoning;
+	}
+}
+
+function aggregateUsage(results: SingleResult[]): UsageStats {
+	const total = createUsageStats();
+	for (const result of results) {
+		addUsage(total, result.usage);
+		total.turns += result.usage.turns;
+	}
+	return total;
+}
+
+function toReportedUsage(stats: UsageStats): Usage {
+	return {
+		input: stats.input,
+		output: stats.output,
+		cacheRead: stats.cacheRead,
+		cacheWrite: stats.cacheWrite,
+		...(stats.cacheWrite1h !== undefined ? { cacheWrite1h: stats.cacheWrite1h } : {}),
+		...(stats.reasoning !== undefined ? { reasoning: stats.reasoning } : {}),
+		totalTokens: stats.totalTokens,
+		cost: { ...stats.cost },
+	};
 }
 
 interface SingleResult {
@@ -286,7 +324,7 @@ async function runSingleAgent(
 			exitCode: 1,
 			messages: [],
 			stderr: `Unknown agent: "${agentName}". Available agents: ${available}.`,
-			usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, contextTokens: 0, turns: 0 },
+			usage: createUsageStats(),
 			step,
 		};
 	}
@@ -307,7 +345,7 @@ async function runSingleAgent(
 		exitCode: 0,
 		messages: [],
 		stderr: "",
-		usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, contextTokens: 0, turns: 0 },
+		usage: createUsageStats(),
 		model: agent.model,
 		step,
 	};
@@ -358,18 +396,20 @@ async function runSingleAgent(
 						currentResult.usage.turns++;
 						const usage = msg.usage;
 						if (usage) {
-							currentResult.usage.input += usage.input || 0;
-							currentResult.usage.output += usage.output || 0;
-							currentResult.usage.cacheRead += usage.cacheRead || 0;
-							currentResult.usage.cacheWrite += usage.cacheWrite || 0;
-							currentResult.usage.cost += usage.cost?.total || 0;
+							addUsage(currentResult.usage, usage);
 							currentResult.usage.contextTokens = usage.totalTokens || 0;
 						}
 						if (!currentResult.model && msg.model) currentResult.model = msg.model;
 						if (msg.stopReason) currentResult.stopReason = msg.stopReason;
 						if (msg.errorMessage) currentResult.errorMessage = msg.errorMessage;
+					} else if (msg.role === "toolResult" && msg.usage) {
+						addUsage(currentResult.usage, msg.usage);
 					}
 					emitUpdate();
+				}
+
+				if (event.type === "compaction_end" && event.result?.usage) {
+					addUsage(currentResult.usage, event.result.usage as Usage);
 				}
 
 				if (event.type === "tool_result_end" && event.message) {
@@ -571,6 +611,7 @@ export default function (pi: ExtensionAPI) {
 						return {
 							content: [{ type: "text", text: `Chain stopped at step ${i + 1} (${step.agent}): ${errorMsg}` }],
 							details: makeDetails("chain")(results),
+							usage: toReportedUsage(aggregateUsage(results)),
 							isError: true,
 						};
 					}
@@ -579,6 +620,7 @@ export default function (pi: ExtensionAPI) {
 				return {
 					content: [{ type: "text", text: getFinalOutput(results[results.length - 1].messages) || "(no output)" }],
 					details: makeDetails("chain")(results),
+					usage: toReportedUsage(aggregateUsage(results)),
 				};
 			}
 
@@ -606,7 +648,7 @@ export default function (pi: ExtensionAPI) {
 						exitCode: -1, // -1 = still running
 						messages: [],
 						stderr: "",
-						usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, contextTokens: 0, turns: 0 },
+						usage: createUsageStats(),
 					};
 				}
 
@@ -662,6 +704,7 @@ export default function (pi: ExtensionAPI) {
 						},
 					],
 					details: makeDetails("parallel")(results),
+					usage: toReportedUsage(aggregateUsage(results)),
 				};
 			}
 
@@ -683,12 +726,14 @@ export default function (pi: ExtensionAPI) {
 					return {
 						content: [{ type: "text", text: `Agent ${result.stopReason || "failed"}: ${errorMsg}` }],
 						details: makeDetails("single")([result]),
+						usage: toReportedUsage(result.usage),
 						isError: true,
 					};
 				}
 				return {
 					content: [{ type: "text", text: getFinalOutput(result.messages) || "(no output)" }],
 					details: makeDetails("single")([result]),
+					usage: toReportedUsage(result.usage),
 				};
 			}
 
@@ -825,19 +870,6 @@ export default function (pi: ExtensionAPI) {
 				if (usageStr) text += `\n${theme.fg("dim", usageStr)}`;
 				return new Text(text, 0, 0);
 			}
-
-			const aggregateUsage = (results: SingleResult[]) => {
-				const total = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, turns: 0 };
-				for (const r of results) {
-					total.input += r.usage.input;
-					total.output += r.usage.output;
-					total.cacheRead += r.usage.cacheRead;
-					total.cacheWrite += r.usage.cacheWrite;
-					total.cost += r.usage.cost;
-					total.turns += r.usage.turns;
-				}
-				return total;
-			};
 
 			if (details.mode === "chain") {
 				const successCount = details.results.filter((r) => r.exitCode === 0).length;

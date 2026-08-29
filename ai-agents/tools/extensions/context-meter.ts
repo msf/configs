@@ -16,6 +16,7 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import type { Usage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 
@@ -65,6 +66,18 @@ function sanitizeStatusText(text: string): string {
 	return text.replace(/[\r\n\t]/g, " ").replace(/ +/g, " ").trim();
 }
 
+interface LegacySubagentDetails {
+	results?: Array<{
+		usage?: {
+			input?: number;
+			output?: number;
+			cacheRead?: number;
+			cacheWrite?: number;
+			cost?: number;
+		};
+	}>;
+}
+
 export default function (pi: ExtensionAPI) {
 	pi.on("session_start", (_event, ctx) => {
 		const autoCompact = readAutoCompactEnabled(ctx.cwd);
@@ -81,14 +94,33 @@ export default function (pi: ExtensionAPI) {
 					let totalCacheRead = 0;
 					let totalCacheWrite = 0;
 					let totalCost = 0;
+					const addUsage = (usage: Usage) => {
+						totalInput += usage.input;
+						totalOutput += usage.output;
+						totalCacheRead += usage.cacheRead;
+						totalCacheWrite += usage.cacheWrite;
+						totalCost += usage.cost.total;
+					};
 					for (const entry of ctx.sessionManager.getEntries()) {
 						if (entry.type === "message" && entry.message.role === "assistant") {
-							const u = entry.message.usage;
-							totalInput += u.input;
-							totalOutput += u.output;
-							totalCacheRead += u.cacheRead;
-							totalCacheWrite += u.cacheWrite;
-							totalCost += u.cost.total;
+							addUsage(entry.message.usage);
+						} else if (entry.type === "message" && entry.message.role === "toolResult") {
+							if (entry.message.usage) {
+								addUsage(entry.message.usage);
+							} else if (entry.message.toolName === "subagent") {
+								const details = entry.message.details as LegacySubagentDetails | undefined;
+								for (const result of details?.results ?? []) {
+									const usage = result.usage;
+									if (!usage) continue;
+									totalInput += usage.input ?? 0;
+									totalOutput += usage.output ?? 0;
+									totalCacheRead += usage.cacheRead ?? 0;
+									totalCacheWrite += usage.cacheWrite ?? 0;
+									totalCost += usage.cost ?? 0;
+								}
+							}
+						} else if ((entry.type === "compaction" || entry.type === "branch_summary") && entry.usage) {
+							addUsage(entry.usage);
 						}
 					}
 
