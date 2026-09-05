@@ -1,7 +1,6 @@
 ---
 name: wiki
 description: Read and write the personal knowledge graph and TODO board at /srv/selfhost/wiki/. Use whenever you need to record, look up, cross-reference, or organize anything durable — local LLM internals (models, llama.cpp flags, MTP, spec-decoding, KV cache, SWA, quantisation), self-hosted infra, multi-session TODOs, or any [[wikilink]]-referenced topic. Also use when working in /srv/selfhost/ and a useful fact or in-flight task surfaces that isn't already captured. Triggers on phrases like "wiki", "add to wiki", "todo", "track this", "note this", "write this down", "where do we capture this", "look up <topic>", "what do we know about <topic>", "/wiki ...".
-tools: Read, Glob, Grep, Bash, Edit, Write
 ---
 
 # wiki
