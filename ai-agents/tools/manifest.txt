@@ -89,6 +89,7 @@ repo    .pi/agent/skills/tech-writing                 ai-agents/skills/tech-writ
 repo    .pi/agent/skills/web-tool-eval                ai-agents/skills/web-tool-eval
 repo    .pi/agent/skills/web-tool-routing             ai-agents/skills/web-tool-routing
 repo    .pi/agent/skills/weekly-review                ai-agents/skills/weekly-review
+repo    .pi/agent/skills/wiki                         ai-agents/skills/wiki
 repo    .pi/agent/skills/workspace-apps               ai-agents/skills/workspace-apps
 
 # ── Pi private skills (shared source with OpenCode private root)
