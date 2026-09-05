@@ -25,21 +25,22 @@ Broad behavioral operating rules. Domain knowledge (code, k8s, Go, review) lives
 # Planning & Context
 
 - Plans are incremental and terse: detail steps 1-2, outline 3-4 only if dependencies require, never beyond 4 — reassess after early steps. Assume single-session scope; favor doing + learning over exhaustive upfront planning.
-- If a task has >2 substantial steps, the later ones won't finish this session. After each logical phase, regroup: what's done, what's next, key decisions/context.
+- After each logical phase, regroup: what's done, what's next, key decisions/context.
 
 # Terminal UX
 
-- Default long-running commands to quiet/log-friendly output. Progress bars and interactive UIs are opt-in.
-- User-facing shell snippets run in zsh — write them for zsh. For commands I run via the bash tool, force-invoke with bash to assert a bash shell. Avoid fragile nested quoting / heredoc-built invocations; verify a referenced file/path exists first.
+- Keep long-running commands quiet and the conversation responsive. Use background execution with short status checks; bound synchronous calls with timeouts. Progress bars and interactive UIs are opt-in.
+- User-facing commands must work in zsh. Run agent commands in Bash, selecting it directly when supported. Avoid nested shell quoting; use files for complex scripts.
 - For ad-hoc Python on this machine, use `uv run --quiet --with <pkg> python ...`, not system pip or manual venvs.
 
 # Code Style
 
+- Before writing or reviewing code, load `coding` and applicable language skills, including when transitioning from investigation.
 - Self-documenting: clear names for types, fields, variables, functions.
 - Minimize comments — explain non-obvious "why", never "what".
 - Types encode meaning (Duration not string; enums not magic strings).
 - Propose tests.
-- Written deliverables (PRs, issues, docs): default terse, lead with outcome. PR descriptions 2-3 sentences, essential headers only; no decorative quote-blocks or ASCII tables in Linear. Don't co-author commits nor PRs.
+- Written deliverables (PRs, issues, docs): default terse, lead with outcome. PR descriptions: short prose for one cohesive change, bullets for independent changes; essential headers only; no decorative quote-blocks or ASCII tables in Linear. Don't co-author commits nor PRs.
 
 # Git Worktrees
 
@@ -60,19 +61,19 @@ If older sibling worktrees already exist, do not create more in that style; keep
 - Include isolation requirements in instructions: worktree path, explicit branch and remote target.
 - Don't dispatch subagents while the user is actively giving feedback. Process messages first.
 - Prefer parallel scouts for recon (grep/find-heavy work, broad web/API enumeration, and history reviews) — they save context, not just time.
-- When the user asks a subagent to apply a named skill, use `skill-applier` and pass the absolute skill path, cwd/worktree, scope, and mutation authority.
+- When delegating a named skill, prefer `skill-applier` when available; pass the absolute skill path, cwd/worktree, scope, and mutation authority.
 - Never delegate the final decision. Subagents gather; the orchestrator decides.
 
 # If You Are A Subagent
 
-These rules apply when you were invoked as a subagent (scout, planner, worker, reviewer, etc.) rather than as the primary agent. You can tell: your task was handed to you as `Task: ...`, you have no prior conversation, and session is disabled.
+These rules apply when another agent delegates a task to you.
 
-- **Your output is the entire handoff.** The caller will not see your tool calls, only your final message. Make it self-contained: paths with line ranges, exact symbols, verbatim snippets for anything load-bearing.
+- **Make your final handoff self-contained:** paths with line ranges, exact symbols, verbatim snippets for anything load-bearing.
 - **Compress, don't summarize vaguely.** Prefer `core/pkg/foo/bar.go:42-68 — defines X, called from Y:101, returns Z` over "there is a function that handles X".
 - **Mark verified vs inferred explicitly.** If you read the file, say so. If you grepped but didn't open it, say so. Never present a grep hit as a read.
 - **Stop at unknowns; don't guess.** If you can't locate something in a reasonable number of steps, return what you found plus a precise "couldn't find: <what>, tried: <where>". The orchestrator can redirect.
 - **Honor the task's scope strictly.** A scout scouts — it does not plan. A planner plans — it does not edit. A worker implements the handed-in plan — it does not rescope.
-- **Load relevant skills yourself.** Your settings do not inherit the orchestrator's `skills:` paths. If an ancestor `AGENTS.md` references a skill (e.g. `dune-explore`), read it explicitly when the task warrants.
+- **Load relevant skills yourself.** If an ancestor `AGENTS.md` references a skill (e.g. `dune-explore`), read it explicitly when the task warrants.
 - **Inside a git worktree: only read files from the worktree path.** The canonical repo may be at a different commit.
 - **Do not mutate shared state** (push, force-push, DB writes, K8s changes) unless the task explicitly says to and the orchestrator already has the user's permission.
 - **Your final message is the contract.** End with a clear result section the caller can act on.
@@ -84,14 +85,14 @@ These rules apply when you were invoked as a subagent (scout, planner, worker, r
 
 # Managed Agent Configuration
 
-- `~/configs/ai-agents/tools/manifest.txt` is the deployment source of truth for Pi, OpenCode, and Claude configuration across `~/configs` and `~/configs-private`.
+- `~/configs/ai-agents/tools/manifest.txt` is the deployment source of truth for Pi, OpenCode, Claude, and Codex configuration across `~/configs` and `~/configs-private`.
 - Before changing managed agent config, read `tools/README.md` and the manifest. Edit existing files through their `$HOME` symlinks; add new paths only with `tools/track.sh [--private] <path>`. Never create managed live symlinks manually.
 - Before calling config work complete, run `tools/apply.sh --verify`. For Pi resource imports, also run the `pi-skill-import` audit.
 - Credentials, sessions, trust decisions, caches, package checkouts, and generated model catalogs are machine state, not manifest entries.
 
 # Terminology
 
-- **Pi** = the agentic coding harness (this tool), never the math constant π unless the user explicitly says so ("math pi", "the number pi").
+- **Pi** = the pi.dev coding harness, never the math constant π unless the user explicitly says so ("math pi", "the number pi").
 
 # Lessons (self-improvement)
 
