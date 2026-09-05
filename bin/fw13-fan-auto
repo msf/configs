@@ -1,3 +1,2 @@
-#!/bin/bash
-
-sudo /home/miguel/bin/ectool autofanctrl
+#!/usr/bin/env bash
+exec sudo -n /home/miguel/tools/ectool/src/ectool autofanctrl

@@ -4,6 +4,7 @@ shopt -s inherit_errexit
 
 sysfs=/sys/devices/system/cpu
 platform_profile=/sys/firmware/acpi/platform_profile
+gpu_policy=/sys/class/drm/card1/device/power_dpm_force_performance_level
 
 fail() { printf 'fw13-power: %s\n' "$*" >&2; exit 1; }
 
@@ -20,17 +21,21 @@ online_policies() {
 }
 
 current_mode() {
-    local online profile refresh mode expected_epp expected_refresh policy epp governor
+    local online profile refresh mode expected_epp expected_refresh expected_gpu gpu policy epp governor
     read -r online < "$sysfs/online"
     read -r profile < "$platform_profile"
     refresh=$(swaymsg -t get_outputs -r | jq -r '[.[] | select(.name == "eDP-1") | .current_mode.refresh // 0][0] // 0')
     case "$online:$profile" in
-        0,4-12,16-23:low-power) mode=eco; expected_epp=power; expected_refresh=60000 ;;
-        0-23:balanced) mode=balanced; expected_epp=balance_performance; expected_refresh=60000 ;;
-        0-23:performance) mode=performance; expected_epp=performance; expected_refresh=120000 ;;
+        0,4-12,16-23:low-power) mode=eco; expected_epp=power; expected_refresh=60000; expected_gpu=low ;;
+        0-23:balanced) mode=balanced; expected_epp=balance_performance; expected_refresh=60000; expected_gpu=auto ;;
+        0-23:performance) mode=performance; expected_epp=performance; expected_refresh=120000; expected_gpu=auto ;;
         *) printf 'custom\n'; return ;;
     esac
     if (( refresh < expected_refresh - 100 || refresh > expected_refresh + 100 )); then
+        printf 'custom\n'; return
+    fi
+    read -r gpu < "$gpu_policy"
+    if [[ $gpu != "$expected_gpu" ]]; then
         printf 'custom\n'; return
     fi
     while IFS= read -r policy; do
@@ -56,16 +61,17 @@ bar_status() {
 }
 
 apply_mode() {
-    local mode=$1 cores epp profile refresh driver outputs policy result actual
+    local mode=$1 cores epp profile refresh gpu driver outputs policy result actual
     case "$mode" in
-        eco) cores=eco; epp=power; profile=low-power; refresh=60 ;;
-        balanced) cores=all; epp=balance_performance; profile=balanced; refresh=60 ;;
-        performance) cores=all; epp=performance; profile=performance; refresh=120 ;;
+        eco) cores=eco; epp=power; profile=low-power; refresh=60; gpu=low ;;
+        balanced) cores=all; epp=balance_performance; profile=balanced; refresh=60; gpu=auto ;;
+        performance) cores=all; epp=performance; profile=performance; refresh=120; gpu=auto ;;
     esac
     [[ -x /usr/local/sbin/eco-cores ]] || fail 'Install the CPU helper first: sudo ~/configs/sway/install-power-mode "$USER"'
     sudo -n -l /usr/local/sbin/eco-cores "$cores" >/dev/null
     read -r driver < "$sysfs/amd_pstate/status"
     [[ $driver == active ]] || fail 'Expected active amd-pstate'
+    [[ -r $gpu_policy ]] || fail "GPU policy interface unavailable: $gpu_policy"
     outputs=$(swaymsg -t get_outputs -r)
     jq -e --argjson hz "$refresh" 'any(.[]; .name == "eDP-1" and .active and any(.modes[]; .width == 2880 and .height == 1920 and (.refresh - $hz * 1000 | fabs) < 100))' <<< "$outputs" >/dev/null || fail "Internal display does not offer 2880x1920 at $refresh Hz"
 
@@ -76,6 +82,8 @@ apply_mode() {
     while IFS= read -r policy; do
         printf '%s\n' "$epp" | sudo -n /usr/bin/tee "$policy/energy_performance_preference" >/dev/null
     done < <(online_policies)
+    # Dynamic GPU clocks outside ECO avoid wasting power at idle.
+    printf '%s\n' "$gpu" | sudo -n /usr/bin/tee "$gpu_policy" >/dev/null
     result=$(swaymsg -r output eDP-1 mode "2880x1920@${refresh}Hz")
     jq -e 'length > 0 and all(.[]; .success)' <<< "$result" >/dev/null || fail "Display change failed: $result"
     actual=$(current_mode)

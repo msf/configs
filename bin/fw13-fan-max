@@ -1,3 +1,3 @@
-#!/bin/bash
-
-sudo /home/miguel/bin/ectool fanduty 100
+#!/usr/bin/env bash
+# Restore firmware fan control with fw13-fan-auto.
+exec sudo -n /home/miguel/tools/ectool/src/ectool fanduty 100

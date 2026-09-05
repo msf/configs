@@ -10,6 +10,7 @@ printf 'active\n' > "$TEST_DIR/cpu/amd_pstate/status"
 printf '0-23\n' > "$TEST_DIR/cpu/present"
 printf '0-23\n' > "$TEST_DIR/cpu/online"
 printf 'balanced\n' > "$TEST_DIR/platform_profile"
+printf 'auto\n' > "$TEST_DIR/gpu_policy"
 printf '60001\n' > "$TEST_DIR/refresh"
 for ((cpu=0; cpu<24; cpu++)); do
     mkdir -p "$TEST_DIR/cpu/cpu$cpu/topology" "$TEST_DIR/cpu/cpufreq/policy$cpu"
@@ -26,6 +27,7 @@ printf '%s\n' "$script" > "$TEST_DIR/eco-cores"
 script=$(< "$source_dir/../bin/fw13-power")
 script=${script/sysfs=\/sys\/devices\/system\/cpu/sysfs=$TEST_DIR\/cpu}
 script=${script/platform_profile=\/sys\/firmware\/acpi\/platform_profile/platform_profile=$TEST_DIR\/platform_profile}
+script=${script/gpu_policy=\/sys\/class\/drm\/card1\/device\/power_dpm_force_performance_level/gpu_policy=$TEST_DIR\/gpu_policy}
 script=${script//\/usr\/local\/sbin\/eco-cores/$TEST_DIR\/eco-cores}
 printf '%s\n' "$script" > "$TEST_DIR/fw13-power"
 
@@ -44,8 +46,16 @@ case $1 in
     /usr/bin/cpupower)
         for file in "$TEST_DIR"/cpu/cpufreq/policy*/scaling_governor; do printf 'powersave\n' > "$file"; done
         ;;
+    /home/miguel/tools/ectool/src/ectool)
+        [[ ${FAIL_FAN:-0} != 1 ]] || exit 1
+        printf '%s\n' "${@:2}" > "$TEST_DIR/fan-command"
+        ;;
     /usr/bin/tee)
         [[ $2 == "$TEST_DIR/"* ]] || exit 1
+        if [[ $2 == "$TEST_DIR/gpu_policy" ]]; then
+            [[ ${FAIL_GPU:-0} != 1 ]] || exit 1
+            if [[ ${IGNORE_GPU_WRITE:-0} == 1 ]]; then read -r ignored; exit 0; fi
+        fi
         exec "$@"
         ;;
     *) exit 1 ;;
@@ -73,24 +83,45 @@ chmod +x "$TEST_DIR"/{eco-cores,fw13-power,bin/*}
 export PATH=$TEST_DIR/bin:$PATH
 power=$TEST_DIR/fw13-power
 [[ $($power status) == balanced ]]
-for mode in eco balanced performance; do
+for mode in eco balanced eco performance; do
     [[ $($power "$mode") == "$mode" ]]
     [[ $($power status) == "$mode" ]]
     $power bar | jq -e '.text | contains("Noto Color Emoji")' >/dev/null
     if [[ $mode == eco ]]; then
         [[ $(< "$TEST_DIR/cpu/online") == 0,4-12,16-23 ]]
         [[ $(< "$TEST_DIR/cpu/cpufreq/policy0/energy_performance_preference") == power ]]
+        [[ $(< "$TEST_DIR/gpu_policy") == low ]]
     else
         [[ $(< "$TEST_DIR/cpu/online") == 0-23 ]]
+        [[ $(< "$TEST_DIR/gpu_policy") == auto ]]
     fi
 done
 for expected in eco balanced performance; do [[ $($power cycle) == "$expected" ]]; done
 if FAIL_CPU=1 $power eco > "$TEST_DIR/output" 2>&1; then exit 1; fi
 [[ $($power status) == performance ]]
+for failure in FAIL_GPU IGNORE_GPU_WRITE; do
+    if env "$failure=1" $power eco > "$TEST_DIR/output" 2>&1; then exit 1; fi
+    [[ $($power status) == custom ]]
+    $power performance >/dev/null
+done
 if FAIL_DISPLAY=1 $power eco > "$TEST_DIR/output" 2>&1; then exit 1; fi
 [[ $($power status) == custom ]]
 $power balanced >/dev/null
 if $power invalid > "$TEST_DIR/output" 2>&1; then exit 1; fi
 if $power eco extra > "$TEST_DIR/output" 2>&1; then exit 1; fi
 [[ $($power status) == balanced ]]
-printf 'PASS: three modes, cycle, CPU masks, EPP, refresh, icon JSON, CPU/display failures, invalid arguments\n'
+printf 'low\n' > "$TEST_DIR/gpu_policy"
+[[ $($power status) == custom ]]
+printf 'auto\n' > "$TEST_DIR/gpu_policy"
+mv "$TEST_DIR/gpu_policy" "$TEST_DIR/gpu_policy.saved"
+if $power eco > "$TEST_DIR/output" 2>&1; then exit 1; fi
+mv "$TEST_DIR/gpu_policy.saved" "$TEST_DIR/gpu_policy"
+[[ $($power status) == balanced ]]
+"$source_dir/../bin/fw13-fan-max"
+[[ $(< "$TEST_DIR/fan-command") == $'fanduty\n100' ]]
+"$source_dir/../bin/fw13-fan-auto"
+[[ $(< "$TEST_DIR/fan-command") == autofanctrl ]]
+for fan in max auto; do
+    if FAIL_FAN=1 "$source_dir/../bin/fw13-fan-$fan" > "$TEST_DIR/output" 2>&1; then exit 1; fi
+done
+printf 'PASS: modes, CPU/EPP/GPU/refresh, GPU restore and drift, write failures, fan max/auto commands and failures\n'
