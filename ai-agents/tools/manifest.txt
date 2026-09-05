@@ -20,6 +20,7 @@
 repo    .claude/CLAUDE.md             ai-agents/AGENTS.md
 home    .config/opencode/AGENTS.md    .claude/CLAUDE.md
 repo    .pi/agent/AGENTS.md           ai-agents/AGENTS.md
+repo    .codex/AGENTS.md              ai-agents/AGENTS.md
 prepo   .pi/agent/lessons.md          lessons.md
 
 # ── OpenCode roots

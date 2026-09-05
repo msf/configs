@@ -1,11 +1,13 @@
 # ai-agents — managed agent configuration
 
-Single source of truth for Pi, Claude Code, and OpenCode, split across:
+Single source of truth for Pi, Claude Code, OpenCode, and Codex, split across:
 
 - **`~/configs/ai-agents` (public):** generic instructions, skills, agents, commands, tools, and path-specific settings. No secrets or internal infrastructure details.
 - **`~/configs-private` (private):** work-specific resources and MCP configuration. Tokens and machine state belong in neither repository.
 
 `tools/manifest.txt` declares every live projection. `apply.sh` links owned sources into `$HOME`.
+
+Codex currently shares the canonical instructions through `~/.codex/AGENTS.md`; its settings and skills are not yet managed here.
 
 ## Layout
 
