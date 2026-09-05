@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source_dir=$(dirname "$(readlink -f "$0")")
+export TEST_DIR
+TEST_DIR=$(mktemp -d)
+trap 'rm -rf "$TEST_DIR"' EXIT
+export XDG_RUNTIME_DIR=$TEST_DIR
+mkdir -p "$TEST_DIR/cpu/amd_pstate" "$TEST_DIR/bin"
+printf 'active\n' > "$TEST_DIR/cpu/amd_pstate/status"
+printf '0-23\n' > "$TEST_DIR/cpu/present"
+printf '0-23\n' > "$TEST_DIR/cpu/online"
+printf 'balanced\n' > "$TEST_DIR/platform_profile"
+printf '60001\n' > "$TEST_DIR/refresh"
+for ((cpu=0; cpu<24; cpu++)); do
+    mkdir -p "$TEST_DIR/cpu/cpu$cpu/topology" "$TEST_DIR/cpu/cpufreq/policy$cpu"
+    primary=$((cpu % 12))
+    printf '%s,%s\n' "$primary" "$((primary + 12))" > "$TEST_DIR/cpu/cpu$cpu/topology/thread_siblings_list"
+    if ((cpu > 0)); then printf '1\n' > "$TEST_DIR/cpu/cpu$cpu/online"; fi
+    printf 'balance_performance\n' > "$TEST_DIR/cpu/cpufreq/policy$cpu/energy_performance_preference"
+    printf 'powersave\n' > "$TEST_DIR/cpu/cpufreq/policy$cpu/scaling_governor"
+done
+script=$(< "$source_dir/../bin/eco-cores")
+script=${script/sysfs=\/sys\/devices\/system\/cpu/sysfs=$TEST_DIR\/cpu}
+script=${script/'(( EUID == 0 ))'/'true'}
+printf '%s\n' "$script" > "$TEST_DIR/eco-cores"
+script=$(< "$source_dir/../bin/fw13-power")
+script=${script/sysfs=\/sys\/devices\/system\/cpu/sysfs=$TEST_DIR\/cpu}
+script=${script/platform_profile=\/sys\/firmware\/acpi\/platform_profile/platform_profile=$TEST_DIR\/platform_profile}
+script=${script//\/usr\/local\/sbin\/eco-cores/$TEST_DIR\/eco-cores}
+printf '%s\n' "$script" > "$TEST_DIR/fw13-power"
+
+cat > "$TEST_DIR/bin/sudo" <<'MOCK'
+#!/usr/bin/env bash
+set -euo pipefail
+[[ $1 != -n ]] || shift
+case $1 in
+    -l) exit 0 ;;
+    "$TEST_DIR/eco-cores")
+        [[ ${FAIL_CPU:-0} != 1 ]] || exit 1
+        "$@"
+        if [[ $2 == eco ]]; then mask=0,4-12,16-23; else mask=0-23; fi
+        printf '%s\n' "$mask" > "$TEST_DIR/cpu/online"
+        ;;
+    /usr/bin/cpupower)
+        for file in "$TEST_DIR"/cpu/cpufreq/policy*/scaling_governor; do printf 'powersave\n' > "$file"; done
+        ;;
+    /usr/bin/tee)
+        [[ $2 == "$TEST_DIR/"* ]] || exit 1
+        exec "$@"
+        ;;
+    *) exit 1 ;;
+esac
+MOCK
+cat > "$TEST_DIR/bin/swaymsg" <<'MOCK'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ $1 == -t ]]; then
+    read -r refresh < "$TEST_DIR/refresh"
+    jq -cn --argjson refresh "$refresh" '[{name:"eDP-1",active:true,current_mode:{refresh:$refresh},modes:[{width:2880,height:1920,refresh:60001},{width:2880,height:1920,refresh:120000}]}]'
+else
+    if [[ ${FAIL_DISPLAY:-0} == 1 ]]; then printf '[{"success":false}]\n'; exit 0; fi
+    case $5 in
+        2880x1920@60Hz) refresh=60001 ;;
+        2880x1920@120Hz) refresh=120000 ;;
+        *) exit 1 ;;
+    esac
+    printf '%s\n' "$refresh" > "$TEST_DIR/refresh"
+    printf '[{"success":true}]\n'
+fi
+MOCK
+printf '#!/usr/bin/env bash\nexit 0\n' > "$TEST_DIR/bin/notify-send"
+chmod +x "$TEST_DIR"/{eco-cores,fw13-power,bin/*}
+export PATH=$TEST_DIR/bin:$PATH
+power=$TEST_DIR/fw13-power
+[[ $($power status) == balanced ]]
+for mode in eco balanced performance; do
+    [[ $($power "$mode") == "$mode" ]]
+    [[ $($power status) == "$mode" ]]
+    $power bar | jq -e '.text | contains("Noto Color Emoji")' >/dev/null
+    if [[ $mode == eco ]]; then
+        [[ $(< "$TEST_DIR/cpu/online") == 0,4-12,16-23 ]]
+        [[ $(< "$TEST_DIR/cpu/cpufreq/policy0/energy_performance_preference") == power ]]
+    else
+        [[ $(< "$TEST_DIR/cpu/online") == 0-23 ]]
+    fi
+done
+for expected in eco balanced performance; do [[ $($power cycle) == "$expected" ]]; done
+if FAIL_CPU=1 $power eco > "$TEST_DIR/output" 2>&1; then exit 1; fi
+[[ $($power status) == performance ]]
+if FAIL_DISPLAY=1 $power eco > "$TEST_DIR/output" 2>&1; then exit 1; fi
+[[ $($power status) == custom ]]
+$power balanced >/dev/null
+if $power invalid > "$TEST_DIR/output" 2>&1; then exit 1; fi
+if $power eco extra > "$TEST_DIR/output" 2>&1; then exit 1; fi
+[[ $($power status) == balanced ]]
+printf 'PASS: three modes, cycle, CPU masks, EPP, refresh, icon JSON, CPU/display failures, invalid arguments\n'

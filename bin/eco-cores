@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# HX 370: one Zen 5 core and eight Zen 5c cores, all with SMT.
+set -euo pipefail
+
+fail() { printf 'eco-cores: %s\n' "$*" >&2; exit 1; }
+
+usage() {
+    printf 'Usage: %s [eco|all|status]\n' "$0"
+    printf '  eco     Keep CPU0 and its SMT sibling + all 8 compact cores with SMT\n'
+    printf '  all     Bring all 24 logical CPUs online\n'
+    printf '  status  Show current and eco target CPUs (default; no changes)\n'
+}
+
+(( $# <= 1 )) || { usage >&2; exit 1; }
+action=${1:-status}
+case "$action" in
+    eco|all|status) ;;
+    -h|--help) usage; exit 0 ;;
+    *) usage >&2; exit 1 ;;
+esac
+
+sysfs=/sys/devices/system/cpu
+# CPU numbering is specific to this laptop; refuse a different topology.
+grep -q 'model name.*AMD Ryzen AI 9 HX 370' /proc/cpuinfo || fail 'Unsupported processor'
+read -r present < "$sysfs/present"
+[[ $present == 0-23 ]] || fail "Unexpected present CPUs: $present"
+for ((cpu=0; cpu<24; cpu++)); do
+    # Offline CPUs lose their topology files; sibling lists include only online CPUs.
+    if [[ -e $sysfs/cpu$cpu/online ]]; then
+        read -r online < "$sysfs/cpu$cpu/online"
+        [[ $online != 0 ]] || continue
+    fi
+    primary=$((cpu % 12))
+    read -r siblings < "$sysfs/cpu$cpu/topology/thread_siblings_list"
+    [[ $siblings == "$primary,$((primary + 12))" || $siblings == "$cpu" ]] || fail "Unexpected siblings for CPU $cpu: $siblings"
+done
+
+# Verified sysfs: 0-3 are Zen 5, 4-11 are Zen 5c; SMT siblings are +12.
+# Retain CPU0 because this kernel does not support offlining it.
+eco_cpus=(0 4 5 6 7 8 9 10 11 12 16 17 18 19 20 21 22 23)
+eco_offline=(1 2 3 13 14 15)
+
+show_status() {
+    local online
+    read -r online < "$sysfs/online"
+    printf 'Currently online: %s\n' "$online"
+    printf 'Eco online (%s threads): %s\n' "${#eco_cpus[@]}" "${eco_cpus[*]}"
+    printf 'Eco offline: %s\n' "${eco_offline[*]}"
+}
+
+if [[ $action == status ]]; then
+    show_status
+    exit 0
+fi
+(( EUID == 0 )) || fail "Run with sudo: $0 $action"
+
+set_online() {
+    local cpu=$1 wanted=$2 current online_file
+    online_file=$sysfs/cpu$cpu/online
+    if [[ ! -e $online_file ]]; then
+        [[ $cpu == 0 && $wanted == 1 ]] || fail "CPU $cpu cannot be hotplugged"
+        return 0
+    fi
+    read -r current < "$online_file"
+    [[ $current != "$wanted" ]] || return 0
+    printf '%s\n' "$wanted" > "$online_file" || fail "Cannot set CPU $cpu to $wanted; state may be partially changed. Use '$0 all' to restore."
+    read -r current < "$online_file"
+    [[ $current == "$wanted" ]] || fail "CPU $cpu did not reach requested state $wanted"
+    printf 'CPU %s: online=%s\n' "$cpu" "$current"
+}
+
+if [[ $action == all ]]; then
+    for ((cpu=0; cpu<24; cpu++)); do
+        set_online "$cpu" 1
+    done
+else
+    # Enable retained CPUs first so an enable failure cannot reduce capacity.
+    for cpu in "${eco_cpus[@]}"; do set_online "$cpu" 1; done
+    for cpu in "${eco_offline[@]}"; do set_online "$cpu" 0; done
+fi
+show_status

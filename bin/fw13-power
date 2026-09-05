@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+set -euo pipefail
+shopt -s inherit_errexit
+
+sysfs=/sys/devices/system/cpu
+platform_profile=/sys/firmware/acpi/platform_profile
+
+fail() { printf 'fw13-power: %s\n' "$*" >&2; exit 1; }
+
+online_policies() {
+    local policy cpu online
+    for policy in "$sysfs"/cpufreq/policy*; do
+        cpu=${policy##*policy}
+        if [[ -e $sysfs/cpu$cpu/online ]]; then
+            read -r online < "$sysfs/cpu$cpu/online"
+            [[ $online != 0 ]] || continue
+        fi
+        printf '%s\n' "$policy"
+    done
+}
+
+current_mode() {
+    local online profile refresh mode expected_epp expected_refresh policy epp governor
+    read -r online < "$sysfs/online"
+    read -r profile < "$platform_profile"
+    refresh=$(swaymsg -t get_outputs -r | jq -r '[.[] | select(.name == "eDP-1") | .current_mode.refresh // 0][0] // 0')
+    case "$online:$profile" in
+        0,4-12,16-23:low-power) mode=eco; expected_epp=power; expected_refresh=60000 ;;
+        0-23:balanced) mode=balanced; expected_epp=balance_performance; expected_refresh=60000 ;;
+        0-23:performance) mode=performance; expected_epp=performance; expected_refresh=120000 ;;
+        *) printf 'custom\n'; return ;;
+    esac
+    if (( refresh < expected_refresh - 100 || refresh > expected_refresh + 100 )); then
+        printf 'custom\n'; return
+    fi
+    while IFS= read -r policy; do
+        read -r epp < "$policy/energy_performance_preference"
+        read -r governor < "$policy/scaling_governor"
+        if [[ $epp != "$expected_epp" || $governor != powersave ]]; then
+            printf 'custom\n'; return
+        fi
+    done < <(online_policies)
+    printf '%s\n' "$mode"
+}
+
+bar_status() {
+    local mode icon label state
+    mode=$(current_mode)
+    case "$mode" in
+        eco) icon=🌿; label=eco; state=Good ;;
+        balanced) icon=⚖; label=balanced; state=Idle ;;
+        performance) icon=⚡; label=perf; state=Warning ;;
+        custom) icon=⚠; label=custom; state=Warning ;;
+    esac
+    jq -cn --arg text "<span font_family='Noto Color Emoji'>$icon</span> $label" --arg state "$state" '{text: $text, state: $state}'
+}
+
+apply_mode() {
+    local mode=$1 cores epp profile refresh driver outputs policy result actual
+    case "$mode" in
+        eco) cores=eco; epp=power; profile=low-power; refresh=60 ;;
+        balanced) cores=all; epp=balance_performance; profile=balanced; refresh=60 ;;
+        performance) cores=all; epp=performance; profile=performance; refresh=120 ;;
+    esac
+    [[ -x /usr/local/sbin/eco-cores ]] || fail 'Install the CPU helper first: sudo ~/configs/sway/install-power-mode "$USER"'
+    sudo -n -l /usr/local/sbin/eco-cores "$cores" >/dev/null
+    read -r driver < "$sysfs/amd_pstate/status"
+    [[ $driver == active ]] || fail 'Expected active amd-pstate'
+    outputs=$(swaymsg -t get_outputs -r)
+    jq -e --argjson hz "$refresh" 'any(.[]; .name == "eDP-1" and .active and any(.modes[]; .width == 2880 and .height == 1920 and (.refresh - $hz * 1000 | fabs) < 100))' <<< "$outputs" >/dev/null || fail "Internal display does not offer 2880x1920 at $refresh Hz"
+
+    sudo -n /usr/local/sbin/eco-cores "$cores" >/dev/null
+    # The powersave governor permits all EPP preferences in active amd-pstate mode.
+    sudo -n /usr/bin/cpupower frequency-set -g powersave >/dev/null
+    printf '%s\n' "$profile" | sudo -n /usr/bin/tee "$platform_profile" >/dev/null
+    while IFS= read -r policy; do
+        printf '%s\n' "$epp" | sudo -n /usr/bin/tee "$policy/energy_performance_preference" >/dev/null
+    done < <(online_policies)
+    result=$(swaymsg -r output eDP-1 mode "2880x1920@${refresh}Hz")
+    jq -e 'length > 0 and all(.[]; .success)' <<< "$result" >/dev/null || fail "Display change failed: $result"
+    actual=$(current_mode)
+    [[ $actual == "$mode" ]] || fail "Settings did not settle into $mode (actual: $actual)"
+}
+
+(( $# <= 1 )) || fail 'Usage: fw13-power [eco|balanced|performance|cycle|status|bar]'
+action=${1:-status}
+case "$action" in
+    status) current_mode; exit ;;
+    bar) bar_status; exit ;;
+    eco|balanced|performance|cycle) ;;
+    *) fail 'Usage: fw13-power [eco|balanced|performance|cycle|status|bar]' ;;
+esac
+
+exec 9>"${XDG_RUNTIME_DIR:?}/fw13-power.lock"
+flock -n 9 || fail 'A mode change is already running'
+trap 'printf "fw13-power: mode change failed; settings may be partially applied\n" >&2; notify-send -u critical "Power mode change failed" "Settings may be partially applied. Run fw13-power status and retry from a terminal."' ERR
+if [[ $action == cycle ]]; then
+    case $(current_mode) in
+        eco) action=balanced ;;
+        balanced) action=performance ;;
+        *) action=eco ;;
+    esac
+fi
+(apply_mode "$action")
+printf '%s\n' "$action"

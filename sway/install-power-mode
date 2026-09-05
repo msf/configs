@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if (( EUID != 0 || $# != 1 )) || [[ ! $1 =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+    printf 'Usage: sudo %s USER\n' "$0" >&2
+    exit 1
+fi
+id "$1" >/dev/null
+source_dir=$(dirname "$(readlink -f "$0")")
+bash -n "$source_dir/../bin/eco-cores"
+sudoers=$(mktemp)
+trap 'rm -f "$sudoers"' EXIT
+printf '%s ALL=(root) NOPASSWD: /usr/local/sbin/eco-cores eco, /usr/local/sbin/eco-cores all\n' "$1" > "$sudoers"
+visudo -cf "$sudoers"
+install -o root -g root -m 0755 "$source_dir/../bin/eco-cores" /usr/local/sbin/eco-cores
+install -o root -g root -m 0440 "$sudoers" /etc/sudoers.d/fw13-eco-cores
+printf 'Installed root-owned CPU helper and restricted sudo rule for %s.\n' "$1"
