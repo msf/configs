@@ -100,7 +100,7 @@ path=(
   /opt/nvim-linux-x86_64/bin
 )
 
-if [[ ! -S $SSH_AUTH_SOCK ]] && (( $+commands[keychain] )); then
+if (( $+commands[keychain] )); then
   keychain -q $HOME/.ssh/id_ed25519
   keychain_file=$HOME/.keychain/${HOST}-sh
   [[ -r $keychain_file ]] && source $keychain_file
