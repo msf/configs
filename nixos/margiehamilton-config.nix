@@ -67,6 +67,7 @@
        file
        fwupd
        gcc
+       ghostty.terminfo
        git
        gnumake
        go
