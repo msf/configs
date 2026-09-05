@@ -5,7 +5,7 @@
 { pkgs, options, ... }:
 
 {
-  imports = [ ./margiehamilton-hw-config.nix ];
+  imports = [ ./margiehamilton-hw-config.nix ./margiehamilton-shelly2vm.nix ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -103,7 +103,17 @@
    pathsToLink = [ "/libexec" ];
   };
 
-  powerManagement.cpuFreqGovernor = "performance";
+  powerManagement.cpuFreqGovernor = "schedutil";
+
+  services.tlp = {
+    enable = true;
+    pd.enable = true;
+    settings = {
+      TLP_AUTO_SWITCH = 0;
+      TLP_DEFAULT_MODE = "BAL";
+      CPU_SCALING_GOVERNOR_ON_SAV = "schedutil";
+    };
+  };
 
   users.defaultUserShell = pkgs.zsh;
   programs.zsh.enable = true;
@@ -184,6 +194,7 @@
       alacritty
       brightnessctl
       grim
+      i3status-rust
       pulseaudio
       swayidle
       swaylock
@@ -260,6 +271,50 @@
 
   # servers/services inside containers
   environment.etc = {
+    "i3status-rust/config.toml".text = ''
+      [theme]
+      theme = "native"
+
+      [[block]]
+      block = "custom"
+      command = "${pkgs.tlp-pd}/bin/tlpctl get 2>/dev/null || echo unavailable"
+      format = " PWR $text "
+      interval = 5
+
+      [[block]]
+      block = "cpu"
+      format = " CPU $utilization $frequency "
+      format_alt = " CPU $barchart "
+      interval = 5
+
+      [[block]]
+      block = "temperature"
+      format = " TEMP $average "
+      chip = "coretemp-isa-0000"
+      inputs = ["Package id 0"]
+      interval = 5
+
+      [[block]]
+      block = "memory"
+      format = " MEM $mem_used_percents "
+      interval = 10
+
+      [[block]]
+      block = "time"
+      format = " $timestamp.datetime(f:'%a %F %R') "
+      interval = 5
+    '';
+    "sway/config.d/power.conf".text = ''
+      exec ${pkgs.swayidle}/bin/swayidle -w \
+        timeout 1800 '${pkgs.sway}/bin/swaymsg "output * power off"' \
+        resume '${pkgs.sway}/bin/swaymsg "output * power on"'
+
+      bar bar-0 {
+        status_command ${pkgs.i3status-rust}/bin/i3status-rs /etc/i3status-rust/config.toml
+        font pango:monospace 10
+        separator_symbol " | "
+      }
+    '';
     "sway/config.d/terminal.conf".text = ''
       bindsym $mod+Return exec alacritty
     '';
