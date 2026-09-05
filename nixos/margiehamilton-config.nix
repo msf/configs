@@ -63,6 +63,7 @@
        '')
        awscli
        btrfs-progs
+       delta
        file
        fwupd
        gcc
