@@ -124,3 +124,4 @@ home    .pi/agent-lean/extensions/browser-read .pi/agent/extensions/browser-read
 home    .pi/agent-lean/extensions/mcp-bridge   .pi/agent/extensions/mcp-bridge
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent
 repo    .claude/skills/wiki  ai-agents/skills/wiki
+repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disable-spinner.ts
