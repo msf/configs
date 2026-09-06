@@ -83,3 +83,10 @@ Published in `~/configs` commit `42df2bc10d206ba6be39562fcb4fc16fee8c7dd9`:
 - Replaced the compulsory long server-wiki bootstrap with explicit/local root selection, a short entry point, selective retrieval, source-backed narrow capture, and personal/work boundaries. Personal wiki content remains outside config repositories.
 - Added a shared Local Memory trigger; pointed pi-lean skill/prompt imports at owned sources rather than another harness's projections. Preserved existing manifest links; no model-serving or synchronization changes.
 - Validated the skill schema, both Pi resource loaders, native cloud/local retrieval, manifest projection and Pi ownership audit. The private pilot at `~/play/wiki-memory-eval/pilot-01/REPORT.md` preserves all policy variants and curation failures. Explicit `/skill:wiki` invocation worked for local retrieval; unattended local-model curation is not validated.
+
+## 2026-09-06: shared wiki projection reconciliation
+
+- Kept the wiki skill from `a515800` unchanged. Registered `.claude/skills/wiki` through `track.sh` against the same canonical source as Pi; Pi does not depend on the Claude projection. Added regression coverage for both public skill paths.
+- Scoped standalone Pi's bundled Node runtime to `pi` and `pi-lean` launches instead of changing the shell's general Node version. Verified Pi 0.85.1 with Node 22.23.1 on the second machine; the laptop remains on Node 24.13.0.
+- Verified both Pi profile loaders on both machines and a native read-only Claude `/wiki` invocation on the second machine. Laptop manifest verification and Pi audit pass. Full second-machine audit remains blocked by missing private resources and provider availability; see the private deployment report before claiming complete reconciliation.
+- Personal wiki contents, credentials, and machine-generated catalogs remain outside this public configuration change.
