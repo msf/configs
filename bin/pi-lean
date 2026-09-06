@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
 # Local-model Pi profile with separate models, settings, and sessions.
 # MCP servers load lazily only when a matching prompt needs their tools.
+if [[ -x "$HOME/.local/share/pi-node/current/bin/node" ]]; then
+  export PATH="$HOME/.local/share/pi-node/current/bin:$PATH"
+fi
 exec env PI_CODING_AGENT_DIR="$HOME/.pi/agent-lean" pi "$@"

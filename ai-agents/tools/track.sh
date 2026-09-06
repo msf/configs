@@ -47,8 +47,8 @@ if [ "$PRIVATE" = 1 ]; then
 	esac
 else
 	case "$rel" in
-		.pi/agent/skills/*)
-			suffix=${rel#.pi/agent/skills/}
+		.pi/agent/skills/*|.claude/skills/*)
+			suffix=${rel#*/skills/}
 			kind=repo; manifest_target=ai-agents/skills/$suffix; target=$REPO_DIR/$manifest_target ;;
 		.pi/agent/agents/*)
 			suffix=${rel#.pi/agent/agents/}
