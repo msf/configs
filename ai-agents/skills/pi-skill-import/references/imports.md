@@ -76,3 +76,10 @@ Published in `~/configs` commit `42df2bc10d206ba6be39562fcb4fc16fee8c7dd9`:
 - Added complete child usage propagation, including nested tool and compaction usage, to the parent tool result.
 - Updated `context-meter` to count assistant, tool, compaction, and branch-summary usage using Pi's session-accounting semantics, with a fallback for subagent usage recorded by older sessions only in tool details.
 - Validated both extensions through Pi's loader, synthetic usage smoke tests, manifest verification, and the Pi ownership audit.
+
+## 2026-09-06: local wiki memory
+
+- Adapted the existing owned wiki skill, not a new upstream import. Previous SHA256: `a611c76264007553c788befc15d056c617a991c1fbad5a5e1e9d0d18fa75a731`; new SHA256: `847ffaf441f2f6f12de7046c80d6d8ceeda5af16c8de016b2a8f7b47e5612cbc`. Config checkout at final inspection: `c1753975289d0faf8bad035df7e87cba235a3c82`, with this adaptation uncommitted.
+- Replaced the compulsory long server-wiki bootstrap with explicit/local root selection, a short entry point, selective retrieval, source-backed narrow capture, and personal/work boundaries. Personal wiki content remains outside config repositories.
+- Added a shared Local Memory trigger; pointed pi-lean skill/prompt imports at owned sources rather than another harness's projections. Preserved existing manifest links; no model-serving or synchronization changes.
+- Validated the skill schema, both Pi resource loaders, native cloud/local retrieval, manifest projection and Pi ownership audit. The private pilot at `~/play/wiki-memory-eval/pilot-01/REPORT.md` preserves all policy variants and curation failures. Explicit `/skill:wiki` invocation worked for local retrieval; unattended local-model curation is not validated.

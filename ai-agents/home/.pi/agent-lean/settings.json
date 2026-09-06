@@ -35,10 +35,10 @@
     "local/gemma4-26b-qat-mtp-nothink"
   ],
   "skills": [
-    "~/.config/opencode/skills",
-    "~/.config/opencode/skills-private"
+    "~/configs/ai-agents/skills",
+    "~/configs-private/skills"
   ],
   "prompts": [
-    "~/.config/opencode/commands"
+    "~/configs/ai-agents/commands"
   ]
 }

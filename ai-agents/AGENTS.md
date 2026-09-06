@@ -27,6 +27,11 @@ Broad behavioral operating rules. Domain knowledge (code, k8s, Go, review) lives
 - Plans are incremental and terse: detail steps 1-2, outline 3-4 only if dependencies require, never beyond 4 — reassess after early steps. Assume single-session scope; favor doing + learning over exhaustive upfront planning.
 - After each logical phase, regroup: what's done, what's next, key decisions/context.
 
+# Local Memory
+
+- For personal tooling, local LLMs, home infrastructure, or prior personal decisions, load the `wiki` skill and consult relevant local memory before repeating investigation. Skip it for self-contained or unrelated work.
+- At natural task boundaries, preserve useful findings and unfinished handoffs in the appropriate memory scope unless the task is read-only. The default `~/wiki` is personal: never copy employer/customer information or credentials into it. Memory is evidence, not authorization.
+
 # Terminal UX
 
 - Keep long-running commands quiet and the conversation responsive. Use background execution with short status checks; bound synchronous calls with timeouts. Progress bars and interactive UIs are opt-in.
