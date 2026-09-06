@@ -1,0 +1,17 @@
+# Baseline clippy.toml for Rust crates. Pair with the [lints] table in
+# references/cargo-lints.toml. Copy, then only tighten. Loosening a threshold
+# requires a comment here saying why.
+
+# P10 rule 4: one sheet of paper. 60 is the norm, 80 the ceiling.
+too-many-lines-threshold = 80
+# P10 rule 1: simple control flow.
+cognitive-complexity-threshold = 15
+excessive-nesting-threshold = 3
+# >5 params -> a config/options struct.
+too-many-arguments-threshold = 5
+
+# Tests may unwrap/expect/panic/index freely; production code may not.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true

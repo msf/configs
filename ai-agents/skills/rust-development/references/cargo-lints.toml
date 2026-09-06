@@ -1,0 +1,58 @@
+# Baseline [lints] table for Cargo.toml (workspace root or single crate).
+# In a workspace: put this under [workspace.lints] and add
+# `[lints] workspace = true` to every member. Copy, then only ADD.
+# Downgrading a lint requires a comment here saying why.
+
+[lints.rust]
+unsafe_code = "forbid"                 # flip to "deny" only in the leaf crate that needs it
+unsafe_op_in_unsafe_fn = "deny"
+missing_debug_implementations = "warn"
+unreachable_pub = "warn"               # P10 rule 6: smallest scope
+unused_must_use = "deny"               # P10 rule 7
+unused_results = "warn"                # P10 rule 7
+trivial_casts = "warn"
+trivial_numeric_casts = "warn"
+
+[lints.clippy]
+# Groups. pedantic is on; individual pedantic lints are allowed below with reasons.
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+
+# --- Power of 10 (restriction group, opted in one by one) ---
+too_many_lines = "deny"                # rule 4, threshold in clippy.toml
+cognitive_complexity = "deny"          # rule 1
+excessive_nesting = "deny"             # rule 1
+too_many_arguments = "deny"            # rule 1, threshold in clippy.toml
+infinite_loop = "deny"                 # rule 2: loop {} with no exit
+exit = "deny"                          # rule 1: process::exit outside main
+unwrap_used = "deny"                   # rule 5/7: unwrap is an unnamed assertion
+expect_used = "warn"                   # allowed for invariants; message names the invariant
+unwrap_in_result = "deny"              # rule 7: fns that return Result propagate, not unwrap
+panic = "deny"                         # rule 1: panic is not control flow; assert!/unreachable! for invariants
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+indexing_slicing = "deny"              # rule 5: .get() or an asserted bound
+missing_asserts_for_indexing = "deny"  # rule 5
+arithmetic_side_effects = "warn"       # rule 3/5: checked_/saturating_/wrapping_ on untrusted input
+as_conversions = "warn"                # rule 9 analog: From/TryFrom over as
+cast_possible_truncation = "deny"
+let_underscore_must_use = "deny"       # rule 7
+unused_result_ok = "deny"              # rule 7
+map_unwrap_or = "deny"
+shadow_unrelated = "warn"              # rule 6
+mem_forget = "deny"                    # rule 3
+rc_buffer = "warn"                     # rule 3
+large_futures = "warn"                 # rule 3
+large_stack_arrays = "warn"            # rule 3
+undocumented_unsafe_blocks = "deny"    # rule 9 analog
+multiple_unsafe_ops_per_block = "deny"
+allow_attributes = "deny"              # rule 10: use #[expect(lint, reason = "...")]
+allow_attributes_without_reason = "deny"
+missing_errors_doc = "warn"
+missing_panics_doc = "deny"            # any remaining panic path is documented
+
+# --- pedantic lints allowed with a reason ---
+module_name_repetitions = "allow"      # domain names beat short names (coding skill: naming)
+must_use_candidate = "allow"           # noisy; unused_must_use covers the real cases

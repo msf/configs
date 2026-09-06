@@ -1,0 +1,164 @@
+# Baseline .golangci.yml for Go repositories (golangci-lint v2, validated on 2.13.1).
+# Merged from five production service/library configs, plus the
+# Power of 10 rules from the `coding` skill. Copy, then only ADD. Removing a
+# rule requires a comment here saying why.
+version: "2"
+
+linters:
+  # Keep the v2 standard set (errcheck, govet, staticcheck, unused, ineffassign).
+  # errcheck is P10 rule 7: never disable it.
+  default: standard
+  enable:
+    - bodyclose
+    - dupword
+    - errorlint
+    - exhaustive        # P10 rule 1: enum switches are explicit
+    - fatcontext
+    - forbidigo
+    - gochecknoinits    # P10 rule 6: no init-time side effects
+    - gomodguard_v2     # gomodguard is deprecated since golangci-lint 2.12
+    - gosec
+    - makezero          # P10 rule 3: no append onto a non-zero-length make
+    - misspell
+    - nilerr
+    - nilnesserr
+    - noctx
+    - nolintlint        # P10 rule 10: every suppression names rule + reason
+    - prealloc          # P10 rule 3
+    - predeclared
+    - revive
+    - unparam
+  settings:
+    forbidigo:
+      forbid:
+        - pattern: ^fmt\.Errorf$
+          msg: use github.com/go-errors/errors instead of fmt.Errorf
+        - pattern: ^fmt\.Printf$
+          msg: use the shared structured log package instead
+        - pattern: ^fmt\.Println$
+          msg: use the shared structured log package instead
+        - pattern: ^println$
+          msg: use the shared structured log package instead
+        - pattern: ^time\.Sleep$
+          msg: P10 rule 2 - loops wait on ctx/ticker, not Sleep (nolint with reason if not in a loop)
+    exhaustive:
+      # gRPC codes.Code switches (34 of 35 measured in one API service) already carry a default arm that
+      # logs and returns; requiring all 17 codes there is noise, not safety.
+      default-signifies-exhaustive: true
+    gosec:
+      # G115: integer overflow conversion - too many false positives on safe conversions
+      # G109: strconv.Atoi to int32 - false positives when values are validated
+      excludes:
+        - G115
+        - G109
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
+    revive:
+      # golangci-lint keeps revive's default rule set active when this list is
+      # present (verified v2.8.0); these are additions/overrides.
+      rules:
+        # --- Power of 10 ---
+        - name: function-length          # rule 4: one sheet of paper
+          arguments: [0, 80]
+        - name: cognitive-complexity     # rule 1
+          arguments: [15]
+        - name: max-control-nesting      # rule 1
+          arguments: [3]
+        - name: argument-limit           # >5 params -> options struct
+          arguments: [5]
+        - name: function-result-limit
+          arguments: [3]
+        - name: deep-exit                # rule 1: os.Exit/log.Fatal only in main
+        - name: unconditional-recursion  # rule 1
+        - name: early-return             # rule 1
+        - name: identical-branches       # rule 1
+        - name: unchecked-type-assertion # rule 5/7: two-valued assertions only
+        - name: bare-return              # rule 7
+        - name: defer                    # rule 7: defer of a call whose error is lost
+        - name: datarace
+        - name: range-val-address
+        - name: waitgroup-by-value
+        - name: modifies-parameter
+        - name: import-shadowing
+        - name: use-any                  # rule 9 analog: no interface{}
+        # --- house style (carried over) ---
+        - name: var-naming
+          arguments:
+            - [ID, IDS, URL]
+            - []
+        - name: string-format
+          arguments:
+            - - fmt.Errorf[0]
+              - "!/%q/"
+              - should use '%s' instead of %q
+            - - errors.Errorf[0]
+              - "!/%q/"
+              - should use '%s' instead of %q
+            - - t.Fatalf[0]
+              - "!/%q/"
+              - should use '%s' instead of %q
+            - - fmt.Errorf[0]
+              - /(^|[^\.!?])$/
+              - must not end in punctuation
+            - - errors.Errorf[0]
+              - /(^|[^\.!?])$/
+              - must not end in punctuation
+            - - panic
+              - /^[^\n]*$/
+              - must not contain line breaks
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - std-error-handling
+    rules:
+      - path: mocks/
+        linters: [revive, gosec, unparam, dupword]
+      - path: _test\.go$
+        linters: [gosec, noctx, unparam]
+      # Table tests are long by nature; size/complexity limits apply to production code.
+      # import-shadowing in tests is almost always testify's `require`/`assert`.
+      - path: _test\.go$
+        linters: [revive]
+        text: "function-length|cognitive-complexity|argument-limit|import-shadowing"
+      # Tests wait with Sleep legitimately; the rule-2 ban targets production loops.
+      - path: _test\.go$
+        linters: [forbidigo]
+        text: "time\\.Sleep"
+      - linters: [staticcheck]
+        text: "SA1019:"
+        source: // ignore:deprecated
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  # Ratchet for legacy repos: uncomment in PR CI until the burn-down is done.
+  # new-from-rev: origin/main
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/<org>)   # replace with the org module prefix
+        - localmodule
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - mocks/
