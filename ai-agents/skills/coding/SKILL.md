@@ -1,6 +1,6 @@
 ---
 name: coding
-description: Load before writing, modifying, or reviewing code in any language, including bug fixes reached through debugging or investigation. Covers simplicity, control flow and size limits (NASA Power of 10), assertions, bounds, naming, types, error handling, boundaries, static analysis, and tests. Use alongside applicable language skills.
+description: Load before writing, modifying, or reviewing code in any language, including bug fixes reached through debugging or investigation. Covers change sequencing, simplicity, control flow and size limits (NASA Power of 10), assertions, bounds, naming, types, error handling, boundaries, static analysis, and tests. Use alongside applicable language skills.
 ---
 
 ## Simplicity
@@ -13,6 +13,16 @@ The burden of proof is on complexity, not simplicity.
 - Never optimize without measuring first. Even then, only fix the part that actually dominates.
 - Collapse abstractions once optional behavior becomes mandatory. Remove stale flags and split interfaces when they no longer model a real choice.
 - Every layer must earn its keep. Needless layering adds indirection without value — e.g. 1-2 line functions that just delegate to another function with a hardcoded argument. Expose the parameter and delete the wrappers.
+
+## Change sequencing
+
+Small pull requests are more likely to receive fast reviews, introduce fewer bugs, carry less risk, and earn higher approval rates. Treat review size as a design constraint before implementation, not cleanup at submission time.
+
+- Sequence work into cohesive PRs that each target fewer than 500 changed lines (additions plus deletions from the intended merge base).
+- Prefer the smallest complete change with a clear review narrative. Split by independently reviewable outcomes, not arbitrary file or line boundaries. A reviewer must be able to understand each PR's intent, behavior, and verification without reconstructing the full stack. Each PR must be safe to merge in sequence, include the tests for its behavior, and state any dependency on an earlier PR.
+- Put prerequisites before dependents. Keep mechanical bulk separate from hand-written logic when practical.
+- Dependency or lock graph updates, generated stubs, large test fixtures or matrices, and deletion-heavy changes may take a PR over 500 lines. Ordinary test code still counts. Keep the non-exempt portion under 500 lines and make the exceptional bulk obvious to reviewers.
+- "Cohesive" alone is not an exception. Split an oversized hand-written change across PRs; if splitting would make the change less safe, order it into small reviewable commits and document why one larger PR is necessary.
 
 ## Power of 10 (adapted)
 

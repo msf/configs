@@ -1,12 +1,23 @@
 ---
 name: send-pr
-description: Prepare, push, create, and monitor pull requests until checks are green and merge state is clean.
+description: Prepare, size-check, push, create, and monitor pull requests until checks are green and merge state is clean.
 ---
 
 ## What I do
 - Send a pull request for the current branch with a CI-green and mergeable guarantee.
 - Rebase on `origin/main`, run formatters/tests, push safely, create/update PR, and monitor checks.
 - Iterate on failures and valid review feedback until PR checks pass and `mergeStateStatus` is `CLEAN`.
+
+## Review-size gate
+
+Target fewer than 500 changed lines per PR. Small PRs are more likely to receive fast reviews, introduce fewer bugs, carry less risk, and earn higher approval rates.
+
+- Measure additions plus deletions from the intended base's merge base with `git diff --numstat`; inspect both the largest files and the commit sequence. Re-check after generation, formatting, or fixes change the diff and immediately before pushing.
+- If the total is under 500 lines, proceed.
+- If it is over, separate hand-written logic from allowed bulk: dependency or lock graph updates, generated stubs, large test fixtures or matrices, and deletion-heavy changes. Ordinary test code is not bulk. Verify generated output has the corresponding source change and reproducible generation command.
+- Keep non-exempt changes under 500 lines. If they are not, stop before pushing or creating/updating the PR and propose a cohesive, dependency-ordered PR split. Do not use "cohesive" as a blanket exception or split implementation from its tests.
+- Proceed with an oversized PR only for allowed bulk or after the user explicitly accepts an unavoidable cohesive exception. Keep exceptional bulk in separate commits when practical; otherwise make commits small and ordered for incremental review.
+- For an oversized PR, state in its description the total changed lines, the exceptional files or generated portion, the approximate non-exempt size, and why the split is safe or impractical.
 
 ## Workflow
 1. Pre-flight
@@ -15,6 +26,7 @@ description: Prepare, push, create, and monitor pull requests until checks are g
    - Fetch the intended base. If rebasing is required, set `GIT_EDITOR=true GIT_SEQUENCE_EDITOR=true` and rebase onto the fetched base.
    - Re-run repo generation commands if required by repo docs.
    - Verify no unintended drift in protected paths (for example `k8s/prod/`).
+   - Apply the review-size gate before mutating remote state.
 
 2. Format and test
    - Run the repo formatter or linter (make lint, cargo fmt, `./gradlew spotlessApply`, etc) )
@@ -23,6 +35,7 @@ description: Prepare, push, create, and monitor pull requests until checks are g
    - If there are no documented format/lint/test commands, report the verification gap; do not add scaffolding just for this PR.
 
 3. Push
+   - Re-run the review-size gate against the final committed diff.
    - Use `git push --force-with-lease` after rebase/history rewrite.
    - For a new branch, use an explicit refspec: `git push origin HEAD:refs/heads/<branch>`, then set upstream to `origin/<branch>`. Never rely on an inherited upstream.
 
