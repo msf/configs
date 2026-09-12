@@ -1,0 +1,3 @@
+[input]
+# Caps Lock is remapped to Control in Sway.
+ignore_caps_lock_key = true

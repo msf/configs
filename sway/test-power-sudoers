@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source_dir=$(dirname "$(readlink -f "$0")")
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+mkdir -p "$work/backups"
+printf '0-23\n' > "$work/present"
+
+script=$(< "$source_dir/repair-power-sudoers")
+script=${script/'(( EUID == 0 && $# == 0 ))'/true}
+script=${script//\/etc\/sudoers.d\/fw13-power/$work\/sudoers}
+script=${script//\/sys\/devices\/system\/cpu\/present/$work\/present}
+script=${script//\/var\/backups\//$work\/backups\/}
+script=${script/'install -o root -g root'/'install'}
+printf '%s\n' "$script" > "$work/repair"
+
+printf '%s\n' \
+    '# Preserve unrelated permissions' \
+    'miguel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/firmware/acpi/platform_profile' \
+    'miguel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/devices/system/cpu/cpufreq/policy*/energy_performance_preference' \
+    'miguel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq' > "$work/sudoers"
+cp "$work/sudoers" "$work/original"
+bash "$work/repair"
+[[ $(grep -c '/cpufreq/policy' "$work/sudoers") == 48 ]]
+if grep -F 'policy*' "$work/sudoers"; then
+    printf 'Wildcard rule survived repair\n' >&2; exit 1
+fi
+for ((cpu=0; cpu<24; cpu++)); do
+    for attribute in energy_performance_preference scaling_max_freq; do
+        grep -Fx "miguel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/devices/system/cpu/cpufreq/policy$cpu/$attribute" "$work/sudoers" >/dev/null
+    done
+done
+grep -Fx '# Preserve unrelated permissions' "$work/sudoers" >/dev/null
+grep -Fx 'miguel ALL=(ALL) NOPASSWD: /usr/bin/tee /sys/firmware/acpi/platform_profile' "$work/sudoers" >/dev/null
+cmp "$work/original" "$work"/backups/fw13-power.*
+cp "$work/sudoers" "$work/expected"
+bash "$work/repair"
+cmp "$work/expected" "$work/sudoers"
+
+chmod u+w "$work/sudoers"
+printf 'invalid sudoers syntax\n' >> "$work/sudoers"
+cp "$work/sudoers" "$work/invalid"
+if bash "$work/repair" > "$work/error" 2>&1; then
+    printf 'Invalid sudoers unexpectedly accepted\n' >&2; exit 1
+fi
+cmp "$work/invalid" "$work/sudoers"
+printf '0-15\n' > "$work/present"
+if bash "$work/repair" > "$work/error" 2>&1; then
+    printf 'Unsupported topology unexpectedly accepted\n' >&2; exit 1
+fi
+cmp "$work/invalid" "$work/sudoers"
+printf 'PASS: exact rules for all 24 CPUs, unrelated rules, backup, idempotence, invalid syntax and topology rejection\n'
