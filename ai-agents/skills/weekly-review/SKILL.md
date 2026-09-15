@@ -22,6 +22,7 @@ User runs `/skill:weekly-review`. Not autonomous — this is a deliberate review
 Review all active harness stores, not just the current harness:
 - Opencode SQLite: `~/.local/share/opencode/opencode.db`
 - Pi JSONL: `~/.pi/agent/sessions/**/*.jsonl` and `~/.pi/agent-lean/sessions/**/*.jsonl` when present
+- Claude Code JSONL: `~/.claude/projects/<sanitized-cwd>/<session-uuid>.jsonl`
 
 Opencode key tables:
 - `session`: metadata (id, title, directory, time_created, time_updated)
@@ -31,6 +32,10 @@ Opencode key tables:
 Pi JSONL key records:
 - `{"type":"session", "id": ..., "timestamp": ..., "cwd": ...}`
 - `{"type":"message", "message":{"role": ..., "content":[...]}}`
+
+Claude Code JSONL key records: one per event, `type` is `user` or `assistant`,
+with `message.role`, `message.content`, plus `sessionId`, `cwd`, `gitBranch`,
+`timestamp`, and `isSidechain`.
 
 For manifests, use IDs/paths/counts/titles only. Do not print raw snippets until redacted.
 
@@ -54,15 +59,17 @@ find the last weekly-review session and propose a meaningful fallback window
 (usually 21-30 days or since last review) before analyzing.
 
 Filter out subagent sessions — they're noise for pattern analysis. For Pi JSONL,
-exclude sessions whose first user message starts with `Task:` and exclude the
-current review session.
+exclude sessions whose first user message starts with `Task:`. For Claude Code
+JSONL, exclude records with `isSidechain: true`. Always exclude the current
+review session.
 
 Count messages per session to find the substantive ones (>3 messages).
 
 ### 2. Dispatch parallel agents
 
-Group substantive sessions into 3-5 batches. For each batch, launch a Pi `worker`
-subagent in parallel with read-only instructions to:
+Group substantive sessions into 3-5 batches. For each batch, launch one
+general-purpose subagent per batch in parallel (Pi: the `worker` agent; Claude
+Code: the Agent tool) with read-only instructions to:
 
 1. Extract conversation text.
 
@@ -77,8 +84,8 @@ subagent in parallel with read-only instructions to:
    ORDER BY p.time_created ASC;
    ```
 
-   For Pi JSONL sessions, parse `type="message"` records and extract only
-   `message.role` plus text content items from `message.content`. Skip thinking,
+   For Pi and Claude Code JSONL sessions, parse the message records and extract
+   only `message.role` plus text content items from `message.content`. Skip thinking,
    tool calls, and tool results unless needed for a correction; never quote secrets.
 2. For each session, identify:
    - What the user was trying to accomplish

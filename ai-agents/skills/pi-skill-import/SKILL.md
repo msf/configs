@@ -1,32 +1,45 @@
 ---
 name: pi-skill-import
-description: Manage, audit, import, track, and restore Pi skills, agents, prompts, extensions, or configuration through the owned config repositories and manifest tools. Use for new Pi resources, upstream adaptation, reproducibility checks, recovery, provenance, conflicts, or preventing clobbered and half-migrated configuration.
+description: Manage, audit, import, track, and restore the skills, agents, prompts, extensions, or configuration that the manifest deploys to Pi, Claude Code, OpenCode, and Codex, through the owned config repositories and manifest tools. Use for new Pi resources, upstream adaptation, reproducibility checks, recovery, provenance, conflicts, or preventing clobbered and half-migrated configuration.
 ---
 
-# Pi resource management and import
+# Managed agent resource management and import
 
-Pi owns its runtime. Other harnesses and dune-sietch are upstreams to inspect, never live dependencies to edit or symlink into.
+The manifest owns every harness projection on this machine. Pi is the primary runtime; Claude Code, OpenCode, and Codex load the same sources through their own manifest entries. dune-sietch is an upstream to inspect and a co-writer to coexist with, never a live dependency to edit or symlink into.
 
 ## Ownership boundary
 
 Managed source and deployment:
 
 - Manifest and management: `~/configs/ai-agents/tools/`
-- Public sources: `~/configs/ai-agents/{skills,agents/pi,commands,tools/{extensions,bin}}`
+- Public sources: `~/configs/ai-agents/{skills,agents/{pi,claude,opencode},commands,tools/{extensions,bin}}`
 - Private sources: `~/configs-private/{skills,agents/pi,tools/extensions}`
 - Path-specific settings only: each repository's `home/` mirror
-- Live projection: `~/.pi/agent/` symlinks created only by the management tools
+- Live projections, symlinked only by the management tools:
+  - Pi: `~/.pi/agent/`
+  - Claude Code: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, and per-resource entries under `~/.claude/skills` and `~/.claude/agents`
+  - OpenCode: `~/.config/opencode/`
+  - Codex: `~/.codex/AGENTS.md` and `~/.agents/skills/`
 
-Read the tools README and manifest before changing Pi configuration. The manifest is the deployment source of truth; ownership in a repository without a manifest entry is incomplete.
+Read the tools README and manifest before changing harness configuration. The manifest is the deployment source of truth; ownership in a repository without a manifest entry is incomplete.
+
+Everything else under a harness config root is machine state, not a manifest entry: credentials, sessions, transcripts, permission history, trust decisions, caches, and generated model catalogs.
 
 Read-only upstreams unless the user separately asks to change them:
 
 - dune-sietch repository: `~/dune/ai-first-engineering/`
 - installed dune-sietch cache: `~/.cache/dune-sietch/`
-- OpenCode: `~/.config/opencode/`
-- Claude: `~/.claude/`
 
-Never point a Pi skill, agent, prompt, extension, settings entry, or secret reference at those upstreams. Import an independent copy and adapt it.
+Never point a managed skill, agent, prompt, extension, settings entry, or secret reference at those upstreams. Import an independent copy and adapt it.
+
+## Directories shared with dune-sietch
+
+dune-sietch writes its own links into `~/.claude/{skills,agents,commands}` and `~/.config/opencode/{agents,commands}`:
+
+- Project individual resources into those directories, never the whole directory. A directory-level entry swallows sietch's links into this repository, which is how `agents/opencode/` and `commands/` collected untracked cache links.
+- `dune-sietch check` only tests that a link exists, not where it points, so displacing one is silent.
+- `dune-sietch update` re-claims a displaced link and renames the previous one to `<path>.pre-dune-sietch`. Inside a skills root that leftover is loaded as a second copy of the same skill: delete it, then re-run `tools/apply.sh`.
+- A name owned by both sides is a decision, not an accident. Record which side won and why.
 
 ## Start with audit
 
@@ -46,7 +59,7 @@ Fix hard failures before importing more. The first gate verifies all managed har
 3. **Stage independently.** Copy the candidate to `/tmp/pi-import-<name>/`; do not edit the upstream or live target. Choose public or private ownership before adaptation. For an existing resource, confirm its live symlink and manifest entry before editing its owned target.
 4. **Translate semantics:**
    - skills use Pi's Agent Skills frontmatter and relative resources;
-   - agents use Pi frontmatter (`name`, `description`, comma-separated `tools`, `model: provider/id:thinking`);
+   - Pi agents use Pi frontmatter (`name`, `description`, comma-separated `tools`, `model: provider/id:thinking`); Claude Code agents use `name`, `description`, comma-separated Claude tool names in `tools`, and `model: opus|sonnet|haiku|inherit`. Neither file loads in the other harness, so an agent needed in both is adapted per harness under `agents/<harness>/`;
    - OpenCode commands become Pi prompt templates only when plain expansion is sufficient; workflows needing runtime behavior become extensions;
    - tool, MCP, OAuth, model, hook, and session APIs must be checked against complete Pi docs rather than renamed by intuition;
    - secrets move only to a Pi-owned path with preserved `0600` permissions and an updated consumer. Never print them.
@@ -71,6 +84,8 @@ OpenCode-only model variants or permission maps
 ```
 
 A historical OpenCode session path may be intentional in review tooling. A live skill/config/credential dependency is not.
+
+The audit errors on these patterns in every skill except this one, so keep another harness's config paths out of shared skills. Harness-specific mechanics belong here, in `agents/<harness>/`, or in `tools/README.md`.
 
 ## Promotion report
 

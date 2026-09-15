@@ -19,8 +19,8 @@ This is a bar-raiser self-review. Be skeptical until proven shippable. Run simpl
 ## Coding guidelines
 
 Read these skill files in full before reviewing:
-- `~/.pi/agent/skills/coding/SKILL.md`
-- <each relevant language/domain skill path, for example `~/.pi/agent/skills/go-development/SKILL.md`>
+- `~/configs/ai-agents/skills/coding/SKILL.md`
+- <each relevant language/domain skill path, for example `~/configs/ai-agents/skills/go-development/SKILL.md`>
 
 Treat those files as review policy. If a path is unavailable, report the missing guideline instead of guessing.
 

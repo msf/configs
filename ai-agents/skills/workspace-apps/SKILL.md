@@ -17,7 +17,7 @@ description: Route workspace tasks to the Notion and Slack skills; use gog for G
 
 ## Google Workspace: Drive / Docs / Sheets / Gmail / Calendar
 
-Backed by `gog` (`steipete/gogcli`) on Pi's `PATH`. It uses official Google APIs and stores OAuth refresh tokens in the OS keyring or encrypted file keyring.
+Backed by `gog` (`steipete/gogcli`) on your `PATH`. It uses official Google APIs and stores OAuth refresh tokens in the OS keyring or encrypted file keyring.
 
 On this machine, `$HOME/bin/gog` loads the encrypted-file-keyring password from the mode-0600 `$HOME/.gog_secret`; never source that file manually or bypass the wrapper. Before debugging or reauthorizing, verify the actual agent entrypoint:
 

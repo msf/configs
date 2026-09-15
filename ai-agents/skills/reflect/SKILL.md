@@ -1,11 +1,11 @@
 ---
 name: reflect
-description: Compact raw corrections into generalizable principles, prune stale entries, check compliance, and evaluate the learning system. Use only when the user invokes /skill:reflect or explicitly asks to reflect.
+description: Compact raw corrections into generalizable principles, prune stale entries, check compliance, and evaluate the learning system. Use only when the user invokes this skill (`/skill:reflect` in Pi) or explicitly asks to reflect.
 ---
 
 ## What this is
 
-This is Pi's deliberate self-improvement ritual. It runs only when the user invokes it; ordinary startup must not mutate instruction or lesson files. The user should see a brief summary of what changed, not a lengthy report.
+This is the deliberate self-improvement ritual. It runs only when the user invokes it; ordinary startup must not mutate instruction or lesson files. The user should see a brief summary of what changed, not a lengthy report.
 
 ## What I do
 - Compact raw corrections in `~/.pi/agent/lessons.md` into generalizable principles.
@@ -15,13 +15,15 @@ This is Pi's deliberate self-improvement ritual. It runs only when the user invo
 
 ## When to trigger
 
-Only after `/skill:reflect` or an explicit request to reflect. The date and raw-entry count are signals to mention during a weekly review, not authority to run or mutate files autonomously.
+Only after an explicit invocation of this skill or an explicit request to reflect. The date and raw-entry count are signals to mention during a weekly review, not authority to run or mutate files autonomously.
 
 ## Workflow
 
 ### 1. Read and assess
 - Read `~/.pi/agent/lessons.md` fully.
-- Read `~/.pi/agent/AGENTS.md` to know what's already encoded as hard rules.
+- Read `~/.pi/agent/AGENTS.md` to know what's already encoded as hard rules. It is a
+  symlink to the canonical `~/configs/ai-agents/instructions.md` that every harness
+  loads, so a promotion there changes the rules everywhere.
 - Count raw entries. Note their dates and themes.
 - Are any existing principles stale, redundant, or too vague?
 
@@ -51,7 +53,7 @@ Ask yourself:
 - Are principles actually preventing mistakes, or just accumulating? (check: any repeated violations?)
 - Has the structure of this file served well, or does it need adjustment?
 - Should any principle graduate to AGENTS.md?
-- Is `/skill:reflect` producing deep enough analysis, or is the user having to push for a second pass?
+- Is this skill producing deep enough analysis, or is the user having to push for a second pass?
 
 ### 6. Write back
 - Update `~/.pi/agent/lessons.md` with the compacted result.
