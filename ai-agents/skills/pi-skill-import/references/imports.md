@@ -90,3 +90,25 @@ Published in `~/configs` commit `42df2bc10d206ba6be39562fcb4fc16fee8c7dd9`:
 - Scoped standalone Pi's bundled Node runtime to `pi` and `pi-lean` launches instead of changing the shell's general Node version. Verified Pi 0.85.1 with Node 22.23.1 on the second machine; the laptop remains on Node 24.13.0.
 - Verified both Pi profile loaders on both machines and a native read-only Claude `/wiki` invocation on the second machine. Laptop manifest verification and Pi audit pass. Full second-machine audit remains blocked by missing private resources and provider availability; see the private deployment report before claiming complete reconciliation.
 - Personal wiki contents, credentials, and machine-generated catalogs remain outside this public configuration change.
+
+## 2026-09-15: retire duplicate resources and instructions
+
+Owned-source cleanup from `~/configs` at `caff3b2` (dirty checkout), using Pi 0.85.1; no upstream import.
+
+- Renamed the canonical rules to `ai-agents/instructions.md` and repointed existing global projections through the apply helpers. Removed the duplicate `~/configs/AGENTS.md` and subtree `CLAUDE.md` alias. Native Pi context probes load the rules exactly once in both profiles from the configs root, ai-agents root, and skills directory.
+- Retired four legacy workspace wrappers, the standalone Slack MCP CLI, the generic Pi `reviewer`, and four redundant command templates. Workspace routing now delegates Notion and Slack to their dedicated skills; implementation review follows `code-review`. Reflection uses native `/skill:reflect` and `/skill:weekly-review` commands.
+- Verified 32 skills without discovery diagnostics, 10 agents, three native prompts and review argument expansion, five instruction projections, 18 retired paths absent, five custom extensions preserved, and five audit tests passing. The full Pi ownership/schema/model audit passes.
+- `apply.sh --verify` still reports two pre-existing OpenCode/Sietch command mismatches and two missing Pi-lean source files. Settings/models recovery and relocation belong to the user's parallel work; Sietch ownership repair is separate. Backups: `~/.agents-backup/20260915-142616-pi-tidy/`. No credentials, caches, or package installations were removed.
+
+## 2026-09-15: selected Sietch material and slim Pi-lean prompts
+
+- Preserved Andre's unchanged OpenCode reviewer as the **unloaded candidate** `agents/candidates/andre-code-reviewer.md`, not a Pi import. Source revision/hash and format limitations are recorded in `agents/candidates/README.md`. Restored the original tracked OpenCode `code-reviewer.md` from its byte-verified backup and removed that in-tree backup. No reviewer conversion, invocation, or quality evaluation was performed.
+- Adapted full-diff inspection, repository-template preservation, and confirmed issue linkage from the inspected deployed `create-pr` into `send-pr`. The deployed source (`sha256:6f93e158f0432292b9fa1c903f71e8327a44bfe3b4e716ae327fb475b2d3eba8`) differs from the older repository checkout, which was also read; its heavy description format and Graphite workflow were not imported. Added the concrete existing-code reuse check from `simplify` (`sha256:581d889f230135e9693096db2aff0429372a31287ffa43b7f4714fd29cf7fc4b`) to normal `code-review`. Removed only the selected `create-pr`, `handoff`, and `simplify` command links; upstream files remain untouched.
+- After the user restored Pi-lean's settings/models, replaced its broad command-directory import with three explicit prompt file paths and removed its shared prompt-directory projection. Native Pi resolution now enables exactly `implement`, `implement-and-review`, and `scout-and-plan` in both profiles, with no Sietch templates. Other Pi-lean settings, skills, models, and extensions were unchanged.
+- Both changed skills pass official validation; the Pi ownership/schema/model audit and five audit tests pass. Candidate bytes/isolation, original reviewer restoration, and selected removals were checked without model calls. Full manifest verification still reports only the two existing `dune-analyze` / `add-table-specs` OpenCode link conflicts; broader Sietch ownership separation remains deferred. Backups: `~/.agents-backup/20260915-163636-sietch-selection/`.
+
+## 2026-09-15: private datashare table-add skill
+
+- Added `datashare-add-table` as one private, independently owned `SKILL.md`, registered with `track.sh --private`. Source provenance and operational details stay in the private file. No wrappers, agent imports, or dependency on the old command at runtime.
+- Verified against current repository tooling, validated the skill schema, and confirmed native Pi discovers it exactly once. The Pi audit passes with 33 skills; five audit tests pass. The two existing OpenCode manifest conflicts remain unchanged.
+- No table configuration, queries, deployments, or flow triggers were executed. The skill defaults to configuration and tests, with explicit approval required for operational changes.

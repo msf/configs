@@ -17,10 +17,10 @@
 # the entry creating that directory.
 
 # ── shared harness instructions
-repo    .claude/CLAUDE.md             ai-agents/AGENTS.md
+repo    .claude/CLAUDE.md             ai-agents/instructions.md
 home    .config/opencode/AGENTS.md    .claude/CLAUDE.md
-repo    .pi/agent/AGENTS.md           ai-agents/AGENTS.md
-repo    .codex/AGENTS.md              ai-agents/AGENTS.md
+repo    .pi/agent/AGENTS.md           ai-agents/instructions.md
+repo    .codex/AGENTS.md              ai-agents/instructions.md
 prepo   .pi/agent/lessons.md          lessons.md
 
 # ── OpenCode roots
@@ -38,12 +38,6 @@ prepo   .config/opencode/commands/add-table-specs.md    commands/add-table-specs
 # ── Pi core settings
 mirror  .pi/agent/settings.json
 mirror  .pi/agent/models.json
-
-# ── Pi command wrappers
-repo    .pi/agent/bin/pi-gdrive       ai-agents/tools/bin/pi-gdrive
-repo    .pi/agent/bin/pi-notion       ai-agents/tools/bin/pi-notion
-repo    .pi/agent/bin/pi-slack        ai-agents/tools/bin/pi-slack
-repo    .pi/agent/bin/pi-slack-mcp    ai-agents/tools/bin/pi-slack-mcp
 
 # ── Pi extensions
 repo    .pi/agent/extensions/context-meter.ts    ai-agents/tools/extensions/context-meter.ts
@@ -63,7 +57,6 @@ repo    .pi/agent/agents/code-reviewer.md         ai-agents/agents/pi/code-revie
 repo    .pi/agent/agents/doc-reviewer-terra.md    ai-agents/agents/pi/doc-reviewer-terra.md
 prepo   .pi/agent/agents/doc-style-reviewer-sol.md agents/pi/doc-style-reviewer-sol.md
 repo    .pi/agent/agents/planner.md               ai-agents/agents/pi/planner.md
-repo    .pi/agent/agents/reviewer.md              ai-agents/agents/pi/reviewer.md
 repo    .pi/agent/agents/scout.md                 ai-agents/agents/pi/scout.md
 repo    .pi/agent/agents/skill-applier.md         ai-agents/agents/pi/skill-applier.md
 repo    .pi/agent/agents/ste-distiller-sol.md      ai-agents/agents/pi/ste-distiller-sol.md
@@ -119,7 +112,6 @@ home    .pi/agent-lean/auth.json              .pi/agent/auth.json
 home    .pi/agent-lean/agents                 .pi/agent/agents
 home    .pi/agent-lean/bin                    .pi/agent/bin
 home    .pi/agent-lean/browser-read           .pi/agent/browser-read
-home    .pi/agent-lean/prompts                .pi/agent/prompts
 home    .pi/agent-lean/extensions/browser-read .pi/agent/extensions/browser-read
 home    .pi/agent-lean/extensions/mcp-bridge   .pi/agent/extensions/mcp-bridge
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent
@@ -127,3 +119,4 @@ repo    .claude/skills/wiki  ai-agents/skills/wiki
 repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disable-spinner.ts
 repo    .pi/agent/skills/rust-development  ai-agents/skills/rust-development
 prepo   .pi/agent/skills/linear-issues  skills/linear-issues
+prepo   .pi/agent/skills/datashare-add-table  skills/datashare-add-table

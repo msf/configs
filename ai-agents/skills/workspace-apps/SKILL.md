@@ -1,85 +1,23 @@
 ---
 name: workspace-apps
-description: Use the official Notion CLI (`ntn`) for Notion, local `gog` for Google Workspace (Drive, Docs, Sheets, Gmail, Calendar), and official Slack MCP for Slack workspace search/read tasks. Load when the user asks to search/read/update workspace knowledge in Notion, Slack messages/channels/threads, Google Drive documents/spreadsheets/files, Gmail, or Google Calendar.
+description: Route workspace tasks to the Notion and Slack skills; use gog for Google Drive, Docs, Sheets, Gmail, and Calendar. Load for Google Workspace tasks or requests spanning multiple workspace services.
 ---
 
 # Workspace Apps
 
-Use the official Notion CLI `ntn` for Notion and `gog` for Google Drive/Docs/Sheets/Gmail/Calendar. Do not use the Notion MCP bridge, legacy `pi-notion`, or legacy `pi-gdrive`/rclone path unless the user explicitly asks or the official CLI is unavailable and the user approves the fallback. Use official Slack MCP for Slack tasks; see the dedicated `slack-mcp` skill. This keeps pi cheap: no Notion/Google tool schemas are loaded into every session, and Slack MCP loads on demand.
+- For Notion, read [notion](../notion/SKILL.md). It owns `ntn` authentication and operations.
+- For Slack, read [slack-mcp](../slack-mcp/SKILL.md). It owns Slack MCP loading, authentication, and operations.
+- For Google Workspace, use `gog` as described below.
 
 ## Security
 
-- Never ask the user to paste tokens into chat.
-- Tokens live in env vars, OS/encrypted keyrings, official CLI config dirs, or `~/.config/pi-workspace/*.token` with mode `0600`. For Notion, prefer `ntn login` with OS keychain or `NOTION_API_TOKEN`; `NOTION_KEYRING=0` stores plain JSON and must be treated as a secret.
+- Never ask the user to paste tokens into chat or print credentials.
 - Prefer read-only OAuth/API scopes. Ask before writing, sending email, changing sharing/settings, or modifying calendar events.
-- Treat Slack/Notion/Google Workspace output as sensitive; quote only the necessary excerpts.
-
-## Notion
-
-Use Notion's official CLI, `ntn`: https://developers.notion.com/cli/get-started/overview
-
-Install only with user permission. Per official docs, the install script supports Linux/macOS; the npm package requires Node.js 22+.
-
-```bash
-command -v ntn || echo 'ntn not installed'
-ntn --version
-# if installation is approved:
-curl -fsSL https://ntn.dev | bash
-# or with Node.js 22+:
-npm install --global ntn
-```
-
-Auth is workspace-scoped. `ntn login` stores tokens in the OS credential store under service `notion-cli`; it requires full workspace membership. For unattended use, set `NOTION_API_TOKEN`, which takes precedence over keychain auth. If the OS keychain is unusable, `NOTION_KEYRING=0 ntn login` stores plain JSON in the Notion config directory; treat it as a secret.
-
-```bash
-ntn login
-ntn doctor
-ntn debug
-
-# PAT / unattended use; never ask the user to paste this into chat.
-export NOTION_API_TOKEN=ntn_xxx...
-ntn api v1/users/me
-```
-
-Prefer official API calls through `ntn api`; it injects auth and `Notion-Version` headers. For page content, prefer the markdown endpoint; use block children only when exact block structure matters.
-
-```bash
-ntn api v1/search --data '{"query":"roadmap","page_size":10}'
-ntn api v1/search filter:='{"property":"object","value":"page"}' query=roadmap page_size:=10
-ntn api "v1/pages/$PAGE_ID"
-ntn api "v1/pages/$PAGE_ID/markdown"
-ntn api "v1/blocks/$PAGE_ID/children" page_size==100
-ntn api "v1/data_sources/$DATA_SOURCE_ID/query" page_size:=20
-
-# With explicit user permission only:
-ntn api "v1/pages/$PAGE_ID" -X PATCH archived:=true
-```
-
-Prefer `ntn api ls`, `ntn api <path> --help`, `--spec`, and `--docs` to inspect endpoints before calling unfamiliar paths.
-
-## Slack
-
-Auth: `SLACK_USER_TOKEN`, `SLACK_BOT_TOKEN`, `SLACK_TOKEN`, or `~/.config/pi-workspace/slack.token`.
-
-A user token with `search:read` is usually required for global message search. A bot token can read conversations the bot is in if it has `channels:history`, `groups:history`, etc.
-
-```bash
-pi-slack status --check
-pi-slack channels --query query --limit 50
-pi-slack search '"exact phrase" OR keyword' --limit 20
-pi-slack history '#channel-name' --limit 50
-pi-slack thread '#channel-name' <root-ts> --limit 100
-pi-slack users --query person@example.com
-pi-slack user <USER_ID_OR_EMAIL>
-```
-
-Slack MCP is also available through the lazy MCP bridge: `/mcp-load slack`, or prompts containing `slack`. It uses Slack's first-party endpoint at `https://mcp.slack.com/mcp`, stores OAuth in Pi's mode-0600 `~/.pi/agent/mcp-auth.json`, and filters obvious mutating tools by default. Run `/mcp-login slack` when authentication expires. Use Slack MCP for server-side Slack search/read/user/canvas context; use `pi-slack` only when MCP auth is unavailable or a quick CLI query is simpler.
-
-For recent context in a known channel, prefer MCP channel reads over broad search. For a message with replies, use MCP thread reads with the root timestamp.
+- Treat workspace output as sensitive; quote only the necessary excerpts.
 
 ## Google Workspace: Drive / Docs / Sheets / Gmail / Calendar
 
-Backed by `gog` (`steipete/gogcli`) on pi's `PATH`. It uses official Google APIs and stores OAuth refresh tokens in the OS keyring or encrypted file keyring. Prefer read-only OAuth scopes. Ask before writing files, editing Docs/Sheets, changing permissions/sharing, sending or modifying email, or creating/updating/deleting/responding to calendar events.
+Backed by `gog` (`steipete/gogcli`) on Pi's `PATH`. It uses official Google APIs and stores OAuth refresh tokens in the OS keyring or encrypted file keyring.
 
 On this machine, `$HOME/bin/gog` loads the encrypted-file-keyring password from the mode-0600 `$HOME/.gog_secret`; never source that file manually or bypass the wrapper. Before debugging or reauthorizing, verify the actual agent entrypoint:
 
@@ -135,4 +73,4 @@ gog calendar events primary --from today --to tomorrow --json
 gog calendar freebusy primary --from 2026-05-04T09:00:00-04:00 --to 2026-05-04T17:00:00-04:00 --json
 ```
 
-For Gmail, default to `--gmail-no-send` unless the user explicitly asks to send/reply/forward. For Calendar, read/list/freebusy are safe; ask before create/update/delete/respond. The legacy `pi-gdrive` wrapper is rclone-backed and should not be used unless the user explicitly asks for rclone.
+For Gmail, default to `--gmail-no-send` unless the user explicitly asks to send/reply/forward. For Calendar, read/list/freebusy are safe; ask before create/update/delete/respond.

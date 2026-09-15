@@ -39,6 +39,8 @@
     "~/configs-private/skills"
   ],
   "prompts": [
-    "~/configs/ai-agents/commands"
+    "~/.pi/agent/prompts/implement.md",
+    "~/.pi/agent/prompts/implement-and-review.md",
+    "~/.pi/agent/prompts/scout-and-plan.md"
   ]
 }

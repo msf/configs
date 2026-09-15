@@ -40,9 +40,11 @@ Target fewer than 500 changed lines per PR. Small PRs are more likely to receive
    - For a new branch, use an explicit refspec: `git push origin HEAD:refs/heads/<branch>`, then set upstream to `origin/<branch>`. Never rely on an inherited upstream.
 
 4. Create or update PR
-   - If PR does not exist, create it via `gh pr create`.
-   - Write for review scanning: lead with the outcome. Use 2-3 sentences for one cohesive change; for multi-setting/config diffs, use one summary sentence plus one `before → after` bullet per independent setting. Put merge dependencies in the opening sentence.
-   - If PR exists, reuse it and continue.
+   - Read the complete final diff against the intended base before writing the description; statistics and commit titles are not enough.
+   - Check for repository PR templates in `.github/`, the repository root, and `docs/`. Preserve the applicable template's required sections and machine-owned fields. If the template choice is ambiguous, ask; do not merge templates.
+   - Write for review scanning: lead with the outcome. Without a required template, use 2-3 sentences for one cohesive change; for multi-setting/config diffs, use one summary sentence plus one `before → after` bullet per independent setting. Put merge dependencies in the opening sentence.
+   - Link a user-provided or confirmed issue with `Fixes ISSUE-ID` only when fully resolved, or `Towards ISSUE-ID` for partial progress. Never invent an issue reference.
+   - If PR does not exist, create it via `gh pr create`; otherwise reuse it and continue.
    - If arguments are provided to the skill invocation, use them as PR title.
 
 5. Monitor CI and feedback loop

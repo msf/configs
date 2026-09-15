@@ -30,5 +30,10 @@
   },
   "showCacheMissNotices": false,
   "collapseChangelog": true,
-  "packages": []
+  "packages": [
+    {
+      "source": "npm:@narumitw/pi-goal@0.54.4",
+      "extensions": []
+    }
+  ]
 }

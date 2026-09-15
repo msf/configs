@@ -11,7 +11,7 @@ then runs multiple reflection loops to surface patterns and propose changes.
 
 ## When to trigger
 
-User runs `/review-week`. Not autonomous — this is a deliberate review.
+User runs `/skill:weekly-review`. Not autonomous — this is a deliberate review.
 
 ## Inputs
 

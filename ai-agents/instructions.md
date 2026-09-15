@@ -103,4 +103,4 @@ These rules apply when another agent delegates a task to you.
 
 - `~/.pi/agent/lessons.md` is an append-only journal. It is NOT loaded at session start.
 - After a correction or when you realize you did a notable mistake: read it first, then append a terse `[YYYY-MM-DD]` entry — if the mistake repeats an existing principle, add to the Compliance Log instead of a new Raw entry. Don't compact/generalize automatically.
-- Review deliberately via `/reflect` or `/review-week`: that's when Raw distills into these principles or the relevant skill, and stale entries get pruned.
+- Review deliberately via `/skill:reflect` or `/skill:weekly-review` in Pi: that's when Raw distills into these principles or the relevant skill, and stale entries get pruned.

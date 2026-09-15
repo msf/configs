@@ -7,21 +7,22 @@ Single source of truth for Pi, Claude Code, OpenCode, and Codex, split across:
 
 `tools/manifest.txt` declares every live projection. `apply.sh` links owned sources into `$HOME`.
 
-Codex currently shares the canonical instructions through `~/.codex/AGENTS.md`; its settings and skills are not yet managed here.
+Pi is the primary runtime. Claude and Codex adoption are separate work; sharing a source does not make it harness-neutral. Codex currently shares only the canonical instructions through `~/.codex/AGENTS.md`; its settings and skills are not yet managed here.
+
+Global instructions live in `instructions.md`, projected to each harness's conventional global instruction path. Do not duplicate them in this repository's `AGENTS.md` or `CLAUDE.md`: Pi loads global and ancestor/project context together.
 
 ## Layout
 
 ```text
 ai-agents/
-├── AGENTS.md                  canonical instructions
-├── CLAUDE.md -> AGENTS.md     conventional Claude filename
-├── skills/                    shared Pi/OpenCode skills
+├── instructions.md            canonical global instructions
+├── skills/                    Pi-maintained skills, also exposed to OpenCode
 ├── agents/
 │   ├── pi/                    Pi agent format
-│   └── opencode/              OpenCode agent format
+│   ├── opencode/              OpenCode agent format
+│   └── candidates/            unloaded snapshots for later evaluation
 ├── commands/                  OpenCode commands and Pi prompt templates
 ├── tools/
-│   ├── bin/                   Pi command wrappers
 │   ├── extensions/            Pi extensions
 │   ├── manifest.txt
 │   └── {apply,checkpoint,track}.sh
@@ -31,6 +32,17 @@ ai-agents/
 ```
 
 The private repository mirrors the same ownership model: shared skills at `skills/`, Pi agents under `agents/pi/`, OpenCode agents under `agents/opencode/`, Pi tool configuration under `tools/`, and only path-specific application config under `home/`.
+
+## Resource entrypoints
+
+- Pi prompt templates: `/implement`, `/implement-and-review`, `/scout-and-plan`. Pi-lean lists those three files explicitly; it does not import command directories or inherit future main-profile prompts. For review, shipping, and reflection, use `/skill:code-review`, `/skill:send-pr`, `/skill:reflect`, and `/skill:weekly-review`; no duplicate command templates.
+- Workspace services: `notion` owns `ntn`; `slack-mcp` owns Slack MCP; `workspace-apps` owns `gog` and routes to those dedicated skills. The legacy workspace wrappers and standalone Slack MCP client are retired.
+- `browser-read`, `mcp-bridge`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
+- OpenCode directory projections currently contain Sietch cache links. Those are not canonical Pi resources; reconcile their ownership separately rather than using them as migration sources.
+
+## Optional Pi packages
+
+`@narumitw/pi-goal@0.54.4` is retained in Pi settings with `extensions: []`: pinned, but disabled by default after high token usage during a trial. Enable it deliberately with `pi config`, then start a fresh session. Use `/goal --tokens <budget> <objective>` for a bounded trial; its default 25-response limit is not a cost cap, and the token budget can overshoot by one model call.
 
 ## Fresh machine
 

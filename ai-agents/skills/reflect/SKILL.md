@@ -51,7 +51,7 @@ Ask yourself:
 - Are principles actually preventing mistakes, or just accumulating? (check: any repeated violations?)
 - Has the structure of this file served well, or does it need adjustment?
 - Should any principle graduate to AGENTS.md?
-- Is the `/reflect` command producing deep enough analysis, or is the user having to push for a second pass?
+- Is `/skill:reflect` producing deep enough analysis, or is the user having to push for a second pass?
 
 ### 6. Write back
 - Update `~/.pi/agent/lessons.md` with the compacted result.

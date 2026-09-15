@@ -1,10 +1,8 @@
 ---
-description: Worker implements, reviewer reviews, worker applies feedback
+description: Worker implements, code-review skill reviews, worker applies accepted fixes
 ---
-Use the subagent tool with the chain parameter to execute this workflow:
+Implement and review: $@
 
-1. First, use the "worker" agent to implement: $@
-2. Then, use the "reviewer" agent to review the implementation from the previous step (use {previous} placeholder)
-3. Finally, use the "worker" agent to apply the feedback from the review (use {previous} placeholder)
-
-Execute this as a chain, passing output between steps via {previous}.
+1. Delegate implementation to the `worker` agent with the task scope and worktree context.
+2. Read `~/.pi/agent/skills/code-review/SKILL.md` and review the resulting diff. Follow its delegation deadline; review directly when the available tool cannot enforce it.
+3. Validate the findings, delegate accepted fixes to `worker` within the original scope, then verify the final diff and tests.

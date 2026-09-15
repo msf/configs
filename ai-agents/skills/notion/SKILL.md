@@ -7,7 +7,7 @@ description: Drive Notion via the official `ntn` CLI to search, read pages, crea
 
 Official Notion CLI. Docs: https://developers.notion.com/cli/get-started/overview.
 
-This skill is the canonical Notion path. Do **not** use the Notion MCP bridge or legacy `pi-notion`. `workspace-apps` covers Notion at a high level; this skill is the operational guide.
+Use `ntn` for Notion operations, not the Notion MCP bridge. This skill owns Notion authentication and operations.
 
 ## What `ntn` is and is not
 
