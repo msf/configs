@@ -92,6 +92,7 @@ These rules apply when another agent delegates a task to you.
 
 - `~/configs/ai-agents/tools/manifest.txt` is the deployment source of truth for Pi, OpenCode, Claude, and Codex configuration across `~/configs` and `~/configs-private`.
 - Before changing managed agent config, read `tools/README.md` and the manifest. Edit existing files through their `$HOME` symlinks; add new paths only with `tools/track.sh [--private] <path>`. Never create managed live symlinks manually.
+- Skills and agents are one source with per-harness manifest entries. A resource reaches a new harness only when its line is added, after its tool names, resource paths, and delegation semantics are checked there.
 - Before calling config work complete, run `tools/apply.sh --verify`. For Pi resource imports, also run the `pi-skill-import` audit.
 - Credentials, sessions, trust decisions, caches, package checkouts, and generated model catalogs are machine state, not manifest entries.
 
@@ -103,4 +104,4 @@ These rules apply when another agent delegates a task to you.
 
 - `~/.pi/agent/lessons.md` is an append-only journal. It is NOT loaded at session start.
 - After a correction or when you realize you did a notable mistake: read it first, then append a terse `[YYYY-MM-DD]` entry — if the mistake repeats an existing principle, add to the Compliance Log instead of a new Raw entry. Don't compact/generalize automatically.
-- Review deliberately via `/skill:reflect` or `/skill:weekly-review` in Pi: that's when Raw distills into these principles or the relevant skill, and stale entries get pruned.
+- Review deliberately via the `reflect` or `weekly-review` skills (`/skill:<name>` in Pi): that's when Raw distills into these principles or the relevant skill, and stale entries get pruned.

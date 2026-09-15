@@ -7,7 +7,7 @@ Single source of truth for Pi, Claude Code, OpenCode, and Codex, split across:
 
 `tools/manifest.txt` declares every live projection. `apply.sh` links owned sources into `$HOME`.
 
-Pi is the primary runtime. Claude and Codex adoption are separate work; sharing a source does not make it harness-neutral. Codex shares the canonical instructions through `~/.codex/AGENTS.md` and a reviewed subset of Pi skills through `~/.agents/skills/`. `apply.sh` also adds `CLAUDE.md` to Codex's project-instruction fallbacks, matching Pi without duplicating repository instructions. Other Codex settings remain machine state because its single user config also contains trust decisions, notices, and plugin state.
+Pi is the primary runtime. Claude Code and Codex adoption are separate work; sharing a source does not make it harness-neutral. Claude Code shares the canonical instructions, the harness-neutral skill subset, two adapted subagents, and `settings.json`. Codex shares the canonical instructions through `~/.codex/AGENTS.md` and a reviewed subset of Pi skills through `~/.agents/skills/`. `apply.sh` also adds `CLAUDE.md` to Codex's project-instruction fallbacks, matching Pi without duplicating repository instructions. Other Codex settings remain machine state because its single user config also contains trust decisions, notices, and plugin state.
 
 Global instructions live in `instructions.md`, projected to each harness's conventional global instruction path. Do not duplicate them in this repository's `AGENTS.md` or `CLAUDE.md`: Pi loads global and ancestor/project context together.
 
@@ -19,6 +19,7 @@ ai-agents/
 ├── skills/                    Pi-maintained skills, also exposed to OpenCode
 ├── agents/
 │   ├── pi/                    Pi agent format
+│   ├── claude/                Claude Code agent format
 │   ├── opencode/              OpenCode agent format
 │   └── candidates/            unloaded snapshots for later evaluation
 ├── commands/                  OpenCode commands and Pi prompt templates
@@ -27,6 +28,7 @@ ai-agents/
 │   ├── manifest.txt
 │   └── {apply,checkpoint,codex-config,track}.sh
 └── home/                      only irreducibly path-specific settings
+    ├── .claude/settings.json
     ├── .pi/agent/{settings,models}.json
     └── .pi/agent-lean/{settings,models}.json
 ```
@@ -37,9 +39,11 @@ The private repository mirrors the same ownership model: shared skills at `skill
 
 - Pi prompt templates: `/implement`, `/implement-and-review`, `/scout-and-plan`. Pi-lean lists those three files explicitly; it does not import command directories or inherit future main-profile prompts. For review, shipping, and reflection, use `/skill:code-review`, `/skill:send-pr`, `/skill:reflect`, and `/skill:weekly-review`; no duplicate command templates.
 - Codex skills: the manifest projects the high-use, harness-neutral Pi subset into `~/.agents/skills/`, alongside independently installed skills. Pi-only MCP routing, web tools, resource import, reflection, and subagent workflows are deliberately excluded. Add skills individually only after checking their commands, tool names, resource paths, and delegation semantics in Codex.
+- Claude Code: the manifest projects the harness-neutral skill subset into `~/.claude/skills`, the `code-reviewer` and `skill-applier` subagents into `~/.claude/agents`, the canonical instructions as `~/.claude/CLAUDE.md`, and `settings.json` from the `home/` mirror. Deliberately excluded: `slack-mcp` (Claude ships the official Slack plugin), `web-tool-routing` and `web-tool-eval` (`browser_read_url`, the Pi runner), and the private `grafana-metrics`, `trino-bench`, `linear-update` and `linear-issues` (mcp-bridge tool names and `/mcp-load`).
 - Workspace services: `notion` owns `ntn`; `slack-mcp` owns Slack MCP; `workspace-apps` owns `gog` and routes to those dedicated skills. The legacy workspace wrappers and standalone Slack MCP client are retired.
 - `browser-read`, `mcp-bridge`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
 - OpenCode directory projections currently contain Sietch cache links. Those are not canonical Pi resources; reconcile their ownership separately rather than using them as migration sources.
+- dune-sietch also writes into `~/.claude/{skills,agents,commands}`, so Claude entries are per-resource, never directory-level: a directory projection would pull Sietch's links into this repository, which is how the OpenCode directories collected theirs. `code-review`, `k8s-debug`, `log-investigator`, `skill-creator`, `dune-explore` and `code-reviewer` are names both sides ship; the manifest wins them deliberately. `dune-sietch check` only tests that a link exists, so it stays quiet; `dune-sietch update` re-claims them and leaves `<name>.pre-dune-sietch` behind, which `apply.sh --verify` now fails on until it is deleted.
 
 ## Optional Pi packages
 
@@ -90,6 +94,6 @@ Pi extensions execute with full user permissions. Direct dependencies are exact-
 ## Not tracked
 
 - Pi credentials, trust decisions, sessions, generated model stores, browser profiles, package checkouts, and caches.
-- Claude permission/session history and machine state.
+- Claude credentials, sessions, transcripts, plugin caches, and `settings.local.json` permission grants. Only `settings.json` and the manifest-listed resources are managed.
 - OpenCode secrets and tool keyrings.
 - Extension `node_modules/`; rebuild them from lockfiles.
