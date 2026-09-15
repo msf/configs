@@ -53,6 +53,9 @@ else
 		.pi/agent/agents/*)
 			suffix=${rel#.pi/agent/agents/}
 			kind=repo; manifest_target=ai-agents/agents/pi/$suffix; target=$REPO_DIR/$manifest_target ;;
+		.claude/agents/*)
+			suffix=${rel#.claude/agents/}
+			kind=repo; manifest_target=ai-agents/agents/claude/$suffix; target=$REPO_DIR/$manifest_target ;;
 		.pi/agent/prompts/*)
 			suffix=${rel#.pi/agent/prompts/}
 			kind=repo; manifest_target=ai-agents/commands/$suffix; target=$REPO_DIR/$manifest_target ;;

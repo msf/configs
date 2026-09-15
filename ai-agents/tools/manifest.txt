@@ -79,6 +79,10 @@ prepo   .claude/skills/dune-brand                   skills/dune-brand
 prepo   .claude/skills/dune-explore                 skills/dune-explore
 prepo   .claude/skills/trino-heapdump               skills/trino-heapdump
 
+# Claude Code subagents: adapted from agents/pi, Claude frontmatter and tool names.
+repo    .claude/agents/code-reviewer.md  ai-agents/agents/claude/code-reviewer.md
+repo    .claude/agents/skill-applier.md  ai-agents/agents/claude/skill-applier.md
+
 # ── Pi core settings
 mirror  .pi/agent/settings.json
 mirror  .pi/agent/models.json
