@@ -9,5 +9,3 @@ __pycache__/
 tools/extensions/mcp-bridge/servers.json
 agents/opencode/dune-architecture.md
 commands/dune.md
-commands/dune-analyze.md
-commands/add-table-specs.md

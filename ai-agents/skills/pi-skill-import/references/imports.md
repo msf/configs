@@ -112,3 +112,8 @@ Owned-source cleanup from `~/configs` at `caff3b2` (dirty checkout), using Pi 0.
 - Added `datashare-add-table` as one private, independently owned `SKILL.md`, registered with `track.sh --private`. Source provenance and operational details stay in the private file. No wrappers, agent imports, or dependency on the old command at runtime.
 - Verified against current repository tooling, validated the skill schema, and confirmed native Pi discovers it exactly once. The Pi audit passes with 33 skills; five audit tests pass. The two existing OpenCode manifest conflicts remain unchanged.
 - No table configuration, queries, deployments, or flow triggers were executed. The skill defaults to configuration and tests, with explicit approval required for operational changes.
+
+## 2026-09-15: retire the final conflicting OpenCode commands
+
+- Removed `dune-analyze` and `add-table-specs`: live links, in-tree `.pre-dune-sietch` links, owned private command files, manifest entries, and obsolete ignore rules. Upstream cached files and the independent `datashare-add-table` Pi skill remain untouched. The original private sources remain in Git at `5b8208f` and in `~/.agents-backup/20260915-165833-retire-opencode-commands/`.
+- Full manifest verification now passes on the laptop, as does the Pi audit (33 skills, 10 agents). Verified all six retired paths absent and the retained skill present; unrelated resources were not changed.

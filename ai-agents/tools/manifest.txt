@@ -32,8 +32,6 @@ prepo   .config/opencode/skills-private    skills
 # Private files living inside public-linked OpenCode dirs.
 prepo   .config/opencode/agents/dune-architecture.md    agents/opencode/dune-architecture.md
 prepo   .config/opencode/commands/dune.md               commands/dune.md
-prepo   .config/opencode/commands/dune-analyze.md       commands/dune-analyze.md
-prepo   .config/opencode/commands/add-table-specs.md    commands/add-table-specs.md
 
 # ── Pi core settings
 mirror  .pi/agent/settings.json
