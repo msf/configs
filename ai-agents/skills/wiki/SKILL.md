@@ -7,7 +7,7 @@ description: Use local Markdown memory for personal tooling, local LLMs, home in
 
 ## Locate and retrieve
 
-Use the explicitly selected `WIKI_ROOT` when provided. Otherwise use `~/wiki` if present; fall back to `/srv/selfhost/wiki` only when it exists locally. Never SSH just to use memory. If no wiki exists, report that instead of inventing memories.
+Use the explicitly selected `WIKI_ROOT` when provided. Otherwise use `~/wiki` if present; fall back to `/media/simple/wiki` only when it exists locally. Never SSH just to use memory. If no wiki exists, report that instead of inventing memories.
 
 Read `MEMORY.md` once for scope and navigation. If absent in an older wiki, read its README. Search `INDEX.md` for task terms; open the relevant page, not the whole wiki. If the index misses, use `rg -l -i 'term|synonym' <root>` or the file search tools. Scoped search results may be relative to the search root: retain that prefix when reading them. Stop after a bounded unsuccessful lookup and continue from primary sources.
 
