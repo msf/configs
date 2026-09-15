@@ -1,5 +1,8 @@
 *dune-sietch*
+# The live ~/.claude holds credentials, sessions and transcripts. The managed
+# mirror under ai-agents/home/ is reproducible config and is tracked.
 .claude/
+!ai-agents/home/.claude/
 
 # SSH: this is a PUBLIC repo. Never track private keys, client config, or
 # known_hosts. Only *.pub may be tracked.

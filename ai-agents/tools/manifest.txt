@@ -51,6 +51,10 @@ prepo   .agents/skills/dbsh                         skills/dbsh
 prepo   .agents/skills/dune-brand                   skills/dune-brand
 prepo   .agents/skills/dune-explore                 skills/dune-explore
 
+# ── Claude Code settings. Machine state (credentials, sessions, transcripts,
+# settings.local.json permission grants) stays untracked.
+mirror  .claude/settings.json
+
 # ── Claude Code skills (harness-neutral Pi subset; Claude reads ~/.claude/skills)
 # Per-skill entries, not a directory projection: dune-sietch also writes links
 # into this directory and a whole-dir link would swallow them into the repo.
