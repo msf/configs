@@ -35,17 +35,17 @@ Before recommending approval, actively try to disprove the PR:
   - Load language-specific skills based on the PR: `go-development` for Go, etc.
   - Load `dune-explore` for ownership/archeology, `k8s-debug` or `log-investigator` when operationally motivated.
   - If no local skill covers the language/framework, say so. Use `find-skills` for discovery only if the user asks; never install skills mid-review.
-- If the PR references a Linear issue or branch name implies one, load the Pi Linear MCP when available and read the ticket. If Linear is unavailable, use the PR context and mark the ticket context unverified rather than blocking the review.
+- If the PR references a Linear issue or branch name implies one, use the active harness's Linear integration when available and read the ticket. If Linear is unavailable, use the PR context and mark the ticket context unverified rather than blocking the review.
 - Read existing PR discussion before judging severity: issue comments, review threads, and author replies. Extract explicit scope limits, migration plans, companion PRs, and claims like "internal-only" or "all clients are being updated together".
 - For stacked work, review base PRs first and descendants against their actual base branch.
 - Compatibility findings need actual blast-radius analysis. An exported API change in an internal repo, a brand-new API, or a PR with companion client updates in flight is not a blocker by default. It blocks when unmanaged consumers or rollout ordering make it unsafe.
 
-### 2. Coordinate a bounded Pi code-reviewer pass
+### 2. Coordinate a bounded reviewer pass
 
 - Delegation is optional evidence, never a prerequisite for finishing the review.
 - A delegated review has a hard **10-minute wall-clock deadline per PR**. Invoke the `code-reviewer` only through a tool or process that enforces that deadline. A deadline written only in the prompt does not count. If the available subagent tool has no timeout parameter, skip delegation and review directly.
 - Never place a subagent call in a parallel tool batch: the batch remains blocked until every call returns.
-- Use the `code-reviewer` defined in `~/.pi/agent/agents/code-reviewer.md`. Pass the paths of `coding` and each relevant language/domain skill; the isolated agent must read those files itself.
+- In Pi, use the `code-reviewer` defined in `~/.pi/agent/agents/code-reviewer.md`. In another harness, use its native reviewer only when the same deadline and isolation guarantees are enforceable. Pass the paths of `coding` and each relevant language/domain skill; the isolated agent must read those files itself.
 - Build the task from `references/subagent-prompt-template.md`, including the absolute deadline plus ticket, PR-discussion, stack, and cross-repo context already gathered.
 - On timeout, abort once, do not retry delegation for that PR in the same review, and continue the parent review directly. Report any resulting evidence gap as unverified; a timed-out subagent never blocks delivery.
 - Treat returned findings like a junior's PR: re-read every surfaced location and keep only findings you personally understand with high confidence.

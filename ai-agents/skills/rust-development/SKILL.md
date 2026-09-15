@@ -67,7 +67,7 @@ First action in any Rust repo: look for `[lints]`/`[workspace.lints]` in `Cargo.
 **Not owned (upstream, fork, contribution, vendored).** Do not add or edit `[lints]`, `clippy.toml`, or CI. Follow their configuration if they have one; if they don't, run the baseline against your diff only:
 
 ```zsh
-cargo clippy --all-targets -- $(sed -n 's/^\([a-z_]*\) = "deny".*/-D clippy::\1/p' ~/.pi/agent/skills/rust-development/references/cargo-lints.toml)
+cargo clippy --all-targets -- $(sed -n 's/^\([a-z_]*\) = "deny".*/-D clippy::\1/p' ~/configs/ai-agents/skills/rust-development/references/cargo-lints.toml)
 ```
 
 Fix findings inside your diff, leave untouched code alone, and don't add `#[expect]` attributes for lints the project doesn't run. If the project's style contradicts a P10 rule (`unwrap` everywhere, 200-line functions), match the project; the skill governs code we own.

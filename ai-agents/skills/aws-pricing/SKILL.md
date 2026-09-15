@@ -23,16 +23,16 @@ Use this skill for AWS infrastructure pricing. Prefer official AWS data over mem
 Run from this skill directory or use the absolute path:
 
 ```bash
-python3 ~/.pi/agent/skills/aws-pricing/scripts/aws-pricing.py ec2 --region eu-west-1 m8gd.8xlarge m8g.8xlarge
-python3 ~/.pi/agent/skills/aws-pricing/scripts/aws-pricing.py gp3 --region eu-west-1 --size-gb 500 --iops 5000 --throughput-mibps 1000
-python3 ~/.pi/agent/skills/aws-pricing/scripts/aws-pricing.py s3-get --region eu-west-1 --requests 10000000
-python3 ~/.pi/agent/skills/aws-pricing/scripts/aws-pricing.py parity --region eu-west-1 --with-local m8gd.24xlarge --ebs-only m8g.24xlarge --size-gb 5700 --throughput-mibps 2000
+python3 ~/configs/ai-agents/skills/aws-pricing/scripts/aws-pricing.py ec2 --region eu-west-1 m8gd.8xlarge m8g.8xlarge
+python3 ~/configs/ai-agents/skills/aws-pricing/scripts/aws-pricing.py gp3 --region eu-west-1 --size-gb 500 --iops 5000 --throughput-mibps 1000
+python3 ~/configs/ai-agents/skills/aws-pricing/scripts/aws-pricing.py s3-get --region eu-west-1 --requests 10000000
+python3 ~/configs/ai-agents/skills/aws-pricing/scripts/aws-pricing.py parity --region eu-west-1 --with-local m8gd.24xlarge --ebs-only m8g.24xlarge --size-gb 5700 --throughput-mibps 2000
 ```
 
 The script caches official price files under `~/.cache/pi-aws-pricing/`. Add `--refresh` before the subcommand to refetch:
 
 ```bash
-python3 ~/.pi/agent/skills/aws-pricing/scripts/aws-pricing.py --refresh ec2 --region eu-west-1 m8gd.24xlarge
+python3 ~/configs/ai-agents/skills/aws-pricing/scripts/aws-pricing.py --refresh ec2 --region eu-west-1 m8gd.24xlarge
 ```
 
 ## Official fetch recipes

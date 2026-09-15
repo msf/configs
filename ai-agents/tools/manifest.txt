@@ -33,6 +33,24 @@ prepo   .config/opencode/skills-private    skills
 prepo   .config/opencode/agents/dune-architecture.md    agents/opencode/dune-architecture.md
 prepo   .config/opencode/commands/dune.md               commands/dune.md
 
+# ── Codex user skills (harness-neutral, high-use Pi subset)
+repo    .agents/skills/aws-pricing                  ai-agents/skills/aws-pricing
+repo    .agents/skills/code-review                  ai-agents/skills/code-review
+repo    .agents/skills/coding                       ai-agents/skills/coding
+repo    .agents/skills/go-development               ai-agents/skills/go-development
+repo    .agents/skills/google-slides                ai-agents/skills/google-slides
+repo    .agents/skills/k8s-debug                    ai-agents/skills/k8s-debug
+repo    .agents/skills/log-investigator             ai-agents/skills/log-investigator
+repo    .agents/skills/notion                       ai-agents/skills/notion
+repo    .agents/skills/rust-development             ai-agents/skills/rust-development
+repo    .agents/skills/send-pr                      ai-agents/skills/send-pr
+repo    .agents/skills/simplified-technical-english ai-agents/skills/simplified-technical-english
+repo    .agents/skills/tech-writing                 ai-agents/skills/tech-writing
+repo    .agents/skills/wiki                         ai-agents/skills/wiki
+prepo   .agents/skills/dbsh                         skills/dbsh
+prepo   .agents/skills/dune-brand                   skills/dune-brand
+prepo   .agents/skills/dune-explore                 skills/dune-explore
+
 # ── Pi core settings
 mirror  .pi/agent/settings.json
 mirror  .pi/agent/models.json

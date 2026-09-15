@@ -33,8 +33,8 @@ if [ "$PRIVATE" = 1 ]; then
 	kind=pmirror
 	target=$PRIVATE_MIRROR/$rel
 	case "$rel" in
-		.pi/agent/skills/*)
-			suffix=${rel#.pi/agent/skills/}
+		.pi/agent/skills/*|.claude/skills/*|.agents/skills/*)
+			suffix=${rel#*/skills/}
 			kind=prepo; manifest_target=skills/$suffix; target=$PRIVATE_DIR/$manifest_target ;;
 		.pi/agent/agents/*)
 			suffix=${rel#.pi/agent/agents/}
@@ -47,7 +47,7 @@ if [ "$PRIVATE" = 1 ]; then
 	esac
 else
 	case "$rel" in
-		.pi/agent/skills/*|.claude/skills/*)
+		.pi/agent/skills/*|.claude/skills/*|.agents/skills/*)
 			suffix=${rel#*/skills/}
 			kind=repo; manifest_target=ai-agents/skills/$suffix; target=$REPO_DIR/$manifest_target ;;
 		.pi/agent/agents/*)

@@ -103,7 +103,7 @@ Compiler-side pedantry (P10 rule 10): `go vet ./...` with all analyzers, `go bui
 First action in any Go repo: run the gap report, read-only:
 
 ```zsh
-~/.pi/agent/skills/go-development/scripts/config-gap.sh .
+~/configs/ai-agents/skills/go-development/scripts/config-gap.sh .
 ```
 
 Exit 2 means no config (create one, branch below). Exit 1 lists the baseline linters and revive rules the repo lacks, and calls out any standard linter (`errcheck`, `govet`, `staticcheck`, `unused`, `ineffassign`) that is disabled. Put that list in the review or PR description as "lint config gaps", ranked by which rules would have caught something in this diff. Measured on five existing production configs: every one lacks the P10 revive rules (`function-length`, `cognitive-complexity`, `max-control-nesting`, `argument-limit`, `deep-exit`, `unchecked-type-assertion`) and `nolintlint`; two of them disable `errcheck`, which is a rule-7 violation and the first fix to propose.
@@ -113,7 +113,7 @@ Then pick the branch below. Never bundle lint-config changes with feature work; 
 **Owned repo, config present.** The repo config is the CI gate and stays authoritative; do not edit it in the same change. Run it on the packages you touched; new code is clean under it. Then run the baseline on the diff only, as a local pre-commit check:
 
 ```zsh
-golangci-lint run -c ~/.pi/agent/skills/go-development/references/golangci-baseline.yml --new-from-merge-base=origin/main ./...
+golangci-lint run -c ~/configs/ai-agents/skills/go-development/references/golangci-baseline.yml --new-from-merge-base=origin/main ./...
 ```
 
 Fix findings in the code, not with `//nolint` for rules the repo doesn't run. Measured on the last 10 commits of three repos (9k, 28k, 94k LOC): 1, 2, 0 findings on changed lines, against whole-repo backlogs of 151, 312, 292 (golangci-lint 2.13.1). Rules that caught something real in your diff are candidates for the next lint-config PR; propose them with the ratchet enabled so the PR is green on day one.
@@ -123,7 +123,7 @@ Fix findings in the code, not with `//nolint` for rules the repo doesn't run. Me
 **Not owned (upstream, fork, contribution, vendored).** Do not add or edit lint config, Makefiles, or CI. Follow their linter if they have one; if they don't, run the baseline against your diff only:
 
 ```zsh
-golangci-lint run -c ~/.pi/agent/skills/go-development/references/golangci-baseline.yml --new-from-merge-base=origin/main ./...
+golangci-lint run -c ~/configs/ai-agents/skills/go-development/references/golangci-baseline.yml --new-from-merge-base=origin/main ./...
 ```
 
 Fix findings inside your diff, leave untouched code alone, and don't leave `//nolint` comments for rules the project doesn't run. Mention pre-existing findings in the PR description only if they affect the change. If the project's style contradicts a P10 rule (e.g. 200-line functions are the norm), match the project; the skill governs code we own.

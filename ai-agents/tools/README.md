@@ -7,7 +7,7 @@ Single source of truth for Pi, Claude Code, OpenCode, and Codex, split across:
 
 `tools/manifest.txt` declares every live projection. `apply.sh` links owned sources into `$HOME`.
 
-Pi is the primary runtime. Claude and Codex adoption are separate work; sharing a source does not make it harness-neutral. Codex currently shares only the canonical instructions through `~/.codex/AGENTS.md`; its settings and skills are not yet managed here.
+Pi is the primary runtime. Claude and Codex adoption are separate work; sharing a source does not make it harness-neutral. Codex shares the canonical instructions through `~/.codex/AGENTS.md` and a reviewed subset of Pi skills through `~/.agents/skills/`. Codex settings remain machine state because its single user config also contains trust decisions, notices, and plugin state.
 
 Global instructions live in `instructions.md`, projected to each harness's conventional global instruction path. Do not duplicate them in this repository's `AGENTS.md` or `CLAUDE.md`: Pi loads global and ancestor/project context together.
 
@@ -36,6 +36,7 @@ The private repository mirrors the same ownership model: shared skills at `skill
 ## Resource entrypoints
 
 - Pi prompt templates: `/implement`, `/implement-and-review`, `/scout-and-plan`. Pi-lean lists those three files explicitly; it does not import command directories or inherit future main-profile prompts. For review, shipping, and reflection, use `/skill:code-review`, `/skill:send-pr`, `/skill:reflect`, and `/skill:weekly-review`; no duplicate command templates.
+- Codex skills: the manifest projects the high-use, harness-neutral Pi subset into `~/.agents/skills/`, alongside independently installed skills. Pi-only MCP routing, web tools, resource import, reflection, and subagent workflows are deliberately excluded. Add skills individually only after checking their commands, tool names, resource paths, and delegation semantics in Codex.
 - Workspace services: `notion` owns `ntn`; `slack-mcp` owns Slack MCP; `workspace-apps` owns `gog` and routes to those dedicated skills. The legacy workspace wrappers and standalone Slack MCP client are retired.
 - `browser-read`, `mcp-bridge`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
 - OpenCode directory projections currently contain Sietch cache links. Those are not canonical Pi resources; reconcile their ownership separately rather than using them as migration sources.
@@ -58,7 +59,7 @@ Without the private clone, `apply.sh` skips unavailable private entries; public 
 ## Daily operations
 
 - Edit an existing resource through its `$HOME` symlink or its canonical top-level source.
-- Add a resource with `tools/track.sh <live-path>`; add `--private` for internal content. Pi skills, agents, prompts, extensions, wrappers, and lessons are routed to their canonical top-level directories automatically.
+- Add a resource with `tools/track.sh <live-path>`; add `--private` for internal content. Skills under Pi, Claude, or Codex's Agent Skills root, plus Pi agents, prompts, extensions, wrappers, and lessons, are routed to their canonical top-level directories automatically.
 - Preview projection changes with `tools/apply.sh --dry-run`.
 - Verify with `tools/apply.sh --verify`; Pi resources must also pass `uv run --quiet ~/.pi/agent/skills/pi-skill-import/scripts/audit.py`.
 - Recover clobbered live links with `tools/checkpoint.sh --dry-run`, then checkpoint and apply deliberately.
