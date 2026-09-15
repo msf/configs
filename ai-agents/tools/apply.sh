@@ -30,6 +30,14 @@ apply_one() {
 	target=$(resolve_target "$type" "$path" "$arg2")
 	h=$HOME/$path
 
+	# dune-sietch re-claims a managed link by renaming the displaced one to
+	# <path>.pre-dune-sietch. Inside a skills root that leftover loads as a second
+	# copy of the same skill, so it is never harmless: report it and fail --verify.
+	if [ -e "$h.pre-dune-sietch" ] || [ -L "$h.pre-dune-sietch" ]; then
+		warn "displaced leftover: $h.pre-dune-sietch  (delete it, then re-apply)"
+		mismatches=$((mismatches+1))
+	fi
+
 	# Source must exist for mirror/repo; for home it's another $HOME path which
 	# should exist after earlier entries in manifest.
 	if [ ! -e "$target" ] && [ ! -L "$target" ]; then
