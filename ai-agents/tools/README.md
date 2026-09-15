@@ -7,7 +7,7 @@ Single source of truth for Pi, Claude Code, OpenCode, and Codex, split across:
 
 `tools/manifest.txt` declares every live projection. `apply.sh` links owned sources into `$HOME`.
 
-Pi is the primary runtime. Claude and Codex adoption are separate work; sharing a source does not make it harness-neutral. Codex shares the canonical instructions through `~/.codex/AGENTS.md` and a reviewed subset of Pi skills through `~/.agents/skills/`. Codex settings remain machine state because its single user config also contains trust decisions, notices, and plugin state.
+Pi is the primary runtime. Claude and Codex adoption are separate work; sharing a source does not make it harness-neutral. Codex shares the canonical instructions through `~/.codex/AGENTS.md` and a reviewed subset of Pi skills through `~/.agents/skills/`. `apply.sh` also adds `CLAUDE.md` to Codex's project-instruction fallbacks, matching Pi without duplicating repository instructions. Other Codex settings remain machine state because its single user config also contains trust decisions, notices, and plugin state.
 
 Global instructions live in `instructions.md`, projected to each harness's conventional global instruction path. Do not duplicate them in this repository's `AGENTS.md` or `CLAUDE.md`: Pi loads global and ancestor/project context together.
 
@@ -25,7 +25,7 @@ ai-agents/
 ├── tools/
 │   ├── extensions/            Pi extensions
 │   ├── manifest.txt
-│   └── {apply,checkpoint,track}.sh
+│   └── {apply,checkpoint,codex-config,track}.sh
 └── home/                      only irreducibly path-specific settings
     ├── .pi/agent/{settings,models}.json
     └── .pi/agent-lean/{settings,models}.json
@@ -62,6 +62,7 @@ Without the private clone, `apply.sh` skips unavailable private entries; public 
 - Add a resource with `tools/track.sh <live-path>`; add `--private` for internal content. Skills under Pi, Claude, or Codex's Agent Skills root, plus Pi agents, prompts, extensions, wrappers, and lessons, are routed to their canonical top-level directories automatically.
 - Preview projection changes with `tools/apply.sh --dry-run`.
 - Verify with `tools/apply.sh --verify`; Pi resources must also pass `uv run --quiet ~/.pi/agent/skills/pi-skill-import/scripts/audit.py`.
+- If `~/.codex/config.toml` already defines `project_doc_fallback_filenames`, add `CLAUDE.md` to that list manually; the tooling refuses to overwrite existing fallback choices.
 - Recover clobbered live links with `tools/checkpoint.sh --dry-run`, then checkpoint and apply deliberately.
 
 ## Public/private boundary
