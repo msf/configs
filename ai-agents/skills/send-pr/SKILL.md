@@ -42,7 +42,10 @@ Target fewer than 500 changed lines per PR. Small PRs are more likely to receive
 4. Create or update PR
    - Read the complete final diff against the intended base before writing the description; statistics and commit titles are not enough.
    - Check for repository PR templates in `.github/`, the repository root, and `docs/`. Preserve the applicable template's required sections and machine-owned fields. If the template choice is ambiguous, ask; do not merge templates.
-   - Write for review scanning: lead with the outcome. Without a required template, use 2-3 sentences for one cohesive change; for multi-setting/config diffs, use one summary sentence plus one `before → after` bullet per independent setting. Put merge dependencies in the opening sentence.
+   - Write the whole description for a human reviewer, in plain, complete English sentences. No fragments, no telegraphic bullets, no file list standing in for an explanation. Never add an agent-context section, a collapsed detail block, or pasted tool output.
+   - Open with the outcome in 3-4 sentences: what changed, why, and what a user or operator will notice. Merge dependencies go in the first sentence. Keep one cohesive change as prose; give independent changes a sentence each, and a multi-setting config diff one summary sentence plus one `before → after` bullet per setting.
+   - When the change carries behavior, add a short paragraph the reviewer can act on: the few files where a mistake would be expensive (it moves money, corrupts or drops data, changes auth, or breaks a downstream consumer) and what changed in each; the remainder as a count, such as "38 further files are generated fixtures and renames"; which flows you tested and which you did not; and what outside this repository the change reaches, or that nothing does.
+   - Do not pad. A behavior-neutral change needs only the opening sentences, and a paragraph you have nothing to say in is left out rather than filled with "N/A".
    - Link a user-provided or confirmed issue with `Fixes ISSUE-ID` only when fully resolved, or `Towards ISSUE-ID` for partial progress. Never invent an issue reference.
    - If PR does not exist, create it via `gh pr create`; otherwise reuse it and continue.
    - If arguments are provided to the skill invocation, use them as PR title.
