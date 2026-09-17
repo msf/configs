@@ -14,10 +14,10 @@ vim.keymap.set("n", "U", vim.cmd.redo, opts)
 
 -- File operation maps
 vim.keymap.set("n", "<leader>fd", function()
-	if vim.inspect(vim.lsp.get_active_clients()) then
+	if #vim.lsp.get_clients({ bufnr = 0, method = "textDocument/formatting" }) > 0 then
 		vim.lsp.buf.format()
 	else
-		vim.cmd.normal("jzgg=G`z")
+		vim.cmd.normal({ "mzgg=G`z", bang = true })
 	end
 end)
 vim.keymap.set("n", "<leader>fs", vim.cmd.w, opts)

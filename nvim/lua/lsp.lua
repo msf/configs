@@ -4,19 +4,27 @@ local telescope = require("telescope.builtin")
 
 -- Install LSP servers automatically through Mason
 require("mason").setup()
-require("mason-lspconfig").setup({ automatic_installation = true })
+require("mason-lspconfig").setup()
 
 
 lsp_zero.on_attach(function(_, bufnr)
     -- see :help lsp-zero-keybindings to learn the available actions
-    lsp_zero.default_keymaps({ buffer = bufnr })
+    lsp_zero.default_keymaps({ buffer = bufnr, exclude = { "[d", "]d" } })
 
     local opts = { buffer = bufnr, remap = false }
     vim.keymap.set("n", "<leader>vc", vim.lsp.buf.code_action, opts)
     vim.keymap.set("n", "<leader>vr", vim.lsp.buf.rename, opts)
 
-    vim.keymap.set("n", "<leader>en", vim.diagnostic.goto_next, opts)
-    vim.keymap.set("n", "<leader>ep", vim.diagnostic.goto_prev, opts)
+    vim.keymap.set("n", "<leader>en", function()
+        vim.diagnostic.jump({ count = 1, on_jump = function(_, buffer)
+            vim.diagnostic.open_float({ bufnr = buffer })
+        end })
+    end, opts)
+    vim.keymap.set("n", "<leader>ep", function()
+        vim.diagnostic.jump({ count = -1, on_jump = function(_, buffer)
+            vim.diagnostic.open_float({ bufnr = buffer })
+        end })
+    end, opts)
     vim.keymap.set("n", "<leader>ei", vim.diagnostic.open_float, opts)
     vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
 
@@ -56,17 +64,9 @@ lsp_zero.format_on_save({
 })
 
 
--- Helper function to safely setup LSP servers
-local function safe_setup(server, config)
-    config = config or {}
-    pcall(function()
-        vim.lsp.config(server, config)
-    end)
-end
-
 -- go
-safe_setup("golangci_lint_ls", {
-    root_dir = vim.fs.root(0, {
+vim.lsp.config("golangci_lint_ls", {
+    root_markers = {
         "go.mod",
         "go.work",
         ".golangci.yml",
@@ -74,9 +74,9 @@ safe_setup("golangci_lint_ls", {
         ".golangci.toml",
         ".golangci.json",
         ".git"
-    }),
+    },
 })
-safe_setup("gopls", {
+vim.lsp.config("gopls", {
     -- Use the self-managed gopls built with the current Go toolchain.
     -- Mason prepends its bin to PATH, otherwise nvim would launch a stale
     -- gopls built with an older Go that cannot type-check newer-Go code.
@@ -89,7 +89,7 @@ safe_setup("gopls", {
     },
 })
 -- rust
-safe_setup("rust_analyzer", {
+vim.lsp.config("rust_analyzer", {
     settings = {
         ["rust-analyzer"] = {
             diagnostics = {
@@ -102,11 +102,9 @@ safe_setup("rust_analyzer", {
     },
 })
 -- lua
-pcall(function()
-    lspconfig.lua_ls.setup(lsp_zero.nvim_lua_ls())
-end)
+vim.lsp.config("lua_ls", lsp_zero.nvim_lua_ls())
 -- C/C++
-safe_setup("clangd", {
+vim.lsp.config("clangd", {
     cmd = {
         "clangd",
         "--background-index",
@@ -117,7 +115,7 @@ safe_setup("clangd", {
 })
 
 -- Python
-safe_setup("pylsp", {
+vim.lsp.config("pylsp", {
     settings = {
         pylsp = {
             plugins = {
@@ -130,7 +128,7 @@ safe_setup("pylsp", {
 })
 
 -- Protobuf (buf LSP)
-safe_setup("buf_ls", {
+vim.lsp.config("buf_ls", {
     filetypes = { "proto" },
 })
 
@@ -156,25 +154,22 @@ local languages = {
     json = { prettier },
     markdown = { prettier },
 }
--- efm with error handling (minimal version for Lua formatting only)
+-- Lua formatting
 local minimal_languages = {
     lua = { stylua },  -- Keep Lua formatting
 }
 
-pcall(function()
-    lspconfig.efm.setup({
-        cmd = { vim.fn.expand("~/.local/share/nvim/mason/bin/efm-langserver") },
-        init_options = { documentFormatting = true },
-        root_dir = vim.loop.cwd,
-        filetypes = { "lua" },  -- Only for Lua
-        settings = {
-            rootMarkers = { ".git/" },
-            lintDebounce = 100,
-            languages = minimal_languages,
-        },
-        single_file_support = true,
-    })
-end)
+vim.lsp.config("efm", {
+    cmd = { vim.fn.expand("~/.local/share/nvim/mason/bin/efm-langserver") },
+    init_options = { documentFormatting = true },
+    root_markers = { ".git" },
+    filetypes = { "lua" },
+    settings = {
+        rootMarkers = { ".git/" },
+        lintDebounce = 100,
+        languages = minimal_languages,
+    },
+})
 
 -- Customize keymaps
 local cmp = require("cmp")

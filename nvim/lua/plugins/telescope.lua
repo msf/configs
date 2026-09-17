@@ -1,7 +1,7 @@
 return {
 	{
 		"nvim-telescope/telescope.nvim",
-		branch = "0.1.x",
+		version = "*",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			-- FZF native removed due to build issues
