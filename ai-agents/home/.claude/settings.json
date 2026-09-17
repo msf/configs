@@ -1,5 +1,10 @@
 {
   "env": {},
+  "permissions": {
+    "deny": [
+      "AskUserQuestion"
+    ]
+  },
   "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
@@ -31,16 +36,11 @@
       }
     }
   },
-  "editorMode": "vim",
-  "preferredNotifChannel": "notifications_disabled",
   "modelSettings": {
     "claude-opus-5": {
       "effortLevel": "xhigh"
     }
   },
-  "permissions": {
-    "deny": [
-      "AskUserQuestion"
-    ]
-  }
+  "editorMode": "vim",
+  "preferredNotifChannel": "notifications_disabled"
 }
