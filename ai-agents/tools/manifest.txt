@@ -34,6 +34,7 @@ skill   google-slides
 skill   k8s-debug
 skill   log-investigator
 skill   notion
+skill   past-sessions
 skill   pi-skill-import
 skill   pr-triage
 skill   reflect
@@ -51,8 +52,7 @@ pskill  dune-brand
 pskill  dune-explore
 pskill  trino-heapdump
 
-# ── Pi-only skills: they call Pi extensions (mcp-bridge, browser-read, subagent)
-# or read Pi session files.
+# ── Pi-only skills: they call Pi extensions (mcp-bridge, browser-read, subagent).
 repo    .pi/agent/skills/slack-mcp        ai-agents/skills/slack-mcp
 repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval
 repo    .pi/agent/skills/web-tool-routing ai-agents/skills/web-tool-routing
