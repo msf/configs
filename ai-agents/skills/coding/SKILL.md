@@ -22,6 +22,7 @@ Small pull requests are more likely to receive fast reviews, introduce fewer bug
 - Prefer the smallest complete change with a clear review narrative. Split by independently reviewable outcomes, not arbitrary file or line boundaries. A reviewer must be able to understand each PR's intent, behavior, and verification without reconstructing the full stack. Each PR must be safe to merge in sequence, include the tests for its behavior, and state any dependency on an earlier PR.
 - Put prerequisites before dependents. Keep mechanical bulk separate from hand-written logic when practical.
 - Dependency or lock graph updates, generated stubs, large test fixtures or matrices, and deletion-heavy changes may take a PR over 500 lines. Ordinary test code still counts. Keep the non-exempt portion under 500 lines and make the exceptional bulk obvious to reviewers.
+- Group the commits inside a PR by layer, so each one reviews on its own: config and types first, then implementation, then tests. Keep infrastructure (`k8s/`, terraform) out of code commits, keep migrations out of application code, and give proto or API definition changes their own commit.
 - "Cohesive" alone is not an exception. Split an oversized hand-written change across PRs; if splitting would make the change less safe, order it into small reviewable commits and document why one larger PR is necessary.
 
 ## Power of 10 (adapted)
