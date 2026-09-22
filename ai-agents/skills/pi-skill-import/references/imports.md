@@ -117,3 +117,10 @@ Owned-source cleanup from `~/configs` at `caff3b2` (dirty checkout), using Pi 0.
 
 - Removed `dune-analyze` and `add-table-specs`: live links, in-tree `.pre-dune-sietch` links, owned private command files, manifest entries, and obsolete ignore rules. Upstream cached files and the independent `datashare-add-table` Pi skill remain untouched. The original private sources remain in Git at `5b8208f` and in `~/.agents-backup/20260915-165833-retire-opencode-commands/`.
 - Full manifest verification now passes on the laptop, as does the Pi audit (33 skills, 10 agents). Verified all six retired paths absent and the retained skill present; unrelated resources were not changed.
+
+## 2026-09-21: cross-harness past-session retrieval
+
+- Created `skills/past-sessions` from scratch and registered only its Pi projection through `track.sh`. Canonical source: `~/configs/ai-agents/skills/past-sessions`; Pi entrypoint: `~/.pi/agent/skills/past-sessions/SKILL.md`. No upstream import or transcript fixtures. Bundle SHA256: `259ed0646895c86394bf18a692b6dc9fa92729874f6793433917b63056ffbca5` (ordered relative filenames plus NUL, file bytes plus NUL: `SKILL.md`, `scripts/sessions.py`, `scripts/test_sessions.py`).
+- Added metadata-first Pi/Codex/Claude JSONL discovery, message-date filtering, bounded excerpts, opt-in tools/summaries, and evidence/replay guidance. No transcript cache, uploads, session mutations, or automatic note updates.
+- Passed nine synthetic tests, Ruff, official skill validation, exact-once native Pi discovery, manifest verification, and ownership audit (34 skills). Live read-only checks exercised all three formats; a selected cross-harness search completed in about one second. Oversized records are skipped with warnings; redaction and raw-JSON candidate matching have documented limitations.
+- 2026-09-22: promoted to a shared `skill` manifest entry (`82aaf4b`), so Claude Code and Codex load it too; the Pi-only projection above is superseded. Re-verified live search and `show` against all three harnesses.
