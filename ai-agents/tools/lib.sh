@@ -64,6 +64,11 @@ backup() {
 	run cp -a --no-target-directory "$p" "$bak"
 }
 
+SKILL_ROOTS=".agents/skills .claude/skills"
+
+skill_link_type() { [ "$1" = pskill ] && echo prepo || echo repo; }
+skill_source()    { [ "$1" = pskill ] && echo "skills/$2" || echo "ai-agents/skills/$2"; }
+
 # Iterate manifest entries. Calls $1 (a function name) with type, path, [arg2].
 # Skips comments and blank lines.
 foreach_manifest() {
@@ -81,7 +86,18 @@ foreach_manifest() {
 		read -r type path arg2 <<<"$line"
 		[ -z "$type" ] && continue
 		[ -z "$path" ] && die "manifest: missing path: $line"
-		"$fn" "$type" "$path" "${arg2:-}"
+		case "$type" in
+			skill|pskill)
+				# One skill source, linked into every harness's skills root.
+				# Pi and Codex both read ~/.agents/skills; Claude reads only its own.
+				[ -z "${arg2:-}" ] || die "manifest: $type takes a name only: $line"
+				local root
+				for root in $SKILL_ROOTS; do
+					"$fn" "$(skill_link_type "$type")" "$root/$path" "$(skill_source "$type" "$path")"
+				done
+				;;
+			*) "$fn" "$type" "$path" "${arg2:-}" ;;
+		esac
 	done < "$MANIFEST"
 }
 

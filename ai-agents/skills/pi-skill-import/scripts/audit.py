@@ -18,13 +18,13 @@ from typing import Any, Iterable
 
 import yaml
 
+SHARED_SKILL_ROOTS = (".agents/skills", ".claude/skills")
 THINKING_LEVELS = {"off", "minimal", "low", "medium", "high", "xhigh", "max"}
 STALE_PATTERNS = {
     "OpenCode compatibility marker": re.compile(r"compatibility:\s*opencode", re.I),
     "OpenCode skill path": re.compile(r"\.config/opencode/skills"),
     "OpenCode agent path": re.compile(r"\.config/opencode/agents"),
     "OpenCode command path": re.compile(r"\.config/opencode/commands"),
-    "Claude skill path": re.compile(r"\.claude/skills"),
     "Claude CLI evaluator": re.compile(r"\bclaude\s+-p\b"),
     "OpenCode task tool": re.compile(r"\bTask tool\b", re.I),
     "OpenCode todo tool": re.compile(r"\bTodoList\b"),
@@ -204,6 +204,15 @@ def manifest_targets(home: Path) -> tuple[dict[str, Path], list[str]]:
             errors.append(f"invalid manifest line {line_number}: {raw_line}")
             continue
         kind, path, *arguments = fields
+        if kind in ("skill", "pskill") and not arguments:
+            source_root = "configs/ai-agents/skills" if kind == "skill" else "configs-private/skills"
+            for root in SHARED_SKILL_ROOTS:
+                shared_path = f"{root}/{path}"
+                if shared_path in targets:
+                    errors.append(f"duplicate manifest path: {shared_path}")
+                    continue
+                targets[shared_path] = home / source_root / path
+            continue
         if path in targets:
             errors.append(f"duplicate manifest path: {path}")
             continue
@@ -222,6 +231,23 @@ def manifest_targets(home: Path) -> tuple[dict[str, Path], list[str]]:
             continue
         targets[path] = target
     return targets, errors
+
+
+def managed_skill_root(
+    skill_file: Path,
+    live_skills: Path,
+    shared_skills: Path,
+    home: Path,
+    targets: dict[str, Path],
+) -> Path | None:
+    """Return the root whose ownership rules apply, or None for an external skill."""
+    if skill_file.is_relative_to(live_skills):
+        return live_skills
+    if skill_file.is_relative_to(shared_skills):
+        top_entry = shared_skills / skill_file.relative_to(shared_skills).parts[0]
+        if top_entry.relative_to(home).as_posix() in targets:
+            return shared_skills
+    return None
 
 
 def check_manifest_projection(
@@ -305,10 +331,12 @@ def run_audit(
             if any(part in expanded for part in UPSTREAM_PATH_PARTS):
                 errors.append(f"settings.{key} has upstream live dependency: {value}")
 
+    shared_skills = home / ".agents/skills"
     skill_paths = live_skill_files(live_skills, errors)
     names: dict[str, set[Path]] = defaultdict(set)
-    discovery_roots = [home / ".agents/skills", *configured_paths(settings, "skills", home)]
-    for root in discovery_roots:
+    if shared_skills.is_dir():
+        skill_paths.extend(live_skill_files(shared_skills, errors))
+    for root in configured_paths(settings, "skills", home):
         skill_paths.extend(recursive_skill_files(root))
 
     seen_skill_paths: set[Path] = set()
@@ -333,8 +361,9 @@ def run_audit(
         if not isinstance(description, str) or not description.strip():
             errors.append(f"skill missing scalar description: {skill_file}")
 
-        if skill_file.is_relative_to(live_skills):
-            top_entry = live_skills / skill_file.relative_to(live_skills).parts[0]
+        managed_root = managed_skill_root(skill_file, live_skills, shared_skills, home, targets)
+        if managed_root is not None:
+            top_entry = managed_root / skill_file.relative_to(managed_root).parts[0]
             if not top_entry.is_symlink():
                 errors.append(f"unmanaged direct Pi skill resource: {top_entry}")
             elif not is_owned(top_entry, owned_skill_roots):
@@ -343,7 +372,7 @@ def run_audit(
                 check_manifest_projection(top_entry, home, targets, errors)
                 checked_skill_entries.add(top_entry)
 
-            skill_root = skill_file.resolve() if skill_file.parent == live_skills else skill_file.parent.resolve()
+            skill_root = skill_file.resolve() if skill_file.parent == managed_root else skill_file.parent.resolve()
             stale, link_errors = scan_tree(skill_root, owned_skill_roots)
             errors.extend(link_errors)
             if skill_file.parent.name != "pi-skill-import":
@@ -435,9 +464,12 @@ def run_audit(
             errors.append(f"Pi {name} points outside owned roots: {path} -> {path.resolve()}")
         check_manifest_projection(path, home, targets, errors)
 
-    external = home / ".agents/skills"
-    if recursive_skill_files(external):
-        warnings.append(f"external Agent Skills remain independently managed: {external}")
+    unmanaged = sorted(
+        entry.name for entry in shared_skills.iterdir()
+        if not entry.name.startswith(".") and entry.relative_to(home).as_posix() not in targets
+    ) if shared_skills.is_dir() else []
+    if unmanaged:
+        warnings.append(f"external Agent Skills remain independently managed in {shared_skills}: {', '.join(unmanaged)}")
     for package in settings.get("packages", []):
         if isinstance(package, str) and re.match(r"^(npm|git):", package):
             warnings.append(f"Pi package remains independently managed: {package}")

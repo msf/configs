@@ -22,55 +22,48 @@ repo    .pi/agent/AGENTS.md           ai-agents/instructions.md
 repo    .codex/AGENTS.md              ai-agents/instructions.md
 prepo   .pi/agent/lessons.md          lessons.md
 
-# ── Codex user skills (harness-neutral, high-use Pi subset)
-repo    .agents/skills/aws-pricing                  ai-agents/skills/aws-pricing
-repo    .agents/skills/code-review                  ai-agents/skills/code-review
-repo    .agents/skills/coding                       ai-agents/skills/coding
-repo    .agents/skills/go-development               ai-agents/skills/go-development
-repo    .agents/skills/google-slides                ai-agents/skills/google-slides
-repo    .agents/skills/k8s-debug                    ai-agents/skills/k8s-debug
-repo    .agents/skills/log-investigator             ai-agents/skills/log-investigator
-repo    .agents/skills/notion                       ai-agents/skills/notion
-repo    .agents/skills/rust-development             ai-agents/skills/rust-development
-repo    .agents/skills/send-pr                      ai-agents/skills/send-pr
-repo    .agents/skills/simplified-technical-english ai-agents/skills/simplified-technical-english
-repo    .agents/skills/tech-writing                 ai-agents/skills/tech-writing
-repo    .agents/skills/wiki                         ai-agents/skills/wiki
-prepo   .agents/skills/dbsh                         skills/dbsh
-prepo   .agents/skills/dune-brand                   skills/dune-brand
-prepo   .agents/skills/dune-explore                 skills/dune-explore
+# ── Skills shared by Pi, Claude Code and Codex. Each `skill`/`pskill` name links
+# into ~/.agents/skills (Pi and Codex) and ~/.claude/skills (Claude). Per-skill
+# entries, never directory links: dune-sietch also writes into ~/.claude/skills.
+# A skill belongs here unless it depends on a Pi-only extension.
+skill   aws-pricing
+skill   code-review
+skill   coding
+skill   go-development
+skill   google-slides
+skill   k8s-debug
+skill   log-investigator
+skill   notion
+skill   pi-skill-import
+skill   pr-triage
+skill   reflect
+skill   rust-development
+skill   send-pr
+skill   simplified-technical-english
+skill   skill-creator
+skill   tech-writing
+skill   weekly-review
+skill   wiki
+skill   workspace-apps
+pskill  datashare-add-table
+pskill  dbsh
+pskill  dune-brand
+pskill  dune-explore
+pskill  trino-heapdump
+
+# ── Pi-only skills: they call Pi extensions (mcp-bridge, browser-read, subagent)
+# or read Pi session files.
+repo    .pi/agent/skills/slack-mcp        ai-agents/skills/slack-mcp
+repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval
+repo    .pi/agent/skills/web-tool-routing ai-agents/skills/web-tool-routing
+prepo   .pi/agent/skills/grafana-metrics  skills/grafana-metrics
+prepo   .pi/agent/skills/linear-issues    skills/linear-issues
+prepo   .pi/agent/skills/linear-update    skills/linear-update
+prepo   .pi/agent/skills/trino-bench      skills/trino-bench
 
 # ── Claude Code settings. Machine state (credentials, sessions, transcripts,
 # settings.local.json permission grants) stays untracked.
 mirror  .claude/settings.json
-
-# ── Claude Code skills (harness-neutral Pi subset; Claude reads ~/.claude/skills)
-# Per-skill entries, not a directory projection: dune-sietch also writes links
-# into this directory and a whole-dir link would swallow them into the repo.
-repo    .claude/skills/aws-pricing                  ai-agents/skills/aws-pricing
-repo    .claude/skills/code-review                  ai-agents/skills/code-review
-repo    .claude/skills/coding                       ai-agents/skills/coding
-repo    .claude/skills/go-development               ai-agents/skills/go-development
-repo    .claude/skills/google-slides                ai-agents/skills/google-slides
-repo    .claude/skills/k8s-debug                    ai-agents/skills/k8s-debug
-repo    .claude/skills/log-investigator             ai-agents/skills/log-investigator
-repo    .claude/skills/notion                       ai-agents/skills/notion
-repo    .claude/skills/pi-skill-import              ai-agents/skills/pi-skill-import
-repo    .claude/skills/pr-triage                    ai-agents/skills/pr-triage
-repo    .claude/skills/reflect                      ai-agents/skills/reflect
-repo    .claude/skills/rust-development             ai-agents/skills/rust-development
-repo    .claude/skills/send-pr                      ai-agents/skills/send-pr
-repo    .claude/skills/simplified-technical-english ai-agents/skills/simplified-technical-english
-repo    .claude/skills/skill-creator                ai-agents/skills/skill-creator
-repo    .claude/skills/tech-writing                 ai-agents/skills/tech-writing
-repo    .claude/skills/weekly-review                ai-agents/skills/weekly-review
-repo    .claude/skills/wiki                         ai-agents/skills/wiki
-repo    .claude/skills/workspace-apps               ai-agents/skills/workspace-apps
-prepo   .claude/skills/datashare-add-table          skills/datashare-add-table
-prepo   .claude/skills/dbsh                         skills/dbsh
-prepo   .claude/skills/dune-brand                   skills/dune-brand
-prepo   .claude/skills/dune-explore                 skills/dune-explore
-prepo   .claude/skills/trino-heapdump               skills/trino-heapdump
 
 # Claude Code subagents: adapted from agents/pi, Claude frontmatter and tool names.
 repo    .claude/agents/code-reviewer.md  ai-agents/agents/claude/code-reviewer.md
@@ -104,38 +97,6 @@ repo    .pi/agent/agents/ste-distiller-sol.md      ai-agents/agents/pi/ste-disti
 repo    .pi/agent/agents/worker.md                ai-agents/agents/pi/worker.md
 repo    .pi/agent/agents/worker-xhigh.md          ai-agents/agents/pi/worker-xhigh.md
 
-# ── Pi public skills
-repo    .pi/agent/skills/aws-pricing                  ai-agents/skills/aws-pricing
-repo    .pi/agent/skills/code-review                  ai-agents/skills/code-review
-repo    .pi/agent/skills/coding                       ai-agents/skills/coding
-repo    .pi/agent/skills/go-development               ai-agents/skills/go-development
-repo    .pi/agent/skills/google-slides                ai-agents/skills/google-slides
-repo    .pi/agent/skills/k8s-debug                    ai-agents/skills/k8s-debug
-repo    .pi/agent/skills/log-investigator             ai-agents/skills/log-investigator
-repo    .pi/agent/skills/notion                       ai-agents/skills/notion
-repo    .pi/agent/skills/pi-skill-import              ai-agents/skills/pi-skill-import
-repo    .pi/agent/skills/pr-triage                    ai-agents/skills/pr-triage
-repo    .pi/agent/skills/reflect                      ai-agents/skills/reflect
-repo    .pi/agent/skills/send-pr                      ai-agents/skills/send-pr
-repo    .pi/agent/skills/simplified-technical-english ai-agents/skills/simplified-technical-english
-repo    .pi/agent/skills/skill-creator                ai-agents/skills/skill-creator
-repo    .pi/agent/skills/slack-mcp                    ai-agents/skills/slack-mcp
-repo    .pi/agent/skills/tech-writing                 ai-agents/skills/tech-writing
-repo    .pi/agent/skills/web-tool-eval                ai-agents/skills/web-tool-eval
-repo    .pi/agent/skills/web-tool-routing             ai-agents/skills/web-tool-routing
-repo    .pi/agent/skills/weekly-review                ai-agents/skills/weekly-review
-repo    .pi/agent/skills/wiki                         ai-agents/skills/wiki
-repo    .pi/agent/skills/workspace-apps               ai-agents/skills/workspace-apps
-
-# ── Pi private skills
-prepo   .pi/agent/skills/dbsh              skills/dbsh
-prepo   .pi/agent/skills/dune-brand        skills/dune-brand
-prepo   .pi/agent/skills/dune-explore      skills/dune-explore
-prepo   .pi/agent/skills/grafana-metrics   skills/grafana-metrics
-prepo   .pi/agent/skills/linear-update     skills/linear-update
-prepo   .pi/agent/skills/trino-bench       skills/trino-bench
-prepo   .pi/agent/skills/trino-heapdump    skills/trino-heapdump
-
 # ── private application config
 pmirror .config/pr-triage.conf
 
@@ -156,7 +117,4 @@ home    .pi/agent-lean/extensions/browser-read .pi/agent/extensions/browser-read
 home    .pi/agent-lean/extensions/mcp-bridge   .pi/agent/extensions/mcp-bridge
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent
 repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disable-spinner.ts
-repo    .pi/agent/skills/rust-development  ai-agents/skills/rust-development
-prepo   .pi/agent/skills/linear-issues  skills/linear-issues
-prepo   .pi/agent/skills/datashare-add-table  skills/datashare-add-table
 mirror  .claude/statusline.sh

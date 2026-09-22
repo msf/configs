@@ -32,3 +32,12 @@ printf 'PASS: --verify reports a displaced leftover\n'
 rm "$home/.claude/skills/probe.pre-dune-sietch"
 HOME="$home" bash "$repo/tools/apply.sh" --verify
 printf 'PASS: --verify is clean once the leftover is gone\n'
+
+# A skill entry projects one source into every shared skills root.
+printf 'skill   probe\n' > "$repo/tools/manifest.txt"
+rm "$home/.claude/skills/probe"
+HOME="$home" bash "$repo/tools/apply.sh" > /dev/null
+test "$(readlink "$home/.agents/skills/probe")" = "$repo/skills/probe"
+test "$(readlink "$home/.claude/skills/probe")" = "$repo/skills/probe"
+HOME="$home" bash "$repo/tools/apply.sh" --verify
+printf 'PASS: skill entry projects into every shared root\n'

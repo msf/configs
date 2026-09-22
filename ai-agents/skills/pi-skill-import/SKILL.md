@@ -5,7 +5,7 @@ description: Manage, audit, import, track, and restore the skills, agents, promp
 
 # Managed agent resource management and import
 
-The manifest owns every harness projection on this machine. Pi is the primary runtime; Claude Code and Codex load the same sources through their own manifest entries. dune-sietch is an upstream to inspect and a co-writer to coexist with, never a live dependency to edit or symlink into.
+The manifest owns every harness projection on this machine. Pi, Claude Code, and Codex load the same instructions and skills; agents are adapted per harness. dune-sietch is an upstream to inspect and a co-writer to coexist with, never a live dependency to edit or symlink into.
 
 ## Ownership boundary
 
@@ -16,9 +16,10 @@ Managed source and deployment:
 - Private sources: `~/configs-private/{skills,agents/pi,tools/extensions}`
 - Path-specific settings only: each repository's `home/` mirror
 - Live projections, symlinked only by the management tools:
-  - Pi: `~/.pi/agent/`
-  - Claude Code: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, and per-resource entries under `~/.claude/skills` and `~/.claude/agents`
-  - Codex: `~/.codex/AGENTS.md` and `~/.agents/skills/`
+  - Shared skills: `~/.agents/skills/` (read by Pi and Codex) and `~/.claude/skills/`, both from one `skill`/`pskill` manifest entry
+  - Pi: `~/.pi/agent/`, including the Pi-only skills under `~/.pi/agent/skills/`
+  - Claude Code: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, and per-resource entries under `~/.claude/agents`
+  - Codex: `~/.codex/AGENTS.md`
 
 Read the tools README and manifest before changing harness configuration. The manifest is the deployment source of truth; ownership in a repository without a manifest entry is incomplete.
 
@@ -46,10 +47,10 @@ Run both gates:
 
 ```zsh
 ~/configs/ai-agents/tools/apply.sh --verify
-uv run --quiet ~/.pi/agent/skills/pi-skill-import/scripts/audit.py
+uv run --quiet ~/.agents/skills/pi-skill-import/scripts/audit.py
 ```
 
-Fix hard failures before importing more. The first gate verifies all managed harness projections; the second verifies Pi ownership, manifest coverage, schemas, models, and stale dependencies. Warnings about external Agent Skills or package-managed skills are provenance signals, not automatic migration work.
+Fix hard failures before importing more. The first gate verifies all managed harness projections; the second verifies Pi and shared-skill ownership, manifest coverage, name collisions, schemas, models, and stale dependencies. Warnings about external Agent Skills or package-managed skills are provenance signals, not automatic migration work.
 
 ## Import workflow
 
@@ -63,7 +64,7 @@ Fix hard failures before importing more. The first gate verifies all managed har
    - tool, MCP, OAuth, model, hook, and session APIs must be checked against complete Pi docs rather than renamed by intuition;
    - secrets move only to a Pi-owned path with preserved `0600` permissions and an updated consumer. Never print them.
 5. **Validate and smoke test.** Run official validation, check every relative reference, grep for stale harness paths, and execute the smallest isolated Pi test. For behavioral skills, use `skill-creator`; for agent definitions, invoke the agent on a bounded read-only task.
-6. **Promote through the config tools.** Re-read/hash the target immediately before replacement and refuse if it changed. For a new resource, copy the validated stage to its live path as a regular file/directory, then run `tools/track.sh <path>` or `tools/track.sh --private <path>`; it routes the resource to the canonical top-level source, backs it up, appends the manifest entry, and creates the symlink. For an existing tracked resource, replace only its owned top-level target and preserve the manifest-managed live symlink. Never create the live symlink or edit the manifest by hand during a routine import. Do not modify the upstream copy.
+6. **Promote through the config tools.** Re-read/hash the target immediately before replacement and refuse if it changed. For a new resource, copy the validated stage to its live path as a regular file/directory, then run `tools/track.sh <path>` or `tools/track.sh --private <path>`; it routes the resource to the canonical top-level source, backs it up, appends the manifest entry, and creates the symlinks. A skill becomes a shared `skill`/`pskill` entry by default; a skill that needs a Pi extension or Pi session files is the exception, declared as a `.pi/agent/skills/` entry instead. For an existing tracked resource, replace only its owned top-level target and preserve the manifest-managed live symlink. Never create the live symlink or edit the manifest by hand during a routine import. Do not modify the upstream copy.
 7. **Verify and record.** Reload Pi; run `tools/apply.sh --verify` and the audit; verify the exact entrypoint; then update `references/imports.md` with the source revision/hash, target, adaptations, checks, and disposition.
 
 ## Stale-harness checks
@@ -75,7 +76,6 @@ compatibility: opencode
 ~/.config/opencode/skills
 ~/.config/opencode/agents
 ~/.config/opencode/commands
-~/.claude/skills
 claude -p
 Task tool
 TodoList

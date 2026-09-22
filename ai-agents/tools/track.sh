@@ -35,7 +35,7 @@ if [ "$PRIVATE" = 1 ]; then
 	case "$rel" in
 		.pi/agent/skills/*|.claude/skills/*|.agents/skills/*)
 			suffix=${rel#*/skills/}
-			kind=prepo; manifest_target=skills/$suffix; target=$PRIVATE_DIR/$manifest_target ;;
+			kind=pskill; target=$PRIVATE_DIR/$(skill_source pskill "$suffix") ;;
 		.pi/agent/agents/*)
 			suffix=${rel#.pi/agent/agents/}
 			kind=prepo; manifest_target=agents/pi/$suffix; target=$PRIVATE_DIR/$manifest_target ;;
@@ -49,7 +49,7 @@ else
 	case "$rel" in
 		.pi/agent/skills/*|.claude/skills/*|.agents/skills/*)
 			suffix=${rel#*/skills/}
-			kind=repo; manifest_target=ai-agents/skills/$suffix; target=$REPO_DIR/$manifest_target ;;
+			kind=skill; target=$REPO_DIR/$(skill_source skill "$suffix") ;;
 		.pi/agent/agents/*)
 			suffix=${rel#.pi/agent/agents/}
 			kind=repo; manifest_target=ai-agents/agents/pi/$suffix; target=$REPO_DIR/$manifest_target ;;
@@ -68,8 +68,10 @@ else
 	esac
 fi
 
-escaped_rel=${rel//\//\/}
-manifest_pattern="^[[:space:]]*(mirror|pmirror|repo|prepo|home)[[:space:]]+${escaped_rel}([[:space:]]|$)"
+entry=$rel
+case "$kind" in skill|pskill) entry=$suffix ;; esac
+escaped_entry=${entry//\//\/}
+manifest_pattern="^[[:space:]]*(mirror|pmirror|repo|prepo|home|skill|pskill)[[:space:]]+${escaped_entry}([[:space:]]|$)"
 if grep -qE "$manifest_pattern" "$MANIFEST"; then
 	warn "already in manifest: $rel"
 fi
@@ -81,15 +83,29 @@ if [ -e "$target" ] || [ -L "$target" ]; then
 fi
 backup "$h"
 run mv -- "$h" "$target"
-run ln -s -- "$target" "$h"
+case "$kind" in
+	skill|pskill)
+		# Link every shared root; a Pi-only root copy would load as a duplicate.
+		for root in $SKILL_ROOTS; do
+			link=$HOME/$root/$suffix
+			if [ -e "$link" ] || [ -L "$link" ]; then
+				backup "$link"
+				run rm -rf -- "$link"
+			fi
+			run mkdir -p -- "$(dirname "$link")"
+			run ln -s -- "$target" "$link"
+		done
+		;;
+	*) run ln -s -- "$target" "$h" ;;
+esac
 
 if ! grep -qE "$manifest_pattern" "$MANIFEST"; then
 	if [ -n "$manifest_target" ]; then
 		printf '%-7s %s  %s\n' "$kind" "$rel" "$manifest_target" >> "$MANIFEST"
 	else
-		printf '%-7s %s\n' "$kind" "$rel" >> "$MANIFEST"
+		printf '%-7s %s\n' "$kind" "$entry" >> "$MANIFEST"
 	fi
-	log "manifest: appended $kind $rel${manifest_target:+ $manifest_target}"
+	log "manifest: appended $kind $entry${manifest_target:+ $manifest_target}"
 fi
 
 log "tracked: $h → $target"

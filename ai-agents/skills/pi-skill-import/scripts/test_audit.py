@@ -66,6 +66,41 @@ class AuditTest(unittest.TestCase):
             self.assertEqual(result.errors, [])
             self.assertEqual((result.skill_count, result.agent_count), (1, 1))
 
+    def test_shared_skill_entry_is_audited(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            home, public, _ = self.make_home(Path(directory))
+            shared = public / "skills/shared"
+            shared.mkdir()
+            (shared / "SKILL.md").write_text("---\nname: shared\ndescription: Shared.\n---\n")
+            manifest = public / "tools/manifest.txt"
+            manifest.write_text(manifest.read_text() + "skill shared\n")
+            (home / ".agents/skills").mkdir(parents=True)
+            (home / ".agents/skills/shared").symlink_to(shared, target_is_directory=True)
+            (home / ".agents/skills/external").mkdir()
+
+            result = run_audit(home, validate=False, model_check=False)
+            self.assertEqual(result.errors, [])
+            self.assertEqual(result.skill_count, 2)
+            self.assertTrue(any("external" in warning for warning in result.warnings))
+
+            (shared / "notes.md").write_text("see Task tool\n")
+            result = run_audit(home, validate=False, model_check=False)
+            self.assertTrue(any("OpenCode task tool" in error for error in result.errors))
+
+    def test_shared_skill_also_linked_under_pi_collides(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            home, public, _ = self.make_home(Path(directory))
+            copy = public / "skills/copy"
+            copy.mkdir()
+            (copy / "SKILL.md").write_text("---\nname: good\ndescription: Same name.\n---\n")
+            manifest = public / "tools/manifest.txt"
+            manifest.write_text(manifest.read_text() + "skill copy\n")
+            (home / ".agents/skills").mkdir(parents=True)
+            (home / ".agents/skills/copy").symlink_to(copy, target_is_directory=True)
+
+            result = run_audit(home, validate=False, model_check=False)
+            self.assertTrue(any("skill name collision good" in error for error in result.errors))
+
     def test_detects_dangling_and_recursive_skill_resources(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             home, public, live = self.make_home(Path(directory))
