@@ -6,19 +6,6 @@
     ]
   },
   "model": "opus[1m]",
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "PATH=\"$PATH:$HOME/.local/bin\" dune-sietch check --quiet 2>/dev/null || true",
-            "timeout": 15
-          }
-        ]
-      }
-    ]
-  },
   "enabledPlugins": {
     "slack@claude-plugins-official": true
   },
