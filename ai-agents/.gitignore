@@ -7,5 +7,3 @@ __pycache__/
 
 # Private overlays created by tools/apply.sh. Names are public; contents are not.
 tools/extensions/mcp-bridge/servers.json
-agents/opencode/dune-architecture.md
-commands/dune.md

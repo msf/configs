@@ -18,20 +18,9 @@
 
 # ── shared harness instructions
 repo    .claude/CLAUDE.md             ai-agents/instructions.md
-home    .config/opencode/AGENTS.md    .claude/CLAUDE.md
 repo    .pi/agent/AGENTS.md           ai-agents/instructions.md
 repo    .codex/AGENTS.md              ai-agents/instructions.md
 prepo   .pi/agent/lessons.md          lessons.md
-
-# ── OpenCode roots
-repo    .config/opencode/skills       ai-agents/skills
-repo    .config/opencode/agents       ai-agents/agents/opencode
-repo    .config/opencode/commands     ai-agents/commands
-prepo   .config/opencode/skills-private    skills
-
-# Private files living inside public-linked OpenCode dirs.
-prepo   .config/opencode/agents/dune-architecture.md    agents/opencode/dune-architecture.md
-prepo   .config/opencode/commands/dune.md               commands/dune.md
 
 # ── Codex user skills (harness-neutral, high-use Pi subset)
 repo    .agents/skills/aws-pricing                  ai-agents/skills/aws-pricing
@@ -115,7 +104,7 @@ repo    .pi/agent/agents/ste-distiller-sol.md      ai-agents/agents/pi/ste-disti
 repo    .pi/agent/agents/worker.md                ai-agents/agents/pi/worker.md
 repo    .pi/agent/agents/worker-xhigh.md          ai-agents/agents/pi/worker-xhigh.md
 
-# ── Pi public skills (shared source with OpenCode)
+# ── Pi public skills
 repo    .pi/agent/skills/aws-pricing                  ai-agents/skills/aws-pricing
 repo    .pi/agent/skills/code-review                  ai-agents/skills/code-review
 repo    .pi/agent/skills/coding                       ai-agents/skills/coding
@@ -138,7 +127,7 @@ repo    .pi/agent/skills/weekly-review                ai-agents/skills/weekly-re
 repo    .pi/agent/skills/wiki                         ai-agents/skills/wiki
 repo    .pi/agent/skills/workspace-apps               ai-agents/skills/workspace-apps
 
-# ── Pi private skills (shared source with OpenCode private root)
+# ── Pi private skills
 prepo   .pi/agent/skills/dbsh              skills/dbsh
 prepo   .pi/agent/skills/dune-brand        skills/dune-brand
 prepo   .pi/agent/skills/dune-explore      skills/dune-explore
@@ -148,7 +137,6 @@ prepo   .pi/agent/skills/trino-bench       skills/trino-bench
 prepo   .pi/agent/skills/trino-heapdump    skills/trino-heapdump
 
 # ── private application config
-pmirror .config/opencode/opencode.json
 pmirror .config/pr-triage.conf
 
 # ── Dune workspace docs

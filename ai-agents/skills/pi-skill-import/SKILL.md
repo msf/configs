@@ -1,24 +1,23 @@
 ---
 name: pi-skill-import
-description: Manage, audit, import, track, and restore the skills, agents, prompts, extensions, or configuration that the manifest deploys to Pi, Claude Code, OpenCode, and Codex, through the owned config repositories and manifest tools. Use for new Pi resources, upstream adaptation, reproducibility checks, recovery, provenance, conflicts, or preventing clobbered and half-migrated configuration.
+description: Manage, audit, import, track, and restore the skills, agents, prompts, extensions, or configuration that the manifest deploys to Pi, Claude Code, and Codex, through the owned config repositories and manifest tools. Use for new Pi resources, upstream adaptation, reproducibility checks, recovery, provenance, conflicts, or preventing clobbered and half-migrated configuration.
 ---
 
 # Managed agent resource management and import
 
-The manifest owns every harness projection on this machine. Pi is the primary runtime; Claude Code, OpenCode, and Codex load the same sources through their own manifest entries. dune-sietch is an upstream to inspect and a co-writer to coexist with, never a live dependency to edit or symlink into.
+The manifest owns every harness projection on this machine. Pi is the primary runtime; Claude Code and Codex load the same sources through their own manifest entries. dune-sietch is an upstream to inspect and a co-writer to coexist with, never a live dependency to edit or symlink into.
 
 ## Ownership boundary
 
 Managed source and deployment:
 
 - Manifest and management: `~/configs/ai-agents/tools/`
-- Public sources: `~/configs/ai-agents/{skills,agents/{pi,claude,opencode},commands,tools/{extensions,bin}}`
+- Public sources: `~/configs/ai-agents/{skills,agents/{pi,claude},commands,tools/{extensions,bin}}`
 - Private sources: `~/configs-private/{skills,agents/pi,tools/extensions}`
 - Path-specific settings only: each repository's `home/` mirror
 - Live projections, symlinked only by the management tools:
   - Pi: `~/.pi/agent/`
   - Claude Code: `~/.claude/CLAUDE.md`, `~/.claude/settings.json`, and per-resource entries under `~/.claude/skills` and `~/.claude/agents`
-  - OpenCode: `~/.config/opencode/`
   - Codex: `~/.codex/AGENTS.md` and `~/.agents/skills/`
 
 Read the tools README and manifest before changing harness configuration. The manifest is the deployment source of truth; ownership in a repository without a manifest entry is incomplete.
@@ -34,9 +33,9 @@ Never point a managed skill, agent, prompt, extension, settings entry, or secret
 
 ## Directories shared with dune-sietch
 
-dune-sietch writes its own links into `~/.claude/{skills,agents,commands}` and `~/.config/opencode/{agents,commands}`:
+dune-sietch writes its own links into `~/.claude/{skills,agents,commands}`:
 
-- Project individual resources into those directories, never the whole directory. A directory-level entry swallows sietch's links into this repository, which is how `agents/opencode/` and `commands/` collected untracked cache links.
+- Project individual resources into those directories, never the whole directory. A directory-level entry swallows sietch's links into this repository.
 - `dune-sietch check` only tests that a link exists, not where it points, so displacing one is silent.
 - `dune-sietch update` re-claims a displaced link and renames the previous one to `<path>.pre-dune-sietch`. Inside a skills root that leftover is loaded as a second copy of the same skill: delete it, then re-run `tools/apply.sh`.
 - A name owned by both sides is a decision, not an accident. Record which side won and why.

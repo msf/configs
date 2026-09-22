@@ -1,6 +1,6 @@
 # ai-agents — managed agent configuration
 
-Single source of truth for Pi, Claude Code, OpenCode, and Codex, split across:
+Single source of truth for Pi, Claude Code, and Codex, split across:
 
 - **`~/configs/ai-agents` (public):** generic instructions, skills, agents, commands, tools, and path-specific settings. No secrets or internal infrastructure details.
 - **`~/configs-private` (private):** work-specific resources and MCP configuration. Tokens and machine state belong in neither repository.
@@ -16,13 +16,12 @@ Global instructions live in `instructions.md`, projected to each harness's conve
 ```text
 ai-agents/
 ├── instructions.md            canonical global instructions
-├── skills/                    Pi-maintained skills, also exposed to OpenCode
+├── skills/                    Pi-maintained skills
 ├── agents/
 │   ├── pi/                    Pi agent format
 │   ├── claude/                Claude Code agent format
-│   ├── opencode/              OpenCode agent format
 │   └── candidates/            unloaded snapshots for later evaluation
-├── commands/                  OpenCode commands and Pi prompt templates
+├── commands/                  Pi prompt templates
 ├── tools/
 │   ├── extensions/            Pi extensions
 │   ├── manifest.txt
@@ -33,7 +32,7 @@ ai-agents/
     └── .pi/agent-lean/{settings,models}.json
 ```
 
-The private repository mirrors the same ownership model: shared skills at `skills/`, Pi agents under `agents/pi/`, OpenCode agents under `agents/opencode/`, Pi tool configuration under `tools/`, and only path-specific application config under `home/`.
+The private repository mirrors the same ownership model: shared skills at `skills/`, Pi agents under `agents/pi/`, unloaded agent snapshots under `agents/candidates/`, Pi tool configuration under `tools/`, and only path-specific application config under `home/`.
 
 ## Resource entrypoints
 
@@ -42,8 +41,7 @@ The private repository mirrors the same ownership model: shared skills at `skill
 - Claude Code: the manifest projects the harness-neutral skill subset into `~/.claude/skills`, the `code-reviewer` and `skill-applier` subagents into `~/.claude/agents`, the canonical instructions as `~/.claude/CLAUDE.md`, and `settings.json` from the `home/` mirror. Deliberately excluded: `slack-mcp` (Claude ships the official Slack plugin), `web-tool-routing` and `web-tool-eval` (`browser_read_url`, the Pi runner), and the private `grafana-metrics`, `trino-bench`, `linear-update` and `linear-issues` (mcp-bridge tool names and `/mcp-load`).
 - Workspace services: `notion` owns `ntn`; `slack-mcp` owns Slack MCP; `workspace-apps` owns `gog` and routes to those dedicated skills. The legacy workspace wrappers and standalone Slack MCP client are retired.
 - `browser-read`, `mcp-bridge`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
-- OpenCode directory projections currently contain Sietch cache links. Those are not canonical Pi resources; reconcile their ownership separately rather than using them as migration sources.
-- dune-sietch also writes into `~/.claude/{skills,agents,commands}`, so Claude entries are per-resource, never directory-level: a directory projection would pull Sietch's links into this repository, which is how the OpenCode directories collected theirs. `code-review`, `k8s-debug`, `log-investigator`, `skill-creator`, `dune-explore` and `code-reviewer` are names both sides ship; the manifest wins them deliberately. `dune-sietch check` only tests that a link exists, so it stays quiet; `dune-sietch update` re-claims them and leaves `<name>.pre-dune-sietch` behind, which `apply.sh --verify` now fails on until it is deleted.
+- dune-sietch also writes into `~/.claude/{skills,agents,commands}`, so Claude entries are per-resource, never directory-level: a directory projection would pull Sietch's links into this repository. `code-review`, `k8s-debug`, `log-investigator`, `skill-creator`, `dune-explore` and `code-reviewer` are names both sides ship; the manifest wins them deliberately. `dune-sietch check` only tests that a link exists, so it stays quiet; `dune-sietch update` re-claims them and leaves `<name>.pre-dune-sietch` behind, which `apply.sh --verify` now fails on until it is deleted.
 
 ## Optional Pi packages
 
@@ -95,5 +93,4 @@ Pi extensions execute with full user permissions. Direct dependencies are exact-
 
 - Pi credentials, trust decisions, sessions, generated model stores, browser profiles, package checkouts, and caches.
 - Claude credentials, sessions, transcripts, plugin caches, and `settings.local.json` permission grants. Only `settings.json` and the manifest-listed resources are managed.
-- OpenCode secrets and tool keyrings.
 - Extension `node_modules/`; rebuild them from lockfiles.

@@ -90,7 +90,7 @@ These rules apply when another agent delegates a task to you.
 
 # Managed Agent Configuration
 
-- `~/configs/ai-agents/tools/manifest.txt` is the deployment source of truth for Pi, OpenCode, Claude, and Codex configuration across `~/configs` and `~/configs-private`.
+- `~/configs/ai-agents/tools/manifest.txt` is the deployment source of truth for Pi, Claude, and Codex configuration across `~/configs` and `~/configs-private`.
 - Before changing managed agent config, read `tools/README.md` and the manifest. Edit existing files through their `$HOME` symlinks; add new paths only with `tools/track.sh [--private] <path>`. Never create managed live symlinks manually.
 - Skills and agents are one source with per-harness manifest entries. A resource reaches a new harness only when its line is added, after its tool names, resource paths, and delegation semantics are checked there.
 - Before calling config work complete, run `tools/apply.sh --verify`. For Pi resource imports, also run the `pi-skill-import` audit.
