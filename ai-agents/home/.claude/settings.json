@@ -6,8 +6,108 @@
     ]
   },
   "model": "opus[1m]",
+  "deniedMcpServers": [
+    {
+      "serverName": "claude.ai Claude Docs"
+    },
+    {
+      "serverName": "claude.ai Cloudflare Developer Platform"
+    },
+    {
+      "serverName": "claude.ai Lattice"
+    },
+    {
+      "serverName": "claude.ai Clay"
+    },
+    {
+      "serverName": "claude.ai Semrush"
+    },
+    {
+      "serverName": "claude.ai Zapier"
+    },
+    {
+      "serverName": "claude.ai Vercel"
+    },
+    {
+      "serverName": "claude.ai social superpowers"
+    },
+    {
+      "serverName": "claude.ai Figma"
+    },
+    {
+      "serverName": "claude.ai Metabase"
+    },
+    {
+      "serverName": "claude.ai Netlify"
+    },
+    {
+      "serverName": "claude.ai Dune Dev"
+    },
+    {
+      "serverName": "claude.ai Dune"
+    },
+    {
+      "serverName": "claude.ai GoDaddy"
+    },
+    {
+      "serverName": "claude.ai DX"
+    },
+    {
+      "serverName": "claude.ai Granola"
+    },
+    {
+      "serverName": "claude.ai Shapes"
+    },
+    {
+      "serverName": "claude.ai Sanity"
+    },
+    {
+      "serverName": "claude.ai PagerDuty"
+    },
+    {
+      "serverName": "claude.ai PagerDuty EU 2"
+    },
+    {
+      "serverName": "claude.ai PagerDuty EU"
+    },
+    {
+      "serverName": "claude.ai PagerDuty EU (3)"
+    },
+    {
+      "serverName": "claude.ai Typefully"
+    },
+    {
+      "serverName": "claude.ai Excalidraw"
+    },
+    {
+      "serverName": "claude.ai Pylon MCP"
+    },
+    {
+      "serverName": "claude.ai Linear"
+    },
+    {
+      "serverName": "claude.ai Notion"
+    },
+    {
+      "serverName": "claude.ai Amplitude EU"
+    },
+    {
+      "serverName": "claude.ai HubSpot"
+    },
+    {
+      "serverName": "claude.ai Google Calendar"
+    },
+    {
+      "serverName": "claude.ai Slack"
+    }
+  ],
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh",
+    "padding": 0
+  },
   "enabledPlugins": {
-    "slack@claude-plugins-official": true
+    "slack@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
@@ -26,13 +126,12 @@
   "modelSettings": {
     "claude-opus-5": {
       "effortLevel": "xhigh"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "high"
     }
   },
+  "timeFormat": "24-hour",
   "editorMode": "vim",
-  "preferredNotifChannel": "notifications_disabled",
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline.sh",
-    "padding": 0
-  }
+  "preferredNotifChannel": "notifications_disabled"
 }

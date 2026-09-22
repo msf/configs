@@ -118,3 +118,4 @@ home    .pi/agent-lean/extensions/mcp-bridge   .pi/agent/extensions/mcp-bridge
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent
 repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disable-spinner.ts
 mirror  .claude/statusline.sh
+mirror  .claude/mcp/linear.json
