@@ -171,3 +171,4 @@ repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disa
 repo    .pi/agent/skills/rust-development  ai-agents/skills/rust-development
 prepo   .pi/agent/skills/linear-issues  skills/linear-issues
 prepo   .pi/agent/skills/datashare-add-table  skills/datashare-add-table
+mirror  .claude/statusline.sh
