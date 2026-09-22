@@ -4,6 +4,8 @@ Use this structure when summarizing reviews back to the user.
 
 Analysis-turn rule: when no GitHub mutation has happened yet, phrase recommendations as pending actions, not completed actions. Include both `My suggestion is ...` and `NEED YOUR APPROVAL TO SUBMIT` in the report.
 
+When the approval met every condition in the skill's mutation discipline and was posted without asking, drop both of those lines and replace them with `Posted: <review URL>` in past tense. Every other section stays as it is; posting early is not licence to report less.
+
 Do not pad the report. If a section is empty, omit it unless it communicates an important absence of proof.
 
 ```text
