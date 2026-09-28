@@ -1,4 +1,8 @@
 This is a collection of .*rc files and sometimes something more.
+
+MacBook setup: read macos/README.md first. The legacy install.py below removes
+existing home paths, including directories; do not use it to bootstrap the Mac.
+
 issue:
 $ find . -not   -path   "./.git*"  -type f |xargs -I a md5sum  a ~/a
 
