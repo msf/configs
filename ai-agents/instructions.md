@@ -52,7 +52,7 @@ Broad behavioral operating rules. Domain knowledge (code, k8s, Go, review) lives
 When creating a git worktree for repos under `~/dune/`, do not place it beside the repo root and never in `/tmp`.
 Store all worktrees under `~/dune/_worktrees/` to keep `~/dune/` reserved for canonical repos.
 Pattern: `mkdir -p "$HOME/dune/_worktrees" && git worktree add "$HOME/dune/_worktrees/$(basename "$(git rev-parse --show-toplevel)")-<suffix>" <branch>`
-Example: working in `/home/miguel/dune/<repo>` -> new worktree at `/home/miguel/dune/_worktrees/<repo>-<suffix>`
+Example: working in `~/dune/<repo>` -> new worktree at `~/dune/_worktrees/<repo>-<suffix>`
 If older sibling worktrees already exist, do not create more in that style; keep new ones centralized under `_worktrees/`.
 
 # Git Safety

@@ -57,7 +57,7 @@ checkpoint_one() {
 		run rm -rf -- "$r"
 	fi
 	run mkdir -p -- "$(dirname "$r")"
-	run cp -a --no-target-directory "$h" "$r"
+	run cp -a "$h" "$r"
 }
 
 foreach_manifest checkpoint_one

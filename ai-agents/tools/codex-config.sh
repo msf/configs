@@ -53,7 +53,8 @@ if [ -f "$config" ]; then
 			}
 		}
 	' "$config" > "$tmp"
-	chmod --reference="$config" "$tmp"
+	# GNU stat, then BSD stat (macOS)
+	chmod "$(stat -c %a "$config" 2>/dev/null || stat -f %Lp "$config")" "$tmp"
 else
 	printf '%s\n' "$setting" > "$tmp"
 	chmod 600 "$tmp"

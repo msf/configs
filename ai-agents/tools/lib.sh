@@ -60,8 +60,9 @@ backup() {
 	done
 	if [ -e "$bak" ] || [ -L "$bak" ]; then return 0; fi
 	run mkdir -p -- "$(dirname "$bak")"
-	# cp -a preserves symlinks-as-symlinks, perms, timestamps
-	run cp -a --no-target-directory "$p" "$bak"
+	# cp -a preserves symlinks-as-symlinks, perms, timestamps. $bak does not
+	# exist, so this copies to it rather than into it (GNU and BSD cp).
+	run cp -a "$p" "$bak"
 }
 
 SKILL_ROOTS=".agents/skills .claude/skills"
