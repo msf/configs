@@ -250,7 +250,6 @@ alias openclaw='incus exec openclaw -- machinectl shell openclaw@'
 
 if (( $+commands[pi] )); then
   pi() {
-    [[ ! -x $HOME/bin/launch-meridian.sh ]] || $HOME/bin/launch-meridian.sh
     if [[ -x $HOME/.local/share/pi-node/current/bin/node ]]; then
       PATH="$HOME/.local/share/pi-node/current/bin:$PATH" command pi "$@"
     else
