@@ -14,7 +14,7 @@ set $terminal systemd-run --user --scope ghostty --gtk-single-instance=false
 set $browser systemd-run --user --scope x-www-browser
 set $launcher fuzzel
 set $locker swaylock
-set $wallpaper /usr/share/backgrounds/Province_of_the_south_of_france_by_orbitelambda.jpg
+set $wallpaper /usr/share/backgrounds/osselo-Ask_a_friend.jpg
 
 ###############################################################################
 # Input
@@ -48,7 +48,7 @@ output "LG Electronics LG HDR WQHD 0x0004DE8E" mode 3440x1440@75.05Hz scale 1 po
 # Session services
 ###############################################################################
 
-exec swaybg -i $wallpaper -m fill
+output * bg $wallpaper fill
 exec mako
 exec swayosd-server
 exec kanshi -c ~/.config/kanshi/config

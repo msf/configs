@@ -61,6 +61,7 @@ json = false
 [[block]]
 block = "sound"
 driver = "pulseaudio"
+show_volume_when_muted = true
 
 [[block]]
 block = "time"
