@@ -1,7 +1,7 @@
 # MacBook bootstrap handoff
 
 Target: M5 Max MacBook Pro, used for work and some personal tasks.
-Status: preparation notes only. No Mac bootstrap is implemented or tested yet.
+Status: stages 1–2 applied on liskov (nix-darwin, dotfiles, agent resources). Stages 3–4 pending. Manual steps: [manual-steps.md](manual-steps.md).
 
 Goal: install a minimal starting environment, clone `~/configs`, then use agents
 running natively on the Mac to configure the rest in stages. Keep each durable
@@ -111,7 +111,7 @@ a fresh clone.
 | Containers | Colima, Docker CLI, Compose plugin; verify `docker compose` works |
 | Linux development | Separate Lima ARM64 VM with root access and a dedicated virtual data disk |
 | Monitoring | htop, btop; macOS native diagnostic tools |
-| Window management | Rectangle for snapping, or AeroSpace for automatic tiling; choose one |
+| Window management | Rectangle (AeroSpace tried and dropped: too much to learn) |
 | SSH server | Built-in Remote Login, only if inbound access is needed |
 
 Useful additions: ripgrep, fd, fzf, jq, yq, direnv, gh, uv, a maintained Node runtime,

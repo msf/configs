@@ -57,3 +57,8 @@ cursor-style-blink = true
 shell-integration-features = no-cursor,sudo,ssh-env,ssh-terminfo,path
 
 copy-on-select = clipboard
+
+# macOS only; ignored on Linux.
+# Left Option is Meta for the shell; right Option still types Portuguese characters.
+macos-option-as-alt = left
+macos-titlebar-style = hidden

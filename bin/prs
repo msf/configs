@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 # prs: List open PRs with PR number, branch, worktree mapping, and review status
 #
 # Usage:

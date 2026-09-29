@@ -22,6 +22,9 @@ export LESS=-X
 alias vim='nvim'
 alias vimdiff='nvim -d'
 if [[ $OSTYPE == darwin* ]]; then
+  alias rebuild='sudo darwin-rebuild switch --flake ~/configs/macos\#liskov'
+  # Node comes from Nix (read-only); global npm packages (pi, codex) go to ~/.local
+  export NPM_CONFIG_PREFIX=$HOME/.local
   alias ls='ls -GFv'
   alias l='ls -G'
   alias la='ls -aG'
@@ -232,6 +235,7 @@ function db-root-sh {
   PGPASSWORD="$password" pgcli -U "$user" -h "$host" "$db"
 }
 
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
 [[ -t 0 && -t 1 ]] && (( $+commands[fzf] )) && source <(fzf --zsh)
 [[ -f $HOME/.zsh_prompt ]] && source $HOME/.zsh_prompt
 
