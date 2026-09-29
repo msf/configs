@@ -1,4 +1,7 @@
 #!/bin/sh
 
+# Hopper: shared install for all agent users (wiki tooling/todos/gog-skill.md)
+[ -x /usr/local/bin/gog ] && exec /usr/local/bin/gog "$@"
+
 . "$HOME/.gog_secret"
 exec "$HOME/.local/bin/gog" "$@"

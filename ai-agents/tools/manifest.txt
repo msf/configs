@@ -30,6 +30,7 @@ skill   aws-pricing
 skill   code-review
 skill   coding
 skill   go-development
+skill   google-drive
 skill   google-slides
 skill   k8s-debug
 skill   log-investigator
