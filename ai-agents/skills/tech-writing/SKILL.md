@@ -13,9 +13,9 @@ description: >
 
 | Form | What it is |
 |---|---|
-| **RFC / TDD** | A proposal for a full system or something genuinely complex. The same form; RFC is the older name (all RFCs are 2022, TDDs start 2023). |
+| **RFC / TDD** | A Request for Comments (RFC) or Technical Design Document (TDD): a proposal for a full system or something genuinely complex. The same form; RFC is the older name (all RFCs are 2022, TDDs start 2023). |
 | **Tech Memo (TMD)** | Defined by what it isn't: not a strict ADR, and lighter than a full design doc. One problem, one scope, loose shape. |
-| **ADR** | A Tech Memo that prescribes a specific approach, in fixed 3-section form, numbered and kept next to the code it describes. |
+| **ADR** | An Architecture Decision Record (ADR): a Tech Memo that prescribes a specific approach, in fixed 3-section form, numbered and kept next to the code it describes. |
 
 From *TMD: Tech Debt & Entering 2025*:
 
@@ -31,14 +31,15 @@ The medium is orthogonal to the form. Draft wherever the review actually happens
 document to move: an RFC that settles can get trimmed into a numbered ADR beside the code.
 Same content, same voice, new vessel. Only the ADR has a location as part of its definition.
 
-Titles: `RFC - NN - Title`, `TDD - Title`, `TMD: Title`, `ADR-NN-kebab-title`.
+Titles: `RFC - NN - Title`, `TDD - Title`, `TMD: Title`, `ADR-NN <Title>`. An ADR's filename
+is `ADR-NN-kebab-title.md`.
 
 ## 2. Skeletons
 
 Sections are load-bearing. **Delete any section that would be empty.** A section that exists
 because the template had it is the clearest LLM tell in a design doc.
 
-`n=` below is how many corpus documents actually show the pattern. Treat low counts as
+`n=` in these skeletons is how many corpus documents actually show the pattern. Treat low counts as
 "available technique", not "required section".
 
 ### 2.1 RFC / TDD
@@ -121,16 +122,31 @@ Two live variants:
 - **Reference record**: a schema or layout dump (`ADR-01-FDB-Schema.md`): prose foreword, then
   one section per entity, then tables. Very low prose density, which is correct here.
 
+The Decision section opens with the deliverables (tables, programs, components), one per line,
+each with the component it runs in:
+
+- a new DB table to hold sampled data
+- an offline program to backfill it
+- a sampler in the worker process
+- a map builder in the API process
+
+Properties, rules, and invariants follow that list.
+
+An ADR records behaviour and invariants, not implementation rationale. Paste the DDL or
+interface, keep the numbers and the invariants, and leave column-type justifications, recovery
+commands, metric breakdowns, and future-work mechanics to the PR that implements them.
+
 ## 3. Voice
 
 1. **`we` for the team and the system. `I` only for judgment**: "I propose", "I think we
    should", "I myself don't follow ADRs all the time". Never `I` for a system's behaviour.
 2. **Asides go in parentheses or after a colon, never between dashes.** This is the single
    highest-signal difference from LLM prose. See §4.
-3. **Contractions yes.** Precise, not stiff.
+3. **Use contractions.** They keep precise prose from reading stiff.
 4. **Questions as headings.** 116 across the corpus: *What is the query router? · How does the
    worker pool work? · How do workers process jobs from queues? · Why this database and not X*.
-   The title is the question the reader already has.
+   The title is the question the reader already has. A section that describes one component
+   may use a noun heading instead (*Online sampling*).
 5. **ALLCAPS for the one word carrying the emphasis**, sparingly: *"a high level overview of HOW
    and WHY we fast tracked the query engine"*, *"this is NOT a goal"*. In requirement-style docs
    this becomes `MUST` / `SHOULD` throughout. Rate is 0-3 per document outside those, so it
@@ -151,9 +167,23 @@ Two live variants:
 11. **End pointing forward**: Next Steps, Milestones, Open Questions, Status. Exactly one
     document in the corpus has a concluding-summary heading and it is meeting minutes. Design
     docs don't restate themselves.
+12. **Define the artifact in plain words before describing it.** *"a lookup table of estimated
+    read size per table, shipped as an embedded file built offline"*, then its properties. Don't
+    assume the reader knows what "the TSV" or "the map" is.
+13. **State what the evidence supports.** *"This aligns with the hypothesis that
+    the reference data is growing stale. It doesn't prove that it is the only cause."* Label an
+    unproven benefit in plain words: *"Conceptually, this should improve X, but this is not
+    proven; that work hasn't been done yet."*
+14. **A plain restatement may follow a formal claim**: *"In essence, we're automating the loop
+    of building this table. We're not changing the algorithm."* At most once per section.
+15. **Don't pin values that will change.** Name the parameter or constant (*max K GiB*,
+    `MaxSampleCount`) and give the current value only where it decides something.
+16. **Invariants use "must"**: *"must be done on the sampler goroutine, not on the hot path"*,
+    *"must be skipped, not truncated"*.
+17. **The domain word over the generic one**: *admission rate* over *offload*, *samples* over
+    *telemetry*, *DBs* over *DSNs*.
 
-Rates from the hand-written corpus (descriptive, not quotas): parentheses 13.3/1k words,
-mid-sentence colon 9.1/1k, semicolon 1.6/1k, `we` 18.8/1k, `I` 4.4/1k, contractions 3.5/1k,
+Rates from the hand-written corpus (descriptive, not quotas): `we` 18.8/1k words, `I` 4.4/1k,
 em-dash 0.
 
 Bullets run 22-74% of lines with no clean split. Don't target a ratio: paragraphs for causal
@@ -165,27 +195,57 @@ non-trivial · KISS · over-engineer · steelman · capricious (of a schema) · 
 
 ## 4. Slop: what to strip
 
-**The em-dash is the top tell.** Miguel does not type `—`. Of 36 exported Google Docs, 33 have
-zero; the exceptions are two known AI-assisted docs and one pasted reviewer comment by someone
-else. Every hand-written repo ADR has zero. When de-slopping, convert every em-dash into a
-parenthesis or a colon first: that alone does most of the work.
+The plastic feel of an LLM draft comes from rhythm: a handful of sentence shapes repeated until
+every paragraph sounds the same. Swapping punctuation leaves those shapes in place, so look for
+the patterns first:
 
-Then, in order of signal:
+1. **"X, not Y" in every paragraph.** State what the thing does, and add the contrast only where
+   a reader would plausibly confuse the two.
+2. **Punchy closing lines**: a short sentence that restates the paragraph as an aphorism
+   (*"The looseness is the point."*). The paragraph already made the point, so delete it.
+3. **Fragment, then explanation** (*"Contractions yes. Precise, not stiff."*). Write the whole
+   sentence.
+4. **The colon reveal**: setup, colon, payoff, used for drama rather than to introduce a list or
+   a definition.
+5. **Rule-of-three flourishes** (*"Same content, same voice, new vessel."*). Keep a triplet only
+   when there are exactly three things.
+6. **Uniform shape**: paragraphs of equal length that each end on a summarising sentence,
+   bullets of equal length with a bolded lead-in, runs of short sentences of the same length.
+   Let the content set the length.
+
+This list comes from general knowledge of LLM prose and from auditing this file against itself.
+It has not been measured against the corpus.
+
+**The em-dash is the most reliable detector**, but removing it doesn't fix the prose. Miguel
+does not type `—`. Of 36 exported Google Docs, 33 have zero; the exceptions are two known
+AI-assisted docs and one pasted reviewer comment by someone else. Every hand-written repo ADR
+has zero. A colon in place of an em-dash keeps the same beat, so rewrite the sentence instead.
+
+Structural slop, in order of signal:
 1. **Empty template sections**: a Non-Goals that says nothing, generic Risks, an Appendix with
    one link.
 2. **A `Decision:` / `Rationale:` pair after every trivial choice.** Reserve for real forks.
-3. **Uniform bullet rhythm**: every bullet the same length with a bolded lead-in.
-4. **Verdict-first on every document.** A TL;DR is fine when there is one decision; most corpus
+3. **Verdict-first on every document.** A TL;DR is fine when there is one decision; most corpus
    docs open on the forcing function and build to the proposal.
-5. **Section titles that say nothing**: Overview, Details, Summary, Conclusion.
-6. **`I` used for anything but a judgment.**
+4. **Section titles that say nothing**: Overview, Details, Summary, Conclusion.
+5. **`I` used for anything but a judgment.**
+6. **Defensive over-specification**, typical of agent drafts: a caveat on every edge case,
+   metric breakdowns, recovery steps, out-of-scope lists. Keep the invariant; cut its
+   justification.
+7. **Hedging without the claim** (*"It isn't conservative everywhere"*) when the author would
+   say what it does do.
+
+When shortening, cut in this order: future-work notes, hypothetical recovery procedures,
+implementation rationale, out-of-scope lists, then caveats repeated across sections. Never cut
+numbers, DDL/IDL, invariants, or measurement conditions. Prefer a smaller interface to more
+prose explaining a bigger one (one flag instead of two modes).
 
 Verified absent from the corpus, so safe to ban: `delve` · `game-changing` · `it's important to
 note` · `in today's fast-paced` · `let's dive in` · "not just X, but Y" as a rhythm device ·
 rule-of-three flourishes · hype adjectives on your own design · praise of the reader or the idea.
 
 Verified *present*, so do not ban: `leverage` (15), `robust` (11), `unlock` (8), `journey` (3),
-`seamless` (2). Ordinary technical words. Use them when they are the precise word.
+`seamless` (2). These are ordinary technical words; use them when they are the precise word.
 
 ## 5. Conventions borrowed from RFC 7322 (IETF RFC Style Guide)
 
@@ -215,14 +275,15 @@ Most of RFC 7322 is boilerplate, page layout, and IANA process. Six conventions 
    method.
 
 Also worth stealing, and directed at whoever edits rather than whoever writes: RFC 7322's
-**prime directive is that editing must not change the intended meaning.** When an unclear
+prime directive is that editing must not change the intended meaning. When an unclear
 passage can't be fixed without risking the technical meaning, flag it for the author instead of
 rewriting it. That applies directly to an agent co-editing these docs: fix clarity, consistency,
 and structure freely; surface anything that would alter a technical claim.
 
 ## 6. Sentence-level discipline (adapted from ASD-STE100)
 
-The full adaptation is the `simplified-technical-english` skill; load it when a document needs a
+The full adaptation of Simplified Technical English (STE) is the `simplified-technical-english`
+skill; load it when a document needs a
 line-by-line pass. What is worth carrying by default:
 
 1. **Separate instructions from description, and treat them differently.** Every doc in the
@@ -237,7 +298,7 @@ line-by-line pass. What is worth carrying by default:
    see. Keep passive only when the actor is genuinely unknown or irrelevant.
 3. **Break noun stacks longer than three words.** "tenant sync failure alerting policy" becomes
    "the policy for alerts on failed tenant syncs". Exception: an official identifier, which you
-   give in full once and then shorten (see §5.1).
+   give in full once and then shorten (see §5, item 1).
 4. **An action is a verb, not a noun.** "the worker validates the block" over "block validation
    is performed by the worker".
 5. **Vertical lists: the lead-in ends in a colon, every item completes it, and instructions are
@@ -245,8 +306,8 @@ line-by-line pass. What is worth carrying by default:
 6. **When a word swap breaks the sentence, rewrite the sentence.** Aimed at an agent editing
    these docs: mechanical synonym substitution is how meaning drifts.
 
-**Deliberately rejected**, measured against the hand-written corpus: STE bans semicolons (corpus:
-158, 1.9/1k) and contractions (695, 8.3/1k), restricts tense and auxiliary verbs that design docs
+Deliberately rejected, measured against the hand-written corpus: STE bans semicolons and
+contractions (the corpus uses both freely), restricts tense and auxiliary verbs that design docs
 need for modality and ordering, and caps sentences at 20/25 words with paragraphs at six
 sentences. Ignore those here. STE's controlled dictionary and its warning/caution taxonomy do not
 apply to this domain at all.
@@ -269,16 +330,17 @@ apply to this domain at all.
 14. Are instructions separated from description, one action per step, with nothing required
     buried in a note?
 15. Is the actor named where ownership matters, rather than hidden in passive voice?
-16. Zero em-dashes?
+16. Does the rhythm vary, or do the patterns in §4 repeat paragraph after paragraph?
+17. Zero em-dashes?
 
 ## Appendix: corpus and method
 
 Derived from 28 hand-written design documents (2022-2026, 68k words) plus 11 in-repo ADRs.
 The private source corpus is not required at runtime.
 
-**AI-assisted documents were excluded from all voice measurement**, using em-dash presence as
+AI-assisted documents were excluded from all voice measurement, using em-dash presence as
 the detector (verified: the split is clean, 0 vs 7-93 occurrences per doc). Those documents
-remain useful as **structure** references. They are not voice samples.
+remain useful as structure references. They are not voice samples.
 
 The Docs corpus also contains meeting minutes, weekly notes, roadmaps and some co-authored
 docs; those are excluded from the voice numbers but informed the taxonomy. When learning from

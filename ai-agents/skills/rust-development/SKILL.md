@@ -13,6 +13,11 @@ Decide whether the crate is `binary`, `library`, or `workspace` before proposing
 - Library: `src/lib.rs` with a public API; no `main`, no global state, errors are types not strings.
 - Workspace: root `Cargo.toml` with `[workspace]`; lints live in `[workspace.lints]` and every member has `[lints] workspace = true`.
 
+Then decide whether each crate is a `service` or a `library`:
+
+- Service indicators: a `main.rs` composition root that serves requests or runs workers; `api/`, `service`, `store` and `model` modules; `migrations/`; `compose.yaml`. Apply the Layer contract and Service shape below.
+- Library indicators: no runtime entrypoint; reusable domain types and pure logic. Apply the Library shape below.
+
 ## Power of 10 in Rust
 
 How the `coding` skill's adapted rules land in Rust. Each has a lint in the baseline below; the text here is what the lint can't see.
@@ -35,6 +40,56 @@ How the `coding` skill's adapted rules land in Rust. Each has a lint in the base
 - Prefer borrowing (`&str`, `&[T]`, `impl AsRef<Path>`) in signatures; `clone()` in a hot path needs a comment or a profile.
 - `async`: no blocking calls in async fns (`std::fs`, `std::thread::sleep`, `Mutex` held across `.await`). Spawned tasks are tracked (`JoinSet`) and cancelled on shutdown.
 - Constructors with more than 5 parameters take a config struct or a builder. `too_many_arguments` enforces the 5.
+- Keep business rules in `service`, not in axum/tonic handlers.
+- Keep storage details in `store` (sqlx, object-store, redis adapters). It is the only module that runs queries.
+- Keep transport (`api/`) focused on routing, extraction, request-shape validation, and protocol error mapping.
+- Use `model` for domain entities and value types shared by the layers.
+- In `main.rs`, parse config, wire dependencies explicitly, and own graceful shutdown.
+
+## Layer contract
+
+```
+api -> service -> store  (one direction; model is used by all three)
+```
+
+- `api` never calls `store`. `service` never sees transport types (`StatusCode`, extractors, `Json`, tonic `Status`).
+- `store` returns `model` types or its own error; it decides no business rule.
+- Each layer has its own error enum and the layer above maps it: `StoreError -> ServiceError -> response`. Protocol error codes (HTTP status, OAuth `error`, gRPC code) exist only in `api`.
+- **Middleware is transport.** Tower layers handle auth, limits, timeouts, tracing and request decoration. Business logic that needs external calls belongs in `service`; if a layer needs computed data, the service resolves it.
+- `store` is a concrete type or free functions unless there is a second implementation or a test double (see the traits rule). No `Repository` trait for its own sake.
+- A service operation that only forwards to `store` is fine: it names the operation and maps store errors to domain errors. A second pass-through layer is not.
+- Request and response structs that exist only for the wire (`TokenRequest`, `{"grants": [...]}` envelopes) live in `api`, not `model`.
+
+## Service shape (when applicable)
+
+```text
+src/
+  main.rs            # CLI/config, wiring, signals, graceful shutdown
+  lib.rs             # module map; exports routers and the service constructor for tests/main
+  model.rs           # or model/: domain entities and value types
+  service.rs         # or service/<domain>.rs: business operations
+  store.rs           # or store/<backend>.rs: postgres/s3/redis adapters
+  api/
+    mod.rs           # shared transport helpers (body limits, health)
+    <surface>.rs     # one file per listener or audience (public, internal, grpc)
+migrations/
+tests/               # behavior tests at the router or service boundary
+compose.yaml
+Makefile
+```
+
+In a workspace, domain logic used by more than one binary goes in its own library crate (`crates/<domain>`) with the Library shape.
+
+## Library shape (when applicable)
+
+```text
+src/
+  lib.rs             # module map and re-exports only; no logic
+  model/             # entities and value types, one file per concept
+  <operation>.rs     # pure logic over the model (policy, planning, encoding)
+```
+
+No I/O, no storage, no transport in a library that holds domain logic; the services that use it own those.
 
 ## Static analysis (mandatory)
 

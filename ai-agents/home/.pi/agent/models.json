@@ -1,5 +1,13 @@
 {
   "providers": {
+    "pi-claude-code-provider": {
+      "modelOverrides": {
+        "opus": { "name": "Claude Code Opus 5.5" },
+        "sonnet": { "name": "Claude Code Sonnet 5" },
+        "fable": { "name": "Claude Code Fable 5.1" },
+        "haiku": { "name": "Claude Code Haiku 4.5" }
+      }
+    },
     "openai-codex": {
       "modelOverrides": {
         "gpt-5.6-sol":   { "contextWindow": 258400 },

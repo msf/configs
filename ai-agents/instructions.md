@@ -103,5 +103,6 @@ These rules apply when another agent delegates a task to you.
 # Lessons (self-improvement)
 
 - `~/.pi/agent/lessons.md` is an append-only journal. It is NOT loaded at session start.
-- After a correction or when you realize you did a notable mistake: read it first, then append a terse `[YYYY-MM-DD]` entry — if the mistake repeats an existing principle, add to the Compliance Log instead of a new Raw entry. Don't compact/generalize automatically.
+- After a correction or notable mistake, append a terse entry with `>>`; no prerequisite reads or edits. Prefix repeated violations with `Compliance:`.
+- Sign every entry with the actual model name, using runtime metadata when available: `- [YYYY-MM-DD] [model: <model name>] ...`. Use the model name, not the agent role.
 - Review deliberately via the `reflect` or `weekly-review` skills (`/skill:<name>` in Pi): that's when Raw distills into these principles or the relevant skill, and stale entries get pruned.

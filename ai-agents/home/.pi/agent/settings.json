@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.99.1",
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-6-astra",
+  "defaultModel": "gpt-6.1-sol",
   "hideThinkingBlock": false,
   "defaultThinkingLevel": "xhigh",
   "compaction": {
@@ -10,13 +10,12 @@
     "keepRecentTokens": 20000
   },
   "enabledModels": [
-    "anthropic/claude-fable-5-1",
-    "anthropic/claude-opus-5",
-    "anthropic/claude-sonnet-5",
-    "local/qwen36-moe",
-    "openai-codex/gpt-5.6-sol",
-    "openai-codex/gpt-5.6-terra",
-    "openai-codex/gpt-6-astra"
+    "openai-codex/gpt-6-astra",
+    "pi-claude-code-provider/opus",
+    "openai-codex/gpt-6.1-sol",
+    "pi-claude-code-provider/sonnet",
+    "pi-claude-code-provider/haiku",
+    "local/qwen36-moe"
   ],
   "steeringMode": "all",
   "followUpMode": "all",
@@ -33,10 +32,13 @@
     {
       "source": "npm:@narumitw/pi-goal@0.54.4",
       "extensions": []
-    }
+    },
+    "npm:pi-claude-code-provider@0.5.0"
   ],
   "modelThinkingLevels": {
     "anthropic/claude-fable-5-1": "high",
+    "pi-claude-code-provider/sonnet": "low",
+    "pi-claude-code-provider/opus": "low",
     "openai-codex/gpt-5.6-sol": "xhigh",
     "openai-codex/gpt-6-astra": "high"
   }
