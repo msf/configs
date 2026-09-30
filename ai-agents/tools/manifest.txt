@@ -30,7 +30,6 @@ skill   aws-pricing
 skill   code-review
 skill   coding
 skill   go-development
-skill   google-drive
 skill   google-slides
 skill   k8s-debug
 skill   log-investigator
@@ -53,14 +52,12 @@ pskill  dune-brand
 pskill  dune-explore
 pskill  trino-heapdump
 
-# ── Pi-only skills: they call Pi extensions (mcp-bridge, browser-read, subagent).
-repo    .pi/agent/skills/slack-mcp        ai-agents/skills/slack-mcp
+# ── Pi-only skills: native MCP/codemode or custom extension integrations.
 repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval
 repo    .pi/agent/skills/web-tool-routing ai-agents/skills/web-tool-routing
 prepo   .pi/agent/skills/grafana-metrics  skills/grafana-metrics
 prepo   .pi/agent/skills/linear-issues    skills/linear-issues
 prepo   .pi/agent/skills/linear-update    skills/linear-update
-prepo   .pi/agent/skills/trino-bench      skills/trino-bench
 
 # ── Claude Code settings. Machine state (credentials, sessions, transcripts,
 # settings.local.json permission grants) stays untracked.
@@ -77,8 +74,6 @@ mirror  .pi/agent/models.json
 # ── Pi extensions
 repo    .pi/agent/extensions/context-meter.ts    ai-agents/tools/extensions/context-meter.ts
 repo    .pi/agent/extensions/browser-read        ai-agents/tools/extensions/browser-read
-repo    .pi/agent/extensions/mcp-bridge          ai-agents/tools/extensions/mcp-bridge
-prepo   .pi/agent/extensions/mcp-bridge/servers.json    tools/extensions/mcp-bridge/servers.json
 repo    .pi/agent/extensions/subagent            ai-agents/tools/extensions/subagent
 
 # ── Pi prompt templates
@@ -115,8 +110,11 @@ home    .pi/agent-lean/agents                 .pi/agent/agents
 home    .pi/agent-lean/bin                    .pi/agent/bin
 home    .pi/agent-lean/browser-read           .pi/agent/browser-read
 home    .pi/agent-lean/extensions/browser-read .pi/agent/extensions/browser-read
-home    .pi/agent-lean/extensions/mcp-bridge   .pi/agent/extensions/mcp-bridge
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent
 repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disable-spinner.ts
 mirror  .claude/statusline.sh
 mirror  .claude/mcp/linear.json
+pmirror .pi/agent/mcp.json
+repo    .pi/agent/extensions/mcp-write-approval.ts  ai-agents/tools/extensions/mcp-write-approval.ts
+home    .pi/agent-lean/mcp.json                  .pi/agent/mcp.json
+home    .pi/agent-lean/extensions/mcp-write-approval.ts .pi/agent/extensions/mcp-write-approval.ts

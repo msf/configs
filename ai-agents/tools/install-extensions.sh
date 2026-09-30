@@ -13,7 +13,6 @@ set -euo pipefail
 
 EXTS=(
 	"$TOOLS_DIR/extensions/browser-read"
-	"$TOOLS_DIR/extensions/mcp-bridge"
 )
 
 fail=0

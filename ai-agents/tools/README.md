@@ -17,6 +17,7 @@ Global instructions live in `instructions.md`, projected to each harness's conve
 ai-agents/
 ├── instructions.md            canonical global instructions
 ├── skills/                    skills shared by all harnesses, plus the Pi-only ones
+├── skills-frozen/             unloaded references, outside skill discovery
 ├── agents/
 │   ├── pi/                    Pi agent format
 │   ├── claude/                Claude Code agent format
@@ -37,11 +38,30 @@ The private repository mirrors the same ownership model: shared skills at `skill
 ## Resource entrypoints
 
 - Pi prompt templates: `/implement`, `/implement-and-review`, `/scout-and-plan`. Pi-lean lists those three files explicitly; it does not import command directories or inherit future main-profile prompts. For review, shipping, and reflection, use `/skill:code-review`, `/skill:send-pr`, `/skill:reflect`, and `/skill:weekly-review`; no duplicate command templates.
-- Skills: a `skill <name>` (public) or `pskill <name>` (private) manifest entry links one source into `~/.agents/skills/` and `~/.claude/skills/`. Pi and Codex both read `~/.agents/skills/`, so a shared skill must not also appear under `~/.pi/agent/skills/`, where Pi would load it twice. Skills there are Pi-only: they call Pi extensions (`mcp-bridge`, `browser-read`, `subagent`). Shared is the default; `track.sh` writes a `skill`/`pskill` entry for any skills-root path.
+- Skills: a `skill <name>` (public) or `pskill <name>` (private) manifest entry links one source into `~/.agents/skills/` and `~/.claude/skills/`. Pi and Codex both read `~/.agents/skills/`, so a shared skill must not also appear under `~/.pi/agent/skills/`, where Pi would load it twice. Skills there are Pi-only: they use native MCP/codemode or custom extensions (`browser-read`, `subagent`). Shared is the default; `track.sh` writes a `skill`/`pskill` entry for any skills-root path.
 - Claude Code: besides the shared skills, the manifest projects the `code-reviewer` and `skill-applier` subagents into `~/.claude/agents`, the canonical instructions as `~/.claude/CLAUDE.md`, and `settings.json` from the `home/` mirror.
-- Workspace services: `notion` owns `ntn`; `slack-mcp` owns Slack MCP; `workspace-apps` owns `gog` and routes to those dedicated skills. The legacy workspace wrappers and standalone Slack MCP client are retired.
-- `browser-read`, `mcp-bridge`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
+- Workspace services: `notion` owns `ntn`; `workspace-apps` owns `gog`. Slack is frozen: its server is disabled and its skill is archived outside discovery under `skills-frozen/slack-mcp`. The legacy workspace wrappers, standalone Slack MCP client, and `trino-bench` skill are retired.
+- Native MCP/codemode, `browser-read`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
 - dune-sietch also writes into `~/.claude/{skills,agents,commands}`, so Claude entries are per-resource, never directory-level: a directory projection would pull Sietch's links into this repository. `code-review`, `k8s-debug`, `log-investigator`, `skill-creator`, `dune-explore` and `code-reviewer` are names both sides ship; the manifest wins them deliberately. `dune-sietch check` only tests that a link exists, so it stays quiet; `dune-sietch update` re-claims them and leaves `<name>.pre-dune-sietch` behind, which `apply.sh --verify` now fails on until it is deleted.
+
+## Native MCP (Pi 0.99+)
+
+Pi's built-in MCP replaces the retired `mcp-bridge`. The private `home/.pi/agent/mcp.json` is projected to main and lean; it contains endpoints and secret-file commands, not tokens. Enabled servers connect at startup. Grafana prod and Linear are enabled; Grafana dev is opt-in and Slack stays frozen. Exposure defaults to `hidden`, with exact named tools exposed through codemode; resources and unreviewed tools stay unreachable.
+
+Pi activates codemode automatically when these tools connect. Ordinary tools stay available; neither profile uses codemode-only mode. Discover MCP schemas with codemode's `searchTools()` / `describeTool()`. Native results are `CallToolResult`, including `structuredContent` and `isError`, not flattened strings.
+
+Use `/mcp` for status, reconnect, and explicit enabling. Changes to the shared server configuration persist for both profiles. `mcp-write-approval.ts` requires interactive confirmation for Linear operations other than known reads, including nested codemode calls. Non-interactive Linear mutations are blocked; annotations do not bypass this gate. This protects MCP calls, not arbitrary shell commands.
+
+OAuth state is machine-local and profile-specific: `<agent-dir>/mcp-auth.json`. On cutover, archive the bridge-format store outside resource discovery with mode `0600`; do not reuse its incompatible entries. Sign in separately for each profile:
+
+```zsh
+pi mcp login linear
+PI_CODING_AGENT_DIR="$HOME/.pi/agent-lean" pi mcp login linear
+```
+
+Slack retains its registered client ID and exact localhost callback, but requires explicit unfreeze approval and a fresh login before use. Restart existing sessions after cutover; old bridge tool names are not supported.
+
+Run the offline integration tests with `PRIVATE_DIR=<private-repo> node --test tools/mcp.test.mjs` from `ai-agents/`. Tests locate the installed npm Pi package; set `PI_PACKAGE_DIR` explicitly for another layout. They launch only a synthetic local MCP server and make no model requests.
 
 ## Optional Pi packages
 

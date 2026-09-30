@@ -1,12 +1,12 @@
 ---
 name: workspace-apps
-description: Route workspace tasks to the Notion and Slack skills; use gog for Google Drive, Docs, Sheets, Gmail, and Calendar. Load for Google Workspace tasks or requests spanning multiple workspace services.
+description: Route Notion tasks to its dedicated skill; use gog for Google Drive, Docs, Sheets, Gmail, and Calendar. Load for Google Workspace tasks or requests spanning multiple workspace services. Slack integration is frozen.
 ---
 
 # Workspace Apps
 
 - For Notion, read [notion](../notion/SKILL.md). It owns `ntn` authentication and operations.
-- For Slack, read [slack-mcp](../slack-mcp/SKILL.md). It owns Slack MCP loading, authentication, and operations.
+- Slack integration is frozen. Do not search or read Slack, or enable an integration, unless the user explicitly asks to unfreeze it.
 - For Google Workspace, use `gog` as described below.
 
 ## Security

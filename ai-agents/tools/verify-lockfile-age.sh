@@ -7,7 +7,7 @@
 # community + npm itself time to flag/yank.
 #
 # Usage:
-#   tools/verify-lockfile-age.sh                       # check both pi extensions
+#   tools/verify-lockfile-age.sh                       # check custom extension deps
 #   tools/verify-lockfile-age.sh <lockfile.json>       # check a specific lockfile
 #   MIN_AGE_DAYS=14 tools/verify-lockfile-age.sh       # override threshold (default: 7)
 #
@@ -24,7 +24,6 @@ if [ $# -gt 0 ]; then
 else
 	LOCKS=(
 		"$TOOLS_DIR/extensions/browser-read/package-lock.json"
-		"$TOOLS_DIR/extensions/mcp-bridge/package-lock.json"
 	)
 fi
 

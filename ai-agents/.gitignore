@@ -4,6 +4,3 @@ __pycache__/
 *.pyc
 *.bak.*
 .DS_Store
-
-# Private overlays created by tools/apply.sh. Names are public; contents are not.
-tools/extensions/mcp-bridge/servers.json

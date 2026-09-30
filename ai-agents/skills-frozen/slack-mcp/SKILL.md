@@ -1,21 +1,24 @@
 ---
 name: slack-mcp
-description: Use official Slack MCP from Pi for Slack workspace search/read tasks. Load when the user asks about Slack channels, threads, messages, DMs, canvases, users, or workspace activity.
+description: Frozen Slack MCP reference. Invoke explicitly only to inspect the retired workflow.
 ---
 
 # Slack MCP
 
-Use the official Slack MCP as the primary Slack path.
+**Frozen.** The native `slack` server is disabled. Do not load, authenticate, or query Slack unless the user explicitly asks to unfreeze it. The instructions below are historical, not active routing.
 
 ## Load and authenticate
 
 - MCP endpoint: `https://mcp.slack.com/mcp`.
-- Pi MCP bridge server: `slack`.
-- If `slack__*` tools are not visible, run `/mcp-load slack`.
-- If loading or authentication fails, report the bridge error and stop. Do not read another harness's credential cache or hand-roll authenticated requests.
+- Native Pi MCP server: `slack`, disabled in `~/.pi/agent/mcp.json`.
+- Only after explicit unfreeze approval: use `/mcp` to enable the server, then `/mcp login slack` if needed. Enabling persists across sessions and both Pi profiles.
+- Find `mcp__slack__*` tools through codemode discovery, not direct tool visibility.
+- If loading or authentication fails, report the native MCP error and stop. Do not read another harness's credential cache or hand-roll authenticated requests.
 - Never print, paste, copy, or summarize OAuth tokens.
 
-## Tools
+## Historical tool names
+
+Native Pi prefixes each name below with `mcp__`.
 
 - `slack__slack_search_channels`: find channel IDs.
 - `slack__slack_search_public_and_private`: search authorized public/private channels, DMs, and MPIMs.
