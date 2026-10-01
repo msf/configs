@@ -4,7 +4,7 @@ local telescope = require("telescope.builtin")
 
 -- Install LSP servers automatically through Mason
 require("mason").setup()
-require("mason-lspconfig").setup()
+require("mason-lspconfig").setup({ automatic_enable = false })
 
 
 lsp_zero.on_attach(function(_, bufnr)
@@ -170,6 +170,8 @@ vim.lsp.config("efm", {
         languages = minimal_languages,
     },
 })
+
+vim.lsp.enable({ "gopls", "golangci_lint_ls", "rust_analyzer" })
 
 -- Customize keymaps
 local cmp = require("cmp")
