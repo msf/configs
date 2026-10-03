@@ -5,6 +5,7 @@
     ./packages.nix
     ./homebrew.nix
     ./defaults.nix
+    ./wiki-sync.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";

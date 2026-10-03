@@ -71,3 +71,15 @@ After step 3, add `~/.ssh/id_ed25519.pub` to GitHub if it is not there, then:
 ```bash
 git -C ~/configs remote set-url origin git@github.com:msf/configs.git
 ```
+
+## 8. Wiki sync key (Hopper)
+
+`darwin/wiki-sync.nix` runs the sync hourly as a launchd agent. Its SSH key is
+machine state. Create it once and authorize it on Hopper with the same forced
+command as fw13's `wiki-sync@laptop` key:
+
+```bash
+ssh-keygen -q -t ed25519 -N '' -C wiki-sync@liskov -f ~/.local/state/wiki-sync/id_ed25519
+ssh 192.168.1.15 "echo 'restrict,command=\"/home/miguel/.local/lib/wiki-sync/unison-server -server\" $(cat ~/.local/state/wiki-sync/id_ed25519.pub)' >> ~/.ssh/authorized_keys"
+wiki-sync run --resolve && wiki-sync status
+```
