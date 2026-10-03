@@ -74,7 +74,7 @@ git -C ~/configs remote set-url origin git@github.com:msf/configs.git
 
 ## 8. Wiki sync key (Hopper)
 
-`darwin/wiki-sync.nix` runs the sync hourly as a launchd agent. Its SSH key is
+`darwin/wiki-sync.nix` runs the sync every 2 hours as a launchd agent. Its SSH key is
 machine state. Create it once and authorize it on Hopper with the same forced
 command as fw13's `wiki-sync@laptop` key:
 

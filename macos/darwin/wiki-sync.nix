@@ -35,7 +35,7 @@ in
     ProgramArguments = [ "${wikiSync}/bin/wiki-sync" "run" "--resolve" ];
     # git merge-file (Xcode CLT) and node for pi.
     EnvironmentVariables.PATH = "/run/current-system/sw/bin:/usr/bin:/bin";
-    StartInterval = 3600;
+    StartInterval = 7200;
     RunAtLoad = true;
     Nice = 10;
     LowPriorityIO = true;
