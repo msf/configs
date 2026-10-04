@@ -7,7 +7,6 @@ import { dirname, join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
-import approvalExtension from "./extensions/mcp-write-approval.ts";
 
 const toolsDir = dirname(fileURLToPath(import.meta.url));
 function findPiPackage() {
@@ -22,30 +21,11 @@ const packageDir = findPiPackage();
 const sdk = await import(pathToFileURL(join(packageDir, "dist/index.js")));
 const { loadMcpConfig, getMcpToolExposure } = await import(pathToFileURL(join(packageDir, "dist/extensions/mcp/config.js")));
 
-function approvalHandler() {
-  let handler;
-  approvalExtension({ on: (event, callback) => { assert.equal(event, "tool_call"); handler = callback; } });
-  return handler;
-}
-
-test("Linear mutation approval is fail-closed and independent of annotations", async () => {
-  const handler = approvalHandler();
-  const event = (toolName) => ({ toolName, input: { title: "Synthetic test" }, parentToolCallId: "codemode-parent" });
-  const noUI = { hasUI: false };
-  assert.equal(await handler(event("mcp__linear__get_issue"), noUI), undefined);
-  assert.equal(await handler(event("mcp__grafana_prod__query_prometheus"), noUI), undefined);
-  for (const name of ["save_issue", "save_comment", "delete_comment", "save_milestone", "save_status_update", "delete_status_update", "unknown_operation"]) {
-    assert.equal((await handler(event(`mcp__linear__${name}`), noUI)).block, true);
+test("managed profiles have no extra Linear write approval extension", async () => {
+  assert.doesNotMatch(await readFile(join(toolsDir, "manifest.txt"), "utf8"), /mcp-write-approval/);
+  for (const profile of ["agent", "agent-lean"]) {
+    assert.equal(existsSync(join(homedir(), ".pi", profile, "extensions/mcp-write-approval.ts")), false);
   }
-  const denied = { hasUI: true, ui: { confirm: async () => false } };
-  assert.equal((await handler(event("mcp__linear__save_issue"), denied)).block, true);
-  const approved = { hasUI: true, ui: { confirm: async (title, body) => {
-    assert.match(title, /Linear mutation/);
-    assert.match(body, /Synthetic test/);
-    return true;
-  } } };
-  assert.equal(await handler(event("mcp__linear__save_issue"), approved), undefined);
-  await assert.rejects(handler(event("mcp__linear__save_issue"), { hasUI: true, ui: { confirm: async () => { throw new Error("UI failed"); } } }), /UI failed/);
 });
 
 test("private native configuration preserves allowlists and freezes unused integrations", async () => {
@@ -72,10 +52,6 @@ test("private native configuration preserves allowlists and freezes unused integ
   assert.match(configs.grafana_prod.env.GRAFANA_SERVICE_ACCOUNT_TOKEN, /^!cat /);
   assert.equal(configs.linear.oauth.callbackUrl, "http://localhost:8765/callback");
   assert.equal(configs.slack.oauth.callbackUrl, "http://localhost:3118/callback");
-  const handler = approvalHandler();
-  for (const name of Object.keys(configs.linear.toolExposure).filter(name => /^(save|delete)_/.test(name))) {
-    assert.equal((await handler({ toolName: `mcp__linear__${name}`, input: {} }, { hasUI: false })).block, true);
-  }
 });
 
 async function createFixture(cwd, tools) {
@@ -83,7 +59,6 @@ async function createFixture(cwd, tools) {
   const resourceLoader = new sdk.DefaultResourceLoader({
     cwd, agentDir: cwd, settingsManager,
     noExtensions: true, noSkills: true, noPromptTemplates: true, noThemes: true, noContextFiles: true,
-    additionalExtensionPaths: [join(toolsDir, "extensions/mcp-write-approval.ts")],
     extensionFactories: [sdk.createCodemodeExtension({ models: false }), sdk.createMcpExtension({
       logPath: join(cwd, "mcp.log"),
       loadConfig: () => ({ errors: [], servers: [{
@@ -119,7 +94,7 @@ async function executeCodemode(session, code) {
   return result.content.filter(block => block.type === "text").map(block => block.text).join("\n");
 }
 
-test("native MCP pagination, structured codemode results, hidden tools, and nested approval", { timeout: 15000 }, async () => {
+test("native MCP pagination, structured results, hidden tools, and writes without a second approval", { timeout: 15000 }, async () => {
   const cwd = await mkdtemp(join(tmpdir(), "pi-native-mcp-test-"));
   let session;
   try {
@@ -133,10 +108,14 @@ test("native MCP pagination, structured codemode results, hidden tools, and nest
     assert.match(output, /Script completed/);
     assert.match(output, /"answer":42/);
     assert.match(output, /"chars":22000/);
-    const blocked = await executeCodemode(session, "await tools.mcp__linear__save_issue({});");
-    assert.match(blocked, /Script failed/);
-    assert.match(blocked, /interactive approval/);
-    assert.equal(await readFile(join(cwd, "calls"), "utf8"), "get_issue\n");
+    session.sessionManager.appendMessage({ role: "user", content: "Save the synthetic test issue.", timestamp: Date.now() });
+    const saved = await executeCodemode(session, "const r = await tools.mcp__linear__save_issue({}); text({answer: r.structuredContent.answer});");
+    assert.match(saved, /Script completed/);
+    assert.match(saved, /"answer":42/);
+    assert.equal(await readFile(join(cwd, "calls"), "utf8"), "get_issue\nsave_issue\n");
+    const hidden = await executeCodemode(session, "await tools.mcp__linear__delete_all({});");
+    assert.match(hidden, /Script failed/);
+    assert.equal(await readFile(join(cwd, "calls"), "utf8"), "get_issue\nsave_issue\n");
   } finally {
     if (session) {
       await session.extensionRunner.emit({ type: "session_shutdown" });

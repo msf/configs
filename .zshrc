@@ -99,8 +99,8 @@ path=(
   /usr/local/sbin
   /sbin
   /usr/sbin
+  /opt/nvim/bin
   $path
-  /opt/nvim-linux-x86_64/bin
 )
 
 if (( $+commands[keychain] )); then
@@ -159,23 +159,10 @@ function dbsh {
   local secret user password
 
   if [[ "$svc" == "core" ]]; then
-    # core uses rotated blue/green credentials; the `_active` secret is a JSON
-    # blob whose `username` flips between core_v2_ref_blue / _green at each
-    # rotation. We bypass the in-cluster pgbouncer (host/port in the secret)
-    # and connect directly to the Tailscale RDS replica with the readonly db.
-    # See core/docs/db_password_rotation.md.
-    secret="${env}/core/db/users/core_v2_ref_active"
-    local json
-    json=$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text 2>/dev/null)
-    if [[ -z "$json" ]]; then
-      echo "error: could not retrieve secret '$secret'" >&2
-      return 1
-    fi
-    user=$(printf '%s' "$json" | jq -r .username)
-    password=$(printf '%s' "$json" | jq -r .password)
-    # dbname_readonly only routes correctly through the in-cluster pgbouncer;
-    # on the RDS replica the real db is `dbname` and the replica enforces RO.
-    [[ -z "$db" ]] && db=$(printf '%s' "$json" | jq -r .dbname)
+    # Engineer access uses the readonly credential, not rotated workload secrets.
+    secret="${env}_${svc}_db_readonly_user_secret"
+    user="readonly"
+    [[ -z "$db" ]] && db="$svc"
   else
     [[ -z "$db" ]] && db="$svc"
     # Prefer readonly secret, fall back to service-user secret
@@ -187,11 +174,15 @@ function dbsh {
       secret="${env}_${svc}_db_${svc}_user_password"
       user="$svc"
     fi
-    password=$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text 2>/dev/null)
-    if [[ -z "$password" ]]; then
-      echo "error: could not retrieve secret '$secret'" >&2
-      return 1
-    fi
+  fi
+
+  if ! password=$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text); then
+    echo "error: could not retrieve secret '$secret'" >&2
+    return 1
+  fi
+  if [[ -z "$password" ]]; then
+    echo "error: empty credential in '$secret'" >&2
+    return 1
   fi
 
   echo "→ host=${host}  user=${user}  db=${db}  secret=${secret}" >&2
@@ -261,3 +252,5 @@ if (( $+commands[pi] )); then
     fi
   }
 fi
+
+export PI_CLAUDE_CODE_PROVIDER_ACKNOWLEDGED_PLATFORM=linux/x64

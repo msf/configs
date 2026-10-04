@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.99.1",
+  "lastChangelogVersion": "1.0.0",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6.1-sol",
   "hideThinkingBlock": false,
@@ -11,10 +11,10 @@
   },
   "enabledModels": [
     "openai-codex/gpt-6-astra",
-    "pi-claude-code-provider/opus",
     "openai-codex/gpt-6.1-sol",
+    "openai-codex/gpt-5.6-terra",
+    "pi-claude-code-provider/opus",
     "pi-claude-code-provider/sonnet",
-    "pi-claude-code-provider/haiku",
     "local/qwen36-moe"
   ],
   "steeringMode": "all",
@@ -33,7 +33,8 @@
       "source": "npm:@narumitw/pi-goal@0.54.4",
       "extensions": []
     },
-    "npm:pi-claude-code-provider@0.5.0"
+    "npm:pi-claude-code-provider@0.5.0",
+    "npm:pi-claude-bridge"
   ],
   "modelThinkingLevels": {
     "anthropic/claude-fable-5-1": "high",

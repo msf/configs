@@ -50,7 +50,7 @@ Pi's built-in MCP replaces the retired `mcp-bridge`. The private `home/.pi/agent
 
 Pi activates codemode automatically when these tools connect. Ordinary tools stay available; neither profile uses codemode-only mode. Discover MCP schemas with codemode's `searchTools()` / `describeTool()`. Native results are `CallToolResult`, including `structuredContent` and `isError`, not flattened strings.
 
-Use `/mcp` for status, reconnect, and explicit enabling. Changes to the shared server configuration persist for both profiles. `mcp-write-approval.ts` requires interactive confirmation for Linear operations other than known reads, including nested codemode calls. Non-interactive Linear mutations are blocked; annotations do not bypass this gate. This protects MCP calls, not arbitrary shell commands.
+Use `/mcp` for status, reconnect, and explicit enabling. Changes to the shared server configuration persist for both profiles. Linear writes require an explicit user request or approval of the content, not a second per-tool permission dialog. Main and lean use Pi's native MCP pipeline without an extra Linear approval extension; the exact tool-exposure allowlists remain in force.
 
 OAuth state is machine-local and profile-specific: `<agent-dir>/mcp-auth.json`. On cutover, archive the bridge-format store outside resource discovery with mode `0600`; do not reuse its incompatible entries. Sign in separately for each profile:
 

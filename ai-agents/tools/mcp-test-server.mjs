@@ -6,7 +6,7 @@ const tool = (name) => ({
   name,
   description: `Synthetic ${name}`,
   inputSchema: { type: "object", properties: {} },
-  annotations: { readOnlyHint: true },
+  annotations: { readOnlyHint: name === "get_issue", destructiveHint: name === "delete_all" },
 });
 
 for await (const line of createInterface({ input: process.stdin })) {

@@ -115,6 +115,4 @@ repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disa
 mirror  .claude/statusline.sh
 mirror  .claude/mcp/linear.json
 pmirror .pi/agent/mcp.json
-repo    .pi/agent/extensions/mcp-write-approval.ts  ai-agents/tools/extensions/mcp-write-approval.ts
 home    .pi/agent-lean/mcp.json                  .pi/agent/mcp.json
-home    .pi/agent-lean/extensions/mcp-write-approval.ts .pi/agent/extensions/mcp-write-approval.ts

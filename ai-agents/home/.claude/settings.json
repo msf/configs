@@ -107,7 +107,7 @@
     "padding": 0
   },
   "enabledPlugins": {
-    "slack@claude-plugins-official": false
+    "slack@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
@@ -131,7 +131,7 @@
       "effortLevel": "high"
     },
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "xhigh"
     }
   },
   "timeFormat": "24-hour",
