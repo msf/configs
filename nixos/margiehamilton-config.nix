@@ -5,7 +5,7 @@
 { pkgs, options, ... }:
 
 {
-  imports = [ ./margiehamilton-hw-config.nix ./margiehamilton-shelly2vm.nix ];
+  imports = [ ./margiehamilton-hw-config.nix ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -333,19 +333,6 @@
         driver = "vfs"; # ponytail: use overlay storage if image churn makes vfs materially slow.
         runroot = "/run/containers/storage";
         graphroot = "/var/lib/containers/storage";
-      };
-    };
-    oci-containers = {
-      backend = "podman";
-      containers = {
-        kostal2influx = {
-          image = "ghcr.io/msf/kostal2influx:v0.9";
-          user = "nobody:nogroup";
-          extraOptions = ["--network=host"];
-          environment = {
-            VM_HOST = "hopper";
-          };
-        };
       };
     };
   };
