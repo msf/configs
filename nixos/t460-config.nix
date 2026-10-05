@@ -187,7 +187,9 @@ in
         kostal2influx = {
           image = "ghcr.io/msf/kostal2influx:v0.9";
           user = "nobody:nogroup";
-          extraOptions = ["--network=host"];
+          # Podman snapshots resolv.conf at container start, which at boot is
+          # before Tailscale's MagicDNS is up, so "hopper" never resolves.
+          extraOptions = [ "--network=host" "--add-host=hopper:100.119.216.56" ];
           environment = {
             VM_HOST = "hopper";
           };
