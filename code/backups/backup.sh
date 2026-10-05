@@ -1,4 +1,6 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-python3 backup-to-restic.py
+cd "$(dirname "$0")"
+source ~/.config/restic/env
+exec python3 backup-to-restic.py

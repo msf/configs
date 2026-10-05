@@ -14,6 +14,10 @@ for entry in config keys index snapshots data; do
   fi
 done
 
+# A damaged local repo would overwrite the good remote copy.
+source ~/.config/restic/env
+restic check --quiet
+
 progress=()
 if [[ -t 1 ]]; then
   progress=(--progress)

@@ -10,8 +10,14 @@ DIRPATHS = {
     "/media/simple/backups/BACKUPS/GooglePhotosBackup":["fotos","googlePhotos"],
     "/media/simple/backups/BACKUPS/icloud":["fotos","videos","icloud"],
     "/media/simple/backups/BACKUPS/GoogleDrive":["backups","google-drive","document"],
+    # Immich-uploaded originals; thumbs/ and encoded-video/ are regenerable.
+    "/media/simple/immich/library/library":["fotos","immich"],
+    "/media/simple/immich/library/upload":["fotos","immich","upload"],
+    "/media/simple/emails/maildir":["emails"],
 }
 BLACKLIST = {".zfs", "README.md"}
+# Maildir tmp/ holds messages mbsync is still writing.
+EXCLUDES = ["/media/simple/emails/maildir/**/tmp"]
 
 
 def main():
@@ -32,7 +38,7 @@ def run_backup(basedir_path, tags, dry_run):
     for dname, tag in dirs:
         cmdline = get_restic_cmdline(basedir_path, dname, tag, tags, dry_run)
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] Running: {' '.join(cmdline)}")
+        print(f"[{timestamp}] Running: {' '.join(cmdline)}", flush=True)
 
         if dry_run:
             continue
@@ -61,6 +67,8 @@ def get_restic_cmdline(path, dirname, dir_tag, tags, dry_run):
     dtags = list(tags) + [dir_tag]
     for tag in dtags:
         cmd.extend(["--tag", tag])
+    for pattern in EXCLUDES:
+        cmd.extend(["--exclude", pattern])
 
     cmd.append(str(path / dirname))
     return cmd

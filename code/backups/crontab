@@ -1,0 +1,4 @@
+# Install: crontab ~/configs/code/backups/crontab  (replaces miguel's crontab)
+# restic every ~2 weeks; R2 mirror monthly, a day after the 1st's backup.
+0 3 1,15 * * /home/miguel/configs/code/backups/backup.sh >>/home/miguel/.local/state/backups/backup.log 2>&1
+0 4 2 * *    /home/miguel/configs/code/backups/rclone-sync-to-s3.sh >>/home/miguel/.local/state/backups/r2-sync.log 2>&1
