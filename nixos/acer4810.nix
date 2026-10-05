@@ -55,11 +55,6 @@
   networking.extraHosts =
   ''
   100.119.216.56  grace-tail
-  100.67.77.31    margie-tail
-  100.77.156.119  kamala-tail
-  100.92.53.58    hopper-tail
-  100.93.239.53   curie-tail
-  100.94.188.127  lovelace-tail
   '';
 
   # Configure network proxy if necessary

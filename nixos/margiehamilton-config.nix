@@ -15,15 +15,6 @@
   time.timeZone = "UTC";
   networking.nameservers = [ "8.8.8.8" "1.1.1.1" ];
 
-  networking.extraHosts =
-  ''
-  100.119.216.56  hopper-tail
-  100.67.77.31    margie-tail
-  100.77.156.119  kamala-tail
-  100.93.239.53   curie-tail
-  100.94.188.127  lovelace-tail
-  '';
-
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
