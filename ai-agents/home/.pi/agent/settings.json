@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "1.0.0",
+  "lastChangelogVersion": "1.0.2",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6.1-sol",
   "hideThinkingBlock": false,
@@ -33,7 +33,6 @@
       "source": "npm:@narumitw/pi-goal@0.54.4",
       "extensions": []
     },
-    "npm:pi-claude-code-provider@0.5.0",
     "npm:pi-claude-bridge"
   ],
   "modelThinkingLevels": {

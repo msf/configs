@@ -50,6 +50,7 @@ pskill  datashare-add-table
 pskill  dbsh
 pskill  dune-brand
 pskill  dune-explore
+pskill  mail
 pskill  trino-heapdump
 
 # ── Pi-only skills: native MCP/codemode or custom extension integrations.
