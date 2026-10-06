@@ -72,7 +72,7 @@ Two Pi extensions; neither depends on another agent harness.
 
 The container runs a digest-pinned image with `--restart unless-stopped`, so it survives reboots. SearXNG scrapes other search engines, which change their pages and rate-limit; `web_search` lists the engines that didn't answer. To update, bump `IMAGE` in `searxng.sh` and run `searxng.sh start`: it recreates a container whose image or port differs.
 
-The evidence for both tools: `skills/web-tool-eval/baselines/2026-10-06-tournament.md`.
+How these tools evolved and what was tested: `skills/web-tool-eval/history.md`.
 
 ## Optional Pi packages
 

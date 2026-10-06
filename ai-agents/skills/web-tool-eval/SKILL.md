@@ -11,7 +11,7 @@ Measure user-visible retrieval behavior without turning the benchmark into a fra
 
 - `evals/eval.json` — small historical-task corpus.
 - `scripts/run_eval.py` — isolated Pi runner.
-- `baselines/` — compact reports; raw transcripts stay outside the repository. `2026-10-06-tournament.md` is the before/after study behind `web_read` and the `web_search` back-end comparison; its harness and test pages are not in this skill.
+- `history.md` — outline of how Pi's web tools evolved and what each test found. Full reports and raw transcripts stay outside the repository.
 
 Resolve these paths relative to this `SKILL.md`.
 
@@ -47,6 +47,6 @@ The runner executes cases serially because concurrent Pi processes share the per
 
 - Default raw output to `$XDG_STATE_HOME/pi/web-tool-evals/` (or `~/.local/state/pi/web-tool-evals/`) with user-only permissions.
 - Never commit raw page content, browser profiles, cookies, private URLs, or authenticated-page output.
-- Keep only the sanitized corpus and compact baseline reports in the repository.
+- Keep only the sanitized corpus and `history.md` in the repository; add one dated entry per test.
 - Graders inspect saved outputs without making new network requests. If grading is delegated, review their evidence before reporting results.
 - Private GitHub/authentication canaries are optional runtime cases supplied by the user; do not store their URLs in the public corpus.
