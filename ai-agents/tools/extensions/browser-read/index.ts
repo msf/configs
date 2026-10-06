@@ -1,63 +1,10 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import {
-  DEFAULT_MAX_BYTES,
-  DEFAULT_MAX_LINES,
-  formatSize,
-  truncateHead,
-} from "@mariozechner/pi-coding-agent";
+import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, formatSize, truncateHead } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
-import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
-import { spawnSync } from "node:child_process";
-import { join, resolve } from "node:path";
-import { classifyPageFailure } from "./page-classification.ts";
 import { BrowserSession, waitForLastWindow } from "./browser-session.ts";
+import { browserExecutable, profileDir, readUrl, type ReadResult } from "./reader.ts";
 
-const homeDir = process.env.HOME ?? ".";
-const browserRootDir = resolve(homeDir, ".pi/agent/browser-read");
-const browserProfileDir = join(browserRootDir, "profile");
-const browserArtifactRootDir = join(browserRootDir, "artifacts");
-
-let cachedBrowserExecutable: string | undefined;
-
-function resolveBrowserExecutable(): string {
-  if (cachedBrowserExecutable) return cachedBrowserExecutable;
-
-  const explicitCandidates = [
-    process.env.PI_BROWSER_EXECUTABLE,
-    process.env.BROWSER_READ_EXECUTABLE,
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    join(homeDir, "Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
-    "/Applications/Chromium.app/Contents/MacOS/Chromium",
-    join(homeDir, "Applications/Chromium.app/Contents/MacOS/Chromium"),
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/google-chrome",
-    "/snap/bin/chromium",
-    "/usr/bin/chromium-browser",
-    "/usr/bin/chromium",
-  ].filter((value): value is string => Boolean(value));
-
-  for (const candidate of explicitCandidates) {
-    if (existsSync(candidate)) {
-      cachedBrowserExecutable = candidate;
-      return candidate;
-    }
-  }
-
-  for (const command of ["google-chrome-stable", "google-chrome", "chromium-browser", "chromium"]) {
-    const result = spawnSync("bash", ["-lc", `command -v ${command}`], { encoding: "utf8" });
-    const resolvedPath = result.stdout.trim();
-    if (result.status === 0 && resolvedPath) {
-      cachedBrowserExecutable = resolvedPath;
-      return resolvedPath;
-    }
-  }
-
-  throw new Error(
-    "No supported Chrome/Chromium executable found. Set PI_BROWSER_EXECUTABLE to your browser path.",
-  );
-}
+const EXCERPT_CHARS = 400;
 
 function parseHttpUrl(value: string): URL {
   let parsed: URL;
@@ -66,226 +13,106 @@ function parseHttpUrl(value: string): URL {
   } catch {
     throw new Error(`Invalid URL: ${value}`);
   }
-
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    throw new Error(`Unsupported URL protocol for browser reading: ${parsed.protocol}`);
+    throw new Error(`Unsupported URL protocol: ${parsed.protocol}`);
   }
-
   return parsed;
 }
 
-function makeArtifactDirName(): string {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return `${timestamp}-${randomUUID().slice(0, 8)}`;
+// The first line is an evidence label the model can rely on:
+// ACQUIRED(url, status, complete) is citable; BLOCKED, INCOMPLETE and FAILED are not.
+export function formatReadResult(result: ReadResult): { text: string; complete: boolean } {
+  const status = result.status ?? "none";
+  if (result.outcome !== "acquired") {
+    const lines = [`${result.outcome.toUpperCase()}(url=${result.finalUrl}, status=${status}, reason=${result.reason})`];
+    if (result.title) lines.push(`Title: ${result.title}`);
+    if (result.attempts.length > 0) lines.push(`Attempts: ${result.attempts.join("; ")}`);
+    lines.push("This output is not evidence of the page's content.");
+    if (result.outcome === "blocked") lines.push(`If a login or challenge is the cause, the user can run /browser-login ${result.finalUrl}.`);
+    const excerpt = result.text.trim().slice(0, EXCERPT_CHARS);
+    if (excerpt) lines.push(`Page excerpt (not evidence):\n${excerpt}`);
+    return { text: lines.join("\n"), complete: false };
+  }
+  const truncated = truncateHead(result.text, { maxBytes: DEFAULT_MAX_BYTES, maxLines: DEFAULT_MAX_LINES });
+  const complete = !truncated.truncated;
+  const lines = [`ACQUIRED(url=${result.finalUrl}, status=${status}, complete=${complete})`];
+  if (result.title) lines.push(`Title: ${result.title}`);
+  if (result.contentType) lines.push(`Content-Type: ${result.contentType}`);
+  if (!complete) {
+    lines.push(
+      `Truncated: showing ${truncated.outputLines} of ${truncated.totalLines} lines ` +
+        `(${formatSize(truncated.outputBytes)} of ${formatSize(truncated.totalBytes)}). ` +
+        `Full text: ${result.textPath} (use read with offset).`,
+    );
+  }
+  lines.push("", truncated.content.trim());
+  return { text: lines.join("\n"), complete };
 }
 
-async function openPersistentBrowser(
-  browser: BrowserSession,
-  url: string,
-): Promise<{ browserExecutable: string; profileDir: string }> {
-  const browserExecutable = resolveBrowserExecutable();
+async function openPersistentBrowser(browser: BrowserSession, url: string): Promise<void> {
   await browser.run({
-    executablePath: browserExecutable,
+    executablePath: browserExecutable(),
     headless: false,
     viewport: { width: 1440, height: 1600 },
   }, async (context) => {
-    const page = context.pages()[0] ?? await context.newPage();
+    const page = context.pages()[0] ?? (await context.newPage());
     // On macOS the app stays running after the last window closes.
     const windowsClosed = waitForLastWindow(context);
     if (url !== "about:blank") {
-      // Login is interactive; a failed initial navigation must not close its window.
+      // Navigation errors are fine here: the user fixes them in the visible window.
       await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => undefined);
     }
     await windowsClosed;
   });
-  return { browserExecutable, profileDir: browserProfileDir };
-}
-
-async function readRenderedPage(browser: BrowserSession, params: {
-  url: string;
-  timeoutMs: number;
-  saveScreenshot: boolean;
-}, signal?: AbortSignal): Promise<{
-  title: string;
-  finalUrl: string;
-  responseStatus?: number;
-  text: string;
-  browserExecutable: string;
-  profileDir: string;
-  artifactDir: string;
-  textPath: string;
-  htmlPath: string;
-  screenshotPath?: string;
-}> {
-  const browserExecutable = resolveBrowserExecutable();
-  await mkdir(browserProfileDir, { recursive: true });
-  await mkdir(browserArtifactRootDir, { recursive: true });
-
-  const artifactDir = join(browserArtifactRootDir, makeArtifactDirName());
-  await mkdir(artifactDir, { recursive: true });
-
-  return browser.run({
-    executablePath: browserExecutable,
-    headless: true,
-    viewport: { width: 1440, height: 2000 },
-  }, async (context) => {
-    const page = context.pages()[0] ?? await context.newPage();
-    const response = await page.goto(params.url, {
-      waitUntil: "domcontentloaded",
-      timeout: params.timeoutMs,
-    });
-
-    await page.waitForLoadState("load", { timeout: 5000 }).catch(() => undefined);
-    await page.waitForLoadState("networkidle", { timeout: 3000 }).catch(() => undefined);
-    await page.waitForTimeout(500);
-
-    const [title, finalUrl, text, html] = await Promise.all([
-      page.title(),
-      Promise.resolve(page.url()),
-      page.locator("body").innerText({ timeout: 5000 }).catch(async () =>
-        page.evaluate(() => document.body?.innerText ?? ""),
-      ),
-      page.content(),
-    ]);
-
-    const textPath = join(artifactDir, "page.txt");
-    const htmlPath = join(artifactDir, "page.html");
-    await writeFile(textPath, text, "utf8");
-    await writeFile(htmlPath, html, "utf8");
-
-    const responseStatus = response?.status();
-    const pageFailure = classifyPageFailure(responseStatus, title, text, finalUrl);
-
-    let screenshotPath: string | undefined;
-    if (params.saveScreenshot || pageFailure !== undefined) {
-      screenshotPath = join(artifactDir, "page.png");
-      await page.screenshot({ path: screenshotPath, fullPage: true }).catch(() => undefined);
-    }
-
-    if (pageFailure === "challenge") {
-      throw new Error(
-        `Challenge or login wall detected at ${finalUrl}. Run /browser-login ${finalUrl}, solve it manually, then retry browser_read_url. Artifacts: ${artifactDir}`,
-      );
-    }
-    if (pageFailure === "http-error") {
-      throw new Error(`HTTP ${responseStatus} returned by ${finalUrl}. Artifacts: ${artifactDir}`);
-    }
-
-    return {
-      title,
-      finalUrl,
-      responseStatus,
-      text,
-      browserExecutable,
-      profileDir: browserProfileDir,
-      artifactDir,
-      textPath,
-      htmlPath,
-      screenshotPath,
-    };
-  }, signal);
 }
 
 export default function (pi: ExtensionAPI) {
-  const browser = new BrowserSession(browserProfileDir);
+  const browser = new BrowserSession(profileDir);
   pi.on("session_shutdown", () => browser.close());
   pi.registerCommand("browser-login", {
-    description: "Open a real browser with the persistent browser-read profile so you can solve CAPTCHA/login/consent manually",
+    description: "Open a real browser with the persistent web_read profile so you can solve CAPTCHA/login/consent manually",
     handler: async (args, ctx) => {
       const targetUrl = (args ?? "").trim() || "about:blank";
       const normalizedUrl = targetUrl === "about:blank" ? targetUrl : parseHttpUrl(targetUrl).toString();
-
-      if (ctx.hasUI) {
-        ctx.ui.notify(
-          "Browser session opening. Solve CAPTCHA/login/consent, then close the browser window.",
-          "info",
-        );
-      }
-
-      const result = await openPersistentBrowser(browser, normalizedUrl);
-
-      if (ctx.hasUI) {
-        ctx.ui.notify(
-          `Browser session saved to ${result.profileDir}`,
-          "info",
-        );
-      }
+      if (ctx.hasUI) ctx.ui.notify("Browser session opening. Solve CAPTCHA/login/consent, then close the browser window.", "info");
+      await openPersistentBrowser(browser, normalizedUrl);
+      if (ctx.hasUI) ctx.ui.notify(`Browser session saved to ${profileDir}`, "info");
     },
   });
 
   pi.registerTool({
-    name: "browser_read_url",
-    label: "Browser Read URL",
-    description: "Open a human web page in a real browser session with persistent cookies/profile, then return the rendered text. Prefer this over curl/wget/Python fetches for JS-heavy or anti-bot pages.",
-    promptSnippet: "Read a human web page through a real browser session with persistent cookies/profile.",
+    name: "web_read",
+    label: "Web Read",
+    description:
+      "Read one URL (web page, PDF, JSON/API response, or raw file). Use it for every page whose content you will cite; curl in bash is also fine for JSON APIs and raw files. The output starts with an evidence label: ACQUIRED(url, status, complete) is citable evidence; BLOCKED, INCOMPLETE, and FAILED are not.",
+    promptSnippet: "Read a URL and get a typed outcome plus its text.",
     promptGuidelines: [
-      "Use this tool for user-facing web pages that may require JavaScript, cookies, or a real browser session.",
-      "Prefer this over bash with curl/wget or ad hoc Python urllib/requests for human-facing page URLs.",
-      "Do not use this tool for APIs, raw files, or direct downloads.",
-      "If the tool reports a challenge or login wall, tell the user to run /browser-login <url> and retry.",
+      "Use web_read for human-facing pages, PDFs, and anything you will cite; use curl in bash only for JSON APIs and raw files.",
+      "Cite only ACQUIRED output. BLOCKED, INCOMPLETE, and FAILED output is not evidence; after two such results for a site, stop and report what could not be acquired.",
+      "When complete=false, read the saved full text with the read tool instead of fetching the page again.",
     ],
     parameters: Type.Object({
-      url: Type.String({ description: "HTTP or HTTPS page URL to open in the browser" }),
-      timeoutMs: Type.Optional(Type.Integer({
-        description: "Navigation timeout in milliseconds",
-        minimum: 1000,
-        maximum: 120000,
-      })),
-      saveScreenshot: Type.Optional(Type.Boolean({
-        description: "Save a screenshot artifact alongside the extracted text",
-      })),
+      url: Type.String({ description: "HTTP or HTTPS URL to read" }),
+      timeoutMs: Type.Optional(Type.Integer({ description: "Browser navigation timeout in milliseconds", minimum: 1000, maximum: 120000 })),
     }),
     async execute(_toolCallId, params, signal, onUpdate) {
-      const normalizedUrl = parseHttpUrl(params.url).toString();
-      const timeoutMs = params.timeoutMs ?? 30000;
-      const saveScreenshot = params.saveScreenshot ?? false;
-
-      onUpdate?.({
-        content: [{ type: "text", text: `Opening ${normalizedUrl} in the browser...` }],
-        details: {},
-      });
-
-      const result = await readRenderedPage(browser, {
-        url: normalizedUrl,
-        timeoutMs,
-        saveScreenshot,
-      }, signal);
-
-      const truncated = truncateHead(result.text, {
-        maxBytes: DEFAULT_MAX_BYTES,
-        maxLines: DEFAULT_MAX_LINES,
-      });
-
-      let text = `Title: ${result.title || "(untitled)"}\nURL: ${result.finalUrl}`;
-      if (result.responseStatus !== undefined) {
-        text += `\nStatus: ${result.responseStatus}`;
-      }
-      text += `\n\n${truncated.content.trim()}`;
-
-      if (truncated.truncated) {
-        text += `\n\n[Text truncated: ${truncated.outputLines} of ${truncated.totalLines} lines`;
-        text += ` (${formatSize(truncated.outputBytes)} of ${formatSize(truncated.totalBytes)}).`;
-        text += ` Full text: ${result.textPath}. HTML: ${result.htmlPath}`;
-        if (result.screenshotPath) text += `. Screenshot: ${result.screenshotPath}`;
-        text += "]";
-      } else {
-        text += `\n\n[Full text: ${result.textPath}. HTML: ${result.htmlPath}`;
-        if (result.screenshotPath) text += `. Screenshot: ${result.screenshotPath}`;
-        text += "]";
-      }
-
+      const url = parseHttpUrl(params.url).toString();
+      onUpdate?.({ content: [{ type: "text", text: `Reading ${url}...` }], details: undefined });
+      const result = await readUrl(browser, url, params.timeoutMs ?? 30000, signal);
+      const formatted = formatReadResult(result);
       return {
-        content: [{ type: "text", text }],
+        content: [{ type: "text", text: formatted.text }],
+        isError: result.outcome === "blocked" || result.outcome === "failed",
         details: {
-          title: result.title,
+          outcome: result.outcome,
+          reason: result.reason,
+          url: result.url,
           finalUrl: result.finalUrl,
-          responseStatus: result.responseStatus,
-          browserExecutable: result.browserExecutable,
-          profileDir: result.profileDir,
-          artifactDir: result.artifactDir,
+          status: result.status,
+          complete: formatted.complete,
+          via: result.via,
+          attempts: result.attempts,
           textPath: result.textPath,
-          htmlPath: result.htmlPath,
-          screenshotPath: result.screenshotPath,
         },
       };
     },
