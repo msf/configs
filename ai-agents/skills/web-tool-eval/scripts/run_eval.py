@@ -45,7 +45,7 @@ def extract_summary(raw_path, case, duration, returncode, timed_out):
                 tool = event.get("toolName", "")
                 arguments = event.get("args", {})
                 command = arguments.get("command", "") if isinstance(arguments, dict) else ""
-                network_attempt = tool == "browser_read_url" or (
+                network_attempt = tool in ("web_read", "web_search") or (
                     tool == "bash" and bool(NETWORK_COMMAND.search(command))
                 )
                 call = {
@@ -65,7 +65,7 @@ def extract_summary(raw_path, case, duration, returncode, timed_out):
                     text = result_text(event.get("result"))
                     call["is_error"] = bool(event.get("isError"))
                     call["result_excerpt"] = text[:2500]
-                    status = re.search(r"(?:^|\n)Status:\s*(\d+)", text)
+                    status = re.search(r"\bstatus=(\d+)", text)
                     if status:
                         call["http_status"] = int(status.group(1))
                 continue
@@ -90,11 +90,6 @@ def extract_summary(raw_path, case, duration, returncode, timed_out):
             usage["cost"] += (current.get("cost", {}) or {}).get("total", 0) or 0
 
     network_orders = [call["order"] for call in calls if call["network_attempt"]]
-    skill_orders = [
-        call["order"]
-        for call in calls
-        if call["tool"] == "read" and "web-tool-routing/SKILL.md" in str(call.get("args", {}))
-    ]
 
     return {
         "case_id": case["id"],
@@ -106,9 +101,6 @@ def extract_summary(raw_path, case, duration, returncode, timed_out):
         "timed_out": timed_out,
         "duration_seconds": round(duration, 3),
         "network_attempt_count": len(network_orders),
-        "skill_read": bool(skill_orders),
-        "skill_read_before_first_network": bool(skill_orders)
-        and (not network_orders or min(skill_orders) < min(network_orders)),
         "tool_calls": calls,
         "final_answer": final_answer,
         "usage": usage,
@@ -123,7 +115,7 @@ def default_output_dir(model):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run isolated web-routing eval cases through Pi")
+    parser = argparse.ArgumentParser(description="Run isolated web-tool eval cases through Pi")
     parser.add_argument("--eval", required=True, help="Eval JSON path")
     parser.add_argument("--output", help="Artifact directory; defaults under XDG state")
     parser.add_argument("--provider", help="Pi provider; defaults to eval.json executor.provider")
@@ -191,7 +183,7 @@ def main():
             "--thinking",
             thinking,
             "--tools",
-            "read,bash,browser_read_url",
+            "read,bash,web_read,web_search",
             "--append-system-prompt",
             safety,
             case["prompt"],
@@ -221,7 +213,7 @@ def main():
         summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n")
         print(
             f"  rc={returncode} timeout={timed_out} network={summary['network_attempt_count']} "
-            f"skill={summary['skill_read_before_first_network']} duration={duration:.1f}s",
+            f"duration={duration:.1f}s",
             flush=True,
         )
 

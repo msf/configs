@@ -54,7 +54,6 @@ pskill  trino-heapdump
 
 # ── Pi-only skills: native MCP/codemode or custom extension integrations.
 repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval
-repo    .pi/agent/skills/web-tool-routing ai-agents/skills/web-tool-routing
 prepo   .pi/agent/skills/grafana-metrics  skills/grafana-metrics
 prepo   .pi/agent/skills/linear-issues    skills/linear-issues
 prepo   .pi/agent/skills/linear-update    skills/linear-update
