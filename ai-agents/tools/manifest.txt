@@ -74,6 +74,7 @@ mirror  .pi/agent/models.json
 # ── Pi extensions
 repo    .pi/agent/extensions/context-meter.ts    ai-agents/tools/extensions/context-meter.ts
 repo    .pi/agent/extensions/browser-read        ai-agents/tools/extensions/browser-read
+repo    .pi/agent/extensions/web-search          ai-agents/tools/extensions/web-search
 repo    .pi/agent/extensions/subagent            ai-agents/tools/extensions/subagent
 
 # ── Pi prompt templates

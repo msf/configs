@@ -41,7 +41,7 @@ The private repository mirrors the same ownership model: shared skills at `skill
 - Skills: a `skill <name>` (public) or `pskill <name>` (private) manifest entry links one source into `~/.agents/skills/` and `~/.claude/skills/`. Pi and Codex both read `~/.agents/skills/`, so a shared skill must not also appear under `~/.pi/agent/skills/`, where Pi would load it twice. Skills there are Pi-only: they use native MCP/codemode or custom extensions (`browser-read`, `subagent`). Shared is the default; `track.sh` writes a `skill`/`pskill` entry for any skills-root path.
 - Claude Code: besides the shared skills, the manifest projects the `code-reviewer` and `skill-applier` subagents into `~/.claude/agents`, the canonical instructions as `~/.claude/CLAUDE.md`, and `settings.json` from the `home/` mirror.
 - Workspace services: `notion` prefers the workspace's configured Notion MCP, with `ntn` as a fallback when no MCP is configured; `workspace-apps` owns `gog`. Slack is frozen: its server is disabled and its skill is archived outside discovery under `skills-frozen/slack-mcp`. The legacy workspace wrappers, standalone Slack MCP client, and `trino-bench` skill are retired.
-- Native MCP/codemode, `browser-read`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
+- Native MCP/codemode, `browser-read`, `web-search`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
 - dune-sietch also writes into `~/.claude/{skills,agents,commands}`, so Claude entries are per-resource, never directory-level: a directory projection would pull Sietch's links into this repository. `code-review`, `k8s-debug`, `log-investigator`, `skill-creator`, `dune-explore` and `code-reviewer` are names both sides ship; the manifest wins them deliberately. `dune-sietch check` only tests that a link exists, so it stays quiet; `dune-sietch update` re-claims them and leaves `<name>.pre-dune-sietch` behind, which `apply.sh --verify` now fails on until it is deleted.
 
 ## Native MCP (Pi 0.99+)
@@ -62,6 +62,17 @@ PI_CODING_AGENT_DIR="$HOME/.pi/agent-lean" pi mcp login linear
 Slack retains its registered client ID and exact localhost callback, but requires explicit unfreeze approval and a fresh login before use. Restart existing sessions after cutover; old bridge tool names are not supported.
 
 Run the offline integration tests with `PRIVATE_DIR=<private-repo> node --test tools/mcp.test.mjs` from `ai-agents/`. Tests locate the installed npm Pi package; set `PI_PACKAGE_DIR` explicitly for another layout. They launch only a synthetic local MCP server and make no model requests.
+
+## Web tools (Pi)
+
+Two Pi extensions; neither depends on another agent harness.
+
+- `web_read` (`extensions/browser-read`) reads one URL over plain HTTP and falls back to headless Chrome with the persistent profile in `~/.pi/agent/browser-read/profile`. Its output starts with an evidence label: `ACQUIRED(...)` is citable; `BLOCKED`, `INCOMPLETE` and `FAILED` are not. It keeps link targets and extracts PDF text with `pdftotext`. `/browser-login <url>` opens the profile in a visible browser to solve a login or CAPTCHA.
+- `web_search` (`extensions/web-search`) queries a local SearXNG container on `127.0.0.1:28100` (`SEARXNG_PORT` overrides it). The tool starts the container when it can't reach it. By hand: `~/.pi/agent/extensions/web-search/searxng.sh start|stop|status`.
+
+The container runs a digest-pinned image with `--restart unless-stopped`, so it survives reboots. SearXNG scrapes other search engines, which change their pages and rate-limit; `web_search` lists the engines that didn't answer. To update, bump `IMAGE` in `searxng.sh` and run `searxng.sh start`: it recreates a container whose image or port differs.
+
+The evidence for both tools: `skills/web-tool-eval/baselines/2026-10-06-tournament.md`.
 
 ## Optional Pi packages
 

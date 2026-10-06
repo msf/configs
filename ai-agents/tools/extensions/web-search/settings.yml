@@ -1,0 +1,15 @@
+# SearXNG settings for Pi's web_search tool; searxng.sh mounts this file read-only.
+use_default_settings: true
+general:
+  instance_name: "pi-searxng"
+search:
+  default_lang: "en"
+  formats:
+    - html
+    - json
+server:
+  # searxng.sh passes a random SEARXNG_SECRET per container; this placeholder is not used.
+  secret_key: "set-by-searxng-sh"
+  # The container listens on 127.0.0.1 only, so the bot limiter and image proxy are off.
+  limiter: false
+  image_proxy: false
