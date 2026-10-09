@@ -1,4 +1,3 @@
-*dune-sietch*
 # The live ~/.claude holds credentials, sessions and transcripts. The managed
 # mirror under ai-agents/home/ is reproducible config and is tracked.
 .claude/

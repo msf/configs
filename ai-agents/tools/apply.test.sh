@@ -18,21 +18,6 @@ test "$(readlink "$home/.claude/skills/probe")" = "$repo/skills/probe"
 HOME="$home" bash "$repo/tools/apply.sh" --verify
 printf 'PASS: manifest entry projects and verifies\n'
 
-# A third party that re-claims the link leaves <path>.pre-dune-sietch behind.
-ln -s "$repo/skills/probe" "$home/.claude/skills/probe.pre-dune-sietch"
-if HOME="$home" bash "$repo/tools/apply.sh" --verify 2>/dev/null; then
-  printf 'FAIL: --verify accepted a displaced leftover\n' >&2
-  exit 1
-fi
-# pipefail would kill the script on the expected non-zero exit; capture first.
-out=$(HOME="$home" bash "$repo/tools/apply.sh" --verify 2>&1 || true)
-printf '%s' "$out" | grep -Fq 'displaced leftover'
-printf 'PASS: --verify reports a displaced leftover\n'
-
-rm "$home/.claude/skills/probe.pre-dune-sietch"
-HOME="$home" bash "$repo/tools/apply.sh" --verify
-printf 'PASS: --verify is clean once the leftover is gone\n'
-
 # A skill entry projects one source into every shared skills root.
 printf 'skill   probe\n' > "$repo/tools/manifest.txt"
 rm "$home/.claude/skills/probe"

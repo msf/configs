@@ -90,7 +90,7 @@ foreach_manifest() {
 		case "$type" in
 			skill|pskill)
 				# One skill source, linked into every harness's skills root.
-				# Pi and Codex both read ~/.agents/skills; Claude reads only its own.
+				# Pi reads ~/.agents/skills; Claude reads only its own.
 				[ -z "${arg2:-}" ] || die "manifest: $type takes a name only: $line"
 				local root
 				for root in $SKILL_ROOTS; do

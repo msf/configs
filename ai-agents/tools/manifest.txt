@@ -19,17 +19,14 @@
 # ── shared harness instructions
 repo    .claude/CLAUDE.md             ai-agents/instructions.md
 repo    .pi/agent/AGENTS.md           ai-agents/instructions.md
-repo    .codex/AGENTS.md              ai-agents/instructions.md
 
-# ── Skills shared by Pi, Claude Code and Codex. Each `skill`/`pskill` name links
-# into ~/.agents/skills (Pi and Codex) and ~/.claude/skills (Claude). Per-skill
-# entries, never directory links: dune-sietch also writes into ~/.claude/skills.
+# ── Skills shared by Pi and Claude Code. Each `skill`/`pskill` name links
+# into ~/.agents/skills (Pi) and ~/.claude/skills (Claude).
 # A skill belongs here unless it depends on a Pi-only extension.
 skill   aws-pricing
 skill   code-review
 skill   coding
 skill   go-development
-skill   google-slides
 skill   k8s-debug
 skill   log-investigator
 skill   notion
@@ -45,12 +42,15 @@ skill   tech-writing
 skill   weekly-review
 skill   wiki
 skill   workspace-apps
-pskill  datashare-add-table
-pskill  dbsh
-pskill  dune-brand
-pskill  dune-explore
 pskill  mail
-pskill  trino-heapdump
+
+# ── Work skills, Pi only: Claude Code must not load them.
+repo    .agents/skills/google-slides       ai-agents/skills/google-slides
+prepo   .agents/skills/datashare-add-table skills/datashare-add-table
+prepo   .agents/skills/dbsh                skills/dbsh
+prepo   .agents/skills/dune-brand          skills/dune-brand
+prepo   .agents/skills/dune-explore        skills/dune-explore
+prepo   .agents/skills/trino-heapdump      skills/trino-heapdump
 
 # ── Pi-only skills: native MCP/codemode or custom extension integrations.
 repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval

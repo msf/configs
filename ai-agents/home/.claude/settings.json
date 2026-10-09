@@ -106,9 +106,6 @@
     "command": "~/.claude/statusline.sh",
     "padding": 0
   },
-  "enabledPlugins": {
-    "slack@claude-plugins-official": true
-  },
   "extraKnownMarketplaces": {
     "claude-code-plugins": {
       "source": {
