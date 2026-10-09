@@ -50,7 +50,6 @@ prepo   .agents/skills/datashare-add-table skills/datashare-add-table
 prepo   .agents/skills/dbsh                skills/dbsh
 prepo   .agents/skills/dune-brand          skills/dune-brand
 prepo   .agents/skills/dune-explore        skills/dune-explore
-prepo   .agents/skills/trino-heapdump      skills/trino-heapdump
 
 # ── Pi-only skills: native MCP/codemode or custom extension integrations.
 repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval
@@ -114,3 +113,4 @@ mirror  .claude/statusline.sh
 pmirror .pi/agent/mcp.json
 home    .pi/agent-lean/mcp.json                  .pi/agent/mcp.json
 pskill  my-daily-wrap
+skill   jvm-heapdump
