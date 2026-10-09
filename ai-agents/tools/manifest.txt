@@ -54,9 +54,7 @@ pskill  trino-heapdump
 
 # ── Pi-only skills: native MCP/codemode or custom extension integrations.
 repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval
-prepo   .pi/agent/skills/grafana-metrics  skills/grafana-metrics
-prepo   .pi/agent/skills/linear-issues    skills/linear-issues
-prepo   .pi/agent/skills/linear-update    skills/linear-update
+# paused: prepo   .pi/agent/skills/grafana-metrics  skills/grafana-metrics
 
 # ── Claude Code settings. Machine state (credentials, sessions, transcripts,
 # settings.local.json permission grants) stays untracked.
@@ -113,7 +111,6 @@ home    .pi/agent-lean/extensions/browser-read .pi/agent/extensions/browser-read
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent
 repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disable-spinner.ts
 mirror  .claude/statusline.sh
-mirror  .claude/mcp/linear.json
 pmirror .pi/agent/mcp.json
 home    .pi/agent-lean/mcp.json                  .pi/agent/mcp.json
 pskill  my-daily-wrap

@@ -33,25 +33,24 @@ test("private native configuration preserves allowlists and freezes unused integ
   const agentDir = join(privateDir, "home/.pi/agent");
   const loaded = loadMcpConfig({ agentDir, cwd: toolsDir, projectTrusted: false });
   assert.deepEqual(loaded.errors, []);
-  assert.deepEqual(loaded.servers.map(server => server.name).sort(), ["grafana_dev", "grafana_prod", "linear", "slack"]);
+  assert.deepEqual(loaded.servers.map(server => server.name).sort(), ["grafana_dev", "grafana_prod"]);
   const configs = Object.fromEntries(loaded.servers.map(server => [server.name, server.config]));
-  assert.notEqual(configs.grafana_prod.enabled, false);
-  assert.notEqual(configs.linear.enabled, false);
+  assert.equal(configs.grafana_prod.enabled, false);
   assert.equal(configs.grafana_dev.enabled, false);
-  assert.equal(configs.slack.enabled, false);
   for (const config of Object.values(configs)) {
     assert.equal(config.exposure, "hidden");
     assert.equal(getMcpToolExposure(config, "new_unreviewed_tool"), "hidden");
     assert(Object.keys(config.toolExposure).every(name => !name.includes("*")));
     assert(Object.values(config.toolExposure).every(exposure => exposure === "codemode"));
   }
-  assert.equal(Object.keys(configs.grafana_prod.toolExposure).length, 8);
-  assert.deepEqual(configs.grafana_prod.toolExposure, configs.grafana_dev.toolExposure);
-  assert.equal(Object.keys(configs.linear.toolExposure).length, 18);
-  assert.equal(Object.keys(configs.slack.toolExposure).length, 8);
+  assert.equal(Object.keys(configs.grafana_prod.toolExposure).length, 10);
+  assert.equal(Object.keys(configs.grafana_dev.toolExposure).length, 8);
+  const { get_dashboard_by_uid: fullDashboardExposure, update_dashboard: dashboardUpdateExposure, ...grafanaReadTools } = configs.grafana_prod.toolExposure;
+  assert.equal(fullDashboardExposure, "codemode");
+  assert.equal(dashboardUpdateExposure, "codemode");
+  assert.deepEqual(grafanaReadTools, configs.grafana_dev.toolExposure);
+  assert.equal(getMcpToolExposure(configs.grafana_dev, "update_dashboard"), "hidden");
   assert.match(configs.grafana_prod.env.GRAFANA_SERVICE_ACCOUNT_TOKEN, /^!cat /);
-  assert.equal(configs.linear.oauth.callbackUrl, "http://localhost:8765/callback");
-  assert.equal(configs.slack.oauth.callbackUrl, "http://localhost:3118/callback");
 });
 
 async function createFixture(cwd, tools) {
