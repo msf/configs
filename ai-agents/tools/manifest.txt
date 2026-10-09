@@ -44,16 +44,11 @@ skill   wiki
 skill   workspace-apps
 pskill  mail
 
-# ── Work skills, Pi only: Claude Code must not load them.
+# ── Pi-only presentation skill
 repo    .agents/skills/google-slides       ai-agents/skills/google-slides
-prepo   .agents/skills/datashare-add-table skills/datashare-add-table
-prepo   .agents/skills/dbsh                skills/dbsh
-prepo   .agents/skills/dune-brand          skills/dune-brand
-prepo   .agents/skills/dune-explore        skills/dune-explore
 
 # ── Pi-only skills: native MCP/codemode or custom extension integrations.
 repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval
-# paused: prepo   .pi/agent/skills/grafana-metrics  skills/grafana-metrics
 
 # ── Claude Code settings. Machine state (credentials, sessions, transcripts,
 # settings.local.json permission grants) stays untracked.
@@ -90,14 +85,6 @@ repo    .pi/agent/agents/ste-distiller-sol.md      ai-agents/agents/pi/ste-disti
 repo    .pi/agent/agents/worker.md                ai-agents/agents/pi/worker.md
 repo    .pi/agent/agents/worker-xhigh.md          ai-agents/agents/pi/worker-xhigh.md
 
-# ── private application config
-pmirror .config/pr-triage.conf
-
-# ── Dune workspace docs
-prepo   dune/AGENTS.md        dune-workspace/AGENTS.md
-prepo   dune/GLOSSARY.md      dune-workspace/GLOSSARY.md
-prepo   dune/agent-prompts    dune-workspace/agent-prompts
-
 # ── pi-lean local-model profile
 mirror  .pi/agent-lean/settings.json
 mirror  .pi/agent-lean/models.json
@@ -110,7 +97,5 @@ home    .pi/agent-lean/extensions/browser-read .pi/agent/extensions/browser-read
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent
 repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disable-spinner.ts
 mirror  .claude/statusline.sh
-pmirror .pi/agent/mcp.json
-home    .pi/agent-lean/mcp.json                  .pi/agent/mcp.json
 pskill  my-daily-wrap
 skill   jvm-heapdump

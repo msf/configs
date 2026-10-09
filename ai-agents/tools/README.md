@@ -3,7 +3,7 @@
 Single source of truth for Pi and Claude Code, split across:
 
 - **`~/configs/ai-agents` (public):** generic instructions, skills, agents, commands, tools, and path-specific settings. No secrets or internal infrastructure details.
-- **`~/configs-private` (private):** work-specific resources and MCP configuration. Tokens and machine state belong in neither repository.
+- **`~/configs-private` (private):** personal agents, lessons, and session-derived reviews. Tokens and machine state belong in neither repository.
 
 `tools/manifest.txt` declares every live projection. `apply.sh` links owned sources into `$HOME`.
 
@@ -45,7 +45,7 @@ The private repository mirrors the same ownership model: shared skills at `skill
 
 ## Native MCP (Pi 0.99+)
 
-Pi's built-in MCP replaces the retired `mcp-bridge`. The private `home/.pi/agent/mcp.json` is projected to main and lean; it contains endpoints and secret-file commands, not tokens. Enabled servers connect at startup. Grafana is paused: both servers are disabled and the `grafana-metrics` manifest entry is commented out. To resume, restore that entry, enable `grafana_prod`, and recreate its token file. Grafana prod also exposes `get_dashboard_by_uid` and `update_dashboard` for explicitly requested dashboard edits; dev remains read-only. Exposure defaults to `hidden`, with exact named tools exposed through codemode; resources and unreviewed tools stay unreachable.
+Pi's built-in MCP replaces the retired `mcp-bridge`. The Dune-only server configuration and its main/lean projections were removed on 2026-10-09; no MCP server configuration is currently managed by the manifest. Register any future configuration deliberately through `track.sh`. Keep credentials in machine-local stores, default exposure to `hidden`, and expose only reviewed tools through exact allowlists.
 
 Pi activates codemode automatically when these tools connect. Ordinary tools stay available; neither profile uses codemode-only mode. Discover MCP schemas with codemode's `searchTools()` / `describeTool()`. Native results are `CallToolResult`, including `structuredContent` and `isError`, not flattened strings.
 
@@ -53,7 +53,7 @@ Use `/mcp` for status, reconnect, and explicit enabling. Changes to the shared s
 
 OAuth state is machine-local and profile-specific: `<agent-dir>/mcp-auth.json`. Sign in separately for each profile with `pi mcp login <server>` and `PI_CODING_AGENT_DIR="$HOME/.pi/agent-lean" pi mcp login <server>`.
 
-Run the offline integration tests with `PRIVATE_DIR=<private-repo> node --test tools/mcp.test.mjs` from `ai-agents/`. Tests locate the installed npm Pi package; set `PI_PACKAGE_DIR` explicitly for another layout. They launch only a synthetic local MCP server and make no model requests.
+Run the offline integration tests with `node --test tools/mcp.test.mjs` from `ai-agents/`. Tests use temporary configuration and locate the installed Pi package; set `PI_PACKAGE_DIR` explicitly for another layout. They launch only a synthetic local MCP server and make no model requests.
 
 ## Web tools (Pi)
 

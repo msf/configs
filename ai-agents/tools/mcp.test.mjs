@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, realpathSync } from "node:fs";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -28,29 +28,23 @@ test("managed profiles have no extra Linear write approval extension", async () 
   }
 });
 
-test("private native configuration preserves allowlists and freezes unused integrations", async () => {
-  const privateDir = process.env.PRIVATE_DIR ?? join(homedir(), "configs-private");
-  const agentDir = join(privateDir, "home/.pi/agent");
-  const loaded = loadMcpConfig({ agentDir, cwd: toolsDir, projectTrusted: false });
-  assert.deepEqual(loaded.errors, []);
-  assert.deepEqual(loaded.servers.map(server => server.name).sort(), ["grafana_dev", "grafana_prod"]);
-  const configs = Object.fromEntries(loaded.servers.map(server => [server.name, server.config]));
-  assert.equal(configs.grafana_prod.enabled, false);
-  assert.equal(configs.grafana_dev.enabled, false);
-  for (const config of Object.values(configs)) {
+test("native configuration preserves exact tool allowlists and defaults to hidden", async () => {
+  const agentDir = await mkdtemp(join(tmpdir(), "pi-mcp-config-test-"));
+  try {
+    await writeFile(join(agentDir, "mcp.json"), JSON.stringify({ mcpServers: {
+      fixture: { command: process.execPath, exposure: "hidden", toolExposure: { read_fixture: "codemode" } },
+    } }));
+    const loaded = loadMcpConfig({ agentDir, cwd: agentDir, projectTrusted: false });
+    assert.deepEqual(loaded.errors, []);
+    assert.deepEqual(loaded.servers.map(server => server.name), ["fixture"]);
+    const config = loaded.servers[0].config;
     assert.equal(config.exposure, "hidden");
+    assert.deepEqual(config.toolExposure, { read_fixture: "codemode" });
+    assert.equal(getMcpToolExposure(config, "read_fixture"), "codemode");
     assert.equal(getMcpToolExposure(config, "new_unreviewed_tool"), "hidden");
-    assert(Object.keys(config.toolExposure).every(name => !name.includes("*")));
-    assert(Object.values(config.toolExposure).every(exposure => exposure === "codemode"));
+  } finally {
+    await rm(agentDir, { recursive: true, force: true });
   }
-  assert.equal(Object.keys(configs.grafana_prod.toolExposure).length, 10);
-  assert.equal(Object.keys(configs.grafana_dev.toolExposure).length, 8);
-  const { get_dashboard_by_uid: fullDashboardExposure, update_dashboard: dashboardUpdateExposure, ...grafanaReadTools } = configs.grafana_prod.toolExposure;
-  assert.equal(fullDashboardExposure, "codemode");
-  assert.equal(dashboardUpdateExposure, "codemode");
-  assert.deepEqual(grafanaReadTools, configs.grafana_dev.toolExposure);
-  assert.equal(getMcpToolExposure(configs.grafana_dev, "update_dashboard"), "hidden");
-  assert.match(configs.grafana_prod.env.GRAFANA_SERVICE_ACCOUNT_TOKEN, /^!cat /);
 });
 
 async function createFixture(cwd, tools) {
