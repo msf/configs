@@ -243,20 +243,6 @@ if [[ -s $NVM_DIR/nvm.sh ]]; then
   unset node_version
 fi
 
-alias openclaw='incus exec openclaw -- machinectl shell openclaw@'
-
-if (( $+commands[pi] )); then
-  pi() {
-    if [[ -x $HOME/.local/share/pi-node/current/bin/node ]]; then
-      PATH="$HOME/.local/share/pi-node/current/bin:$PATH" command pi "$@"
-    else
-      command pi "$@"
-    fi
-  }
-fi
-
-export PI_CLAUDE_CODE_PROVIDER_ACKNOWLEDGED_PLATFORM=linux/x64
-
 # >>> railway initialize >>>
 [[ -r "$HOME/.railway/env" ]] && source "$HOME/.railway/env"
 # <<< railway initialize <<<

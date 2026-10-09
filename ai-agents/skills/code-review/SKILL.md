@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Run hard-nosed self-review for pull requests, commit stacks, diffs, and GitHub changes before they ship. Use this whenever the user asks to review their own PR, branch, commit, diff, stacked changes, or wants approval/comment recommendations.
+description: Run hard-nosed self-review for pull requests, commit stacks, diffs, and GitHub changes before they ship, including structural quality and evidence-backed static-analysis proposals. Use this whenever the user asks to review their own PR, branch, commit, diff, stacked changes, or wants approval/comment recommendations.
 ---
 
 ## Philosophy
@@ -65,6 +65,13 @@ Run these checks yourself even if the subagent misses them:
 - **Error semantics**: every error must be propagated, logged-and-continued with a real reason, or impossible by invariant. Sequential checks that obscure mutually exclusive cases are suspect.
 - **Schema/migration coupling**: a migration and the code that depends on it do not deploy atomically, and reverting the deploy does not revert the migration. When one PR carries both, work out the ordering it implies. Code that reads a new column fails in the window before the migration runs. A destructive migration — drop, rename, narrow a type — fails the old code still serving traffic during the rollout. Demand the expand-migrate-contract split: the additive migration ships first, the code that uses it second, the destructive step last, once nothing references the old shape. One PR is fine when the migration is additive and the code tolerates its absence.
 - **Test proof**: new branches through an existing entrypoint need entrypoint-level tests. Billing, auth, quota, rollout, or data-loss behavior needs direct assertions on the risk, not only golden totals or helper tests.
+
+#### Static-analysis and structural-quality evidence
+
+- Read the effective analyzer config and Makefile/CI invocation, including pinned versions, rule arguments, exclusions, and the actual PR base. Execute the repo's checks when prerequisites and review authority permit; otherwise name exactly what was not run. A config-gap report alone does not prove a rule is enforced or missing.
+- Inspect complete modified functions for length, nesting, argument/result count, and cognitive/cyclomatic complexity using the language skill's guidance. Diff-line lint can miss a new violation reported at an unchanged signature; compare affected functions with the base. Name the responsibility or shared state that makes a function hard to change; do not demand cosmetic splitting or an opaque parameter-bag struct to satisfy a number.
+- Follow `coding`'s Static analysis policy for stricter checks and rule proposals. Report only gaps that affect this change unless the user requested a lint audit. Separate a concrete code defect from a non-blocking proposal to adopt a stricter rule; personal baseline thresholds do not become repo policy through review. Do not dump unrelated legacy debt into a feature review.
+- For lint-hardening PRs, require compatible pinned tools, equivalent local/CI behavior, justified exclusions, separate PR-gate and backlog results, and a planted-violation test of the gate. Check shallow history/base-ref handling and structural diagnostics outside changed lines. Report commands, tool/config/base revisions, findings, and unverified coverage; a green linter is not a complete quality verdict.
 
 ### 4. Synthesize
 

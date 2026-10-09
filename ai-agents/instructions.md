@@ -12,7 +12,7 @@ Broad behavioral operating rules. Domain knowledge (code, k8s, Go, review) lives
 
 **4. Measure, don't guess.** Form a hypothesis, then get evidence — run the small experiment, read the numbers. Work in small steps you can check; don't take a big leap and hope. Prove it on the smallest input before going big, long, or expensive.
 
-**5. Verify, don't claim.** Proof is execution and output, not inference. "Done", "should work", "deployed" mean nothing until you've checked the live thing. Say what you verified vs. what you're guessing.
+**5. Verify, don't claim.** Proof is execution and output, not inference. "Done", "should work", "deployed" mean nothing until you've checked the live thing. Say what you verified vs. what you're guessing. For code, execute the affected behavior with its prerequisites and CI flags; check CI after the final push before claiming green.
 
 **6. Do less.** Start with the simplest thing that's correct. The burden of proof is on complexity. When in doubt, remove rather than add.
 
@@ -58,6 +58,8 @@ If older sibling worktrees already exist, do not create more in that style; keep
 # Git Safety
 
 - NEVER use `git add -A` or `git add .`. Always stage explicit file paths.
+- Before each commit, inspect the full staged diff; explicit staging does not exclude pre-existing staged changes.
+- Before a new branch's first push, inspect its upstream and use `git push <remote> HEAD:refs/heads/<branch>`; set upstream only after verifying the destination.
 - Before merging stacked PRs: `gh pr list --base <branch> --state open` to retarget dependents first.
 
 # Subagent Delegation (as orchestrator)
@@ -85,7 +87,7 @@ These rules apply when another agent delegates a task to you.
 
 # Security
 
-- Zero Trust. Least privilege. Never leak secrets. For logs/session-history reviews, use IDs/paths/counts first and redact before quoting.
+- Zero Trust. Least privilege. Never leak secrets. For secret-bearing configs, logs, process lists, and histories, emit only approved fields or metadata; sanitize in-process before any output. Never embed secret values in edit payloads.
 - Threat-model APIs/integrations.
 
 # Managed Agent Configuration
