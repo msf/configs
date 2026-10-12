@@ -1,4 +1,4 @@
-{ ... }:
+{ config, lib, ... }:
 
 # macOS preferences. Security settings (FileVault, SIP, Gatekeeper,
 # quarantine, updates) are deliberately not touched here.
@@ -11,10 +11,26 @@
     remapCapsLockToControl = true;
   };
 
+  # Persist the ID80-only swap in macOS's per-host modifier preferences.
+  # USB HID keyboard usages: left Option/Command = 0xE2/0xE3, right = 0xE6/0xE7.
+  system.activationScripts.postActivation.text = let
+    id80ModifierMapping = [
+      { HIDKeyboardModifierMappingSrc = 30064771298; HIDKeyboardModifierMappingDst = 30064771299; }
+      { HIDKeyboardModifierMappingSrc = 30064771299; HIDKeyboardModifierMappingDst = 30064771298; }
+      { HIDKeyboardModifierMappingSrc = 30064771302; HIDKeyboardModifierMappingDst = 30064771303; }
+      { HIDKeyboardModifierMappingSrc = 30064771303; HIDKeyboardModifierMappingDst = 30064771302; }
+    ];
+  in ''
+    /usr/bin/sudo -H -u ${lib.escapeShellArg config.system.primaryUser} \
+      /usr/bin/defaults -currentHost write -g \
+      com.apple.keyboard.modifiermapping.26980-128-0 \
+      ${lib.escapeShellArg (lib.generators.toPlist { escape = true; } id80ModifierMapping)}
+  '';
+
   system.defaults = {
     NSGlobalDomain = {
       # keyboard
-      InitialKeyRepeat = 15;
+      InitialKeyRepeat = 25;
       KeyRepeat = 2;
       ApplePressAndHoldEnabled = false;
       AppleKeyboardUIMode = 3; # Tab moves through all controls

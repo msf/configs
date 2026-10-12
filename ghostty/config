@@ -48,8 +48,17 @@ font-size = 12
 link-url = true
 
 keybind = shift+enter=text:\n
+keybind = super+shift+d=unbind
+keybind = super+d=unbind
+keybind = super+ctrl+l=new_split:down
+keybind = super+ctrl+o=new_split:right
 
 theme = Ayu Mirage
+
+# Keep the muted background, but improve readability on the external display.
+foreground = #ebe9e1
+cursor-color = #ffdf99
+minimum-contrast = 4.5
 
 cursor-style = block
 cursor-style-blink = true
