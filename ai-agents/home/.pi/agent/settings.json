@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "1.0.2",
+  "lastChangelogVersion": "1.1.0",
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6.1-sol",
   "hideThinkingBlock": false,
@@ -10,12 +10,16 @@
     "keepRecentTokens": 20000
   },
   "enabledModels": [
+    "anthropic/claude-fable-5-1",
     "openai-codex/gpt-6-astra",
+    "anthropic/claude-opus-5-5",
     "openai-codex/gpt-6.1-sol",
+    "anthropic/claude-sonnet-5-5",
     "openai-codex/gpt-5.6-terra",
+    "local/qwen38-27b",
+    "openai-codex/gpt-6-luna",
     "pi-claude-code-provider/opus",
-    "pi-claude-code-provider/sonnet",
-    "local/qwen36-moe"
+    "pi-claude-code-provider/sonnet"
   ],
   "steeringMode": "all",
   "followUpMode": "all",
