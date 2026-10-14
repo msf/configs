@@ -1,13 +1,23 @@
 ---
 name: notion
-description: Drive Notion via the official `ntn` CLI to search, read pages, create pages, edit pages, and write comments. Use whenever the user asks to find, open, create, update, or comment on Notion docs/pages/databases, or wants to pull Notion content into a session. Overrides the more general `workspace-apps` skill for any Notion-specific task.
+description: Search, read, and edit Notion through the workspace's configured Notion MCP, or the official `ntn` CLI when no MCP is configured. Use whenever the user asks to find, open, create, update, or comment on Notion docs/pages/databases, or wants to pull Notion content into a session. Overrides the more general `workspace-apps` skill for any Notion-specific task.
 ---
 
-# Notion (`ntn`)
+# Notion
+
+## Choose the workspace transport first
+
+- Honor workspace instructions and use its configured Notion MCP. Discover the available tools and their schemas before calling them; do not assume tool names or CLI argument shapes.
+- If MCP is configured but unavailable, diagnose its connection/authentication or ask for a session reload. Do not silently switch accounts, install a CLI, or ask the user to share pages with a different integration.
+- Use `ntn` only when no Notion MCP is configured or the user explicitly requests the CLI. Check `command -v ntn` before using it; ask before installing it if absent.
+- For library/recents URLs, the `p` query parameter is the page ID. Extract it before using the path-based ID helper below.
+- For either transport: keep reads scoped to the request, re-read before editing, require user authorization for writes, and never expose credentials.
+
+## CLI fallback (`ntn`)
+
+The remaining sections apply only to the CLI, not MCP. In particular, the CLI integration's sharing requirements and API search limits do not establish MCP capabilities.
 
 Official Notion CLI. Docs: https://developers.notion.com/cli/get-started/overview.
-
-Use `ntn` for Notion operations, not the Notion MCP bridge. This skill owns Notion authentication and operations.
 
 ## What `ntn` is and is not
 
