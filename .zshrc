@@ -22,7 +22,7 @@ export LESS=-X
 alias vim='nvim'
 alias vimdiff='nvim -d'
 if [[ $OSTYPE == darwin* ]]; then
-  alias rebuild='sudo darwin-rebuild switch --flake ~/configs/macos\#liskov'
+  alias nix-rebuild='sudo darwin-rebuild switch --flake ~/configs/macos\#liskov'
   # Node comes from Nix (read-only); global npm packages (pi, codex) go to ~/.local
   export NPM_CONFIG_PREFIX=$HOME/.local
   alias ls='ls -GFv'
@@ -254,3 +254,7 @@ if (( $+commands[pi] )); then
 fi
 
 export PI_CLAUDE_CODE_PROVIDER_ACKNOWLEDGED_PLATFORM=linux/x64
+
+# >>> railway initialize >>>
+source "$HOME/.railway/env"
+# <<< railway initialize <<<

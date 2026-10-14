@@ -1,6 +1,6 @@
 [user]
     name = Miguel Filipe
-    email = miguel.filipe@gmail.com
+	email = miguel.filipe@gmail.com
 
 [alias]
     ci = commit
@@ -14,8 +14,8 @@
     poh = push origin HEAD --force-with-lease
     rbc = rebase --continue
     mgt = mergetool
-    rom = !git fetch && git rebase origin/main
-    rim = !git fetch && git rebase -i origin/main
+    rom = !git fetch && git rebase origin/master
+    rim = !git fetch && git rebase -i origin/master
     recent = for-each-ref --sort=-committerdate refs/heads/ --count=25 --format='%(color:red)%(objectname:short)%(color:reset) %(HEAD) %(color:yellow)%(refname:short)%(color:reset) (%(color:green)%(committerdate:relative)%(color:reset)) %(contents:subject)'
 
 [branch]
