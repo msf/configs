@@ -5,7 +5,7 @@
       "AskUserQuestion"
     ]
   },
-  "model": "opus[1m]",
+  "model": "sonnet",
   "deniedMcpServers": [
     {
       "serverName": "claude.ai Claude Docs"
@@ -134,7 +134,9 @@
       "effortLevel": "xhigh"
     }
   },
+  "tui": "fullscreen",
   "timeFormat": "24-hour",
+  "theme": "dark",
   "editorMode": "vim",
   "preferredNotifChannel": "notifications_disabled"
 }
