@@ -5,8 +5,9 @@ storage development. Lima is already in `darwin/packages.nix`. The VZ backend
 does not need host QEMU; QEMU for nested ARM guests is installed inside Ubuntu.
 
 The VM has 8 CPUs, 16 GiB RAM, a 128 GiB virtual disk, nested virtualization,
-and user `miguel` with home `/home/miguel`. It mounts no Mac directories and
-runs no container runtime. Source and build trees live on its Linux filesystem.
+and user `miguel` with home `/home/miguel`. It shares only the Mac directories
+listed below and runs no container runtime. Linux builds and test backing files
+remain on its native filesystem.
 The virtual disk grows as it is used; 128 GiB is its capacity, not reserved space.
 
 ## Coexistence with OrbStack
@@ -39,6 +40,19 @@ Inside Ubuntu, use `tmux` to keep editors and sessions alive across disconnects.
 Stop the VM from macOS with `limactl stop linux-dev`. Changes to the repository
 YAML do not update an existing instance automatically. Do not delete the instance
 to apply changes: its disk contains the checkout and other persistent work.
+
+## Shared folders
+
+Lima exposes these directories through virtiofs:
+
+| Mac directory | Ubuntu directory | Access |
+| --- | --- | --- |
+| `~/rlwy` | `/home/miguel/macos/rwly` | Read-only |
+| `~/Downloads` | `/home/miguel/macos/Downloads` | Read-write |
+
+Changes and deletions in the Downloads share affect the Mac directly. Use it for
+file transfer; keep builds and storage-test backing files on the guest disk.
+These mounts do not expose the Mac home directory or OrbStack's Docker socket.
 
 ## SSH and GitHub
 
