@@ -33,7 +33,7 @@
 
 [core]
     pager = delta
-    excludesfile = /Users/miguel/.gitignore
+    excludesfile = ~/.gitignore
 
 [delta]
     navigate = true

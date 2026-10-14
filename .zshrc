@@ -256,5 +256,5 @@ fi
 export PI_CLAUDE_CODE_PROVIDER_ACKNOWLEDGED_PLATFORM=linux/x64
 
 # >>> railway initialize >>>
-source "$HOME/.railway/env"
+[[ -r "$HOME/.railway/env" ]] && source "$HOME/.railway/env"
 # <<< railway initialize <<<

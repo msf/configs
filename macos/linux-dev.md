@@ -72,8 +72,9 @@ For a new instance, verify GitHub's host key before accepting it, then clone:
 git clone git@github.com:msf/configs.git ~/configs
 ```
 
-The clone does not copy the Mac checkout's uncommitted changes or deploy its
-dotfiles and agent resources. Do not run the legacy `install.py`.
+The clone does not copy the Mac checkout's uncommitted changes. Use the home
+setup below to deploy dotfiles and public agent resources. Do not run the legacy
+`install.py`.
 
 To check push negotiation without changing a remote branch, run inside the clone:
 
@@ -83,6 +84,57 @@ git push --dry-run origin HEAD
 
 A dry run checks access to GitHub's receive-pack service. It does not prove that
 branch rules will permit a particular future update.
+
+## Home environment
+
+Inside Ubuntu, run:
+
+```sh
+bash ~/configs/linux/setup-home.sh
+```
+
+This links the shared zsh prompt, aliases, Git settings, tmux configuration and
+Neovim configuration. It installs Neovim 0.12.5, Pi 1.1.0, uv 0.12.17, Rust,
+Go, editor tools and Ubuntu's Chromium snap. The browser profile lives under
+`~/snap/chromium/common/pi-profile`, linked from Pi's normal profile path, because
+Snap cannot write directly under `~/.pi`. Neovim plugins restore from
+`nvim/lazy-lock.json`. Replaced home files are backed up under
+`~/.local/state/home-setup/`. SSH files and credentials are not replaced.
+
+After installation, stop the VM and select zsh in Lima from macOS:
+
+```sh
+limactl stop linux-dev
+limactl edit --tty=false --shell=/usr/bin/zsh linux-dev
+limactl start linux-dev
+infocmp -x xterm-ghostty | limactl shell linux-dev -- tic -x -
+```
+
+The initial image uses bash because zsh is installed during provisioning.
+Changing the Linux login shell alone does not change Lima's shell setting.
+Ghostty terminfo is copied from the Mac, not replaced with `TERM=xterm-256color`.
+
+Start Pi inside Ubuntu and use `/login` for provider authentication. The public
+agent configuration is deployed through its manifest; `~/configs-private`,
+provider tokens, browser cookies and work integrations are not copied. The
+Mac-local LLM at `127.0.0.1:8090` is not exposed to the guest.
+
+Run the agent checks inside Ubuntu:
+
+```sh
+~/configs/ai-agents/tools/apply.sh --verify
+uv run --quiet ~/.agents/skills/pi-skill-import/scripts/audit.py
+```
+
+These checks are not fully green on a public-only, unauthenticated installation:
+the manifest verifier reports absent private resources and optional lean-profile
+state; the audit reports the absent private lessons journal and unavailable
+provider models. Do not copy secrets or create placeholder files to silence them.
+
+Verified on 2026-10-14: default Lima zsh login, shared prompt and aliases, tmux
+options and key bindings, Neovim startup and pinned plugins, rust-analyzer
+initialization, Chromium HTTPS rendering with Pi's persistent profile, and a
+repeated bootstrap without additional dotfile backups.
 
 ## Storage testing
 
