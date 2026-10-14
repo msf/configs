@@ -64,6 +64,27 @@ macOS offers no setting for window corner radius.
 - Ghostty: grant Developer Tools only if needed.
 - Do not grant Full Disk Access broadly.
 
+### Desktop and window shortcuts
+
+Bindings live in `darwin/defaults.nix`. After applying, restart Rectangle and
+log out/in if macOS has not reloaded the desktop shortcuts.
+
+| Shortcut | Action |
+| --- | --- |
+| Ctrl + 1–9 | Switch to desktop 1–9 |
+| Ctrl + Left / Right | Previous / next desktop |
+| Ctrl + Option + 1 / 2 / 3 | Left / middle / right third (full height on landscape displays) |
+| Ctrl + Option + 4 / 5 | Left / right two-thirds |
+| Ctrl + Option + arrows | Left / right / top / bottom half |
+| Ctrl + Option + Return | Maximize without entering a fullscreen Space |
+| Ctrl + Option + Shift + Left / Right | Move window to previous / next monitor |
+
+Create desktops in Mission Control with **+**; number shortcuts do not create them.
+Desktop order is fixed (`mru-spaces = false`). With separate Spaces per display,
+macOS numbers desktops across displays, unlike Sway's workspaces.
+Cmd + numbers stays available to apps. Sway's Shift + number to send a window to a
+workspace has no native macOS/Rectangle equivalent.
+
 ## 7. Git over SSH
 
 After step 3, add `~/.ssh/id_ed25519.pub` to GitHub if it is not there, then:

@@ -1,0 +1,10 @@
+DESKTOPS
+Ctrl + 1-9                  Go to desktop
+Ctrl + Left/Right           Previous/next desktop
+
+WINDOWS  (Ctrl + Option + ...)
+1 / 2 / 3                   Left / middle / right third
+4 / 5                       Left / right two-thirds
+Arrows                      Half screen in that direction
+Return                      Maximize
+Shift + Left/Right          Move to previous/next monitor

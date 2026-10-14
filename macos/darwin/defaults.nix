@@ -20,12 +20,39 @@
       { HIDKeyboardModifierMappingSrc = 30064771302; HIDKeyboardModifierMappingDst = 30064771303; }
       { HIDKeyboardModifierMappingSrc = 30064771303; HIDKeyboardModifierMappingDst = 30064771302; }
     ];
+    spaceShortcut = character: keyCode: lib.escapeShellArg (lib.generators.toPlist { escape = true; } {
+      enabled = true;
+      value = {
+        type = "standard";
+        # NSEvent Control modifier (0x40000); 65535 means no printable character.
+        parameters = [ character keyCode 262144 ];
+      };
+    });
   in ''
     /usr/bin/sudo -H -u ${lib.escapeShellArg config.system.primaryUser} \
       /usr/bin/defaults -currentHost write -g \
       com.apple.keyboard.modifiermapping.26980-128-0 \
       ${lib.escapeShellArg (lib.generators.toPlist { escape = true; } id80ModifierMapping)}
+
+    # Merge Mission Control bindings without replacing unrelated system shortcuts.
+    # Symbolic hotkey IDs: 79/81 = left/right; 118–126 = desktops 1–9.
+    /usr/bin/sudo -H -u ${lib.escapeShellArg config.system.primaryUser} \
+      /usr/bin/defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add \
+      79 ${spaceShortcut 65535 123} \
+      81 ${spaceShortcut 65535 124} \
+      118 ${spaceShortcut 49 18} \
+      119 ${spaceShortcut 50 19} \
+      120 ${spaceShortcut 51 20} \
+      121 ${spaceShortcut 52 21} \
+      122 ${spaceShortcut 53 23} \
+      123 ${spaceShortcut 54 22} \
+      124 ${spaceShortcut 55 26} \
+      125 ${spaceShortcut 56 28} \
+      126 ${spaceShortcut 57 25}
   '';
+
+  # minutes until the display turns off (battery was 2, AC 10)
+  power.sleep.display = 15;
 
   system.defaults = {
     NSGlobalDomain = {
@@ -119,7 +146,10 @@
       disable-shadow = true;
     };
 
+    spaces.spans-displays = false;
+
     controlcenter.BatteryShowPercentage = true;
+    controlcenter.Sound = true;
     loginwindow.GuestEnabled = false;
 
     CustomUserPreferences = {
@@ -140,6 +170,20 @@
       "com.knollsoft.Rectangle" = {
         launchOnLogin = true;
         gapSize = 5;
+        alternateDefaultShortcuts = true;
+        # NSEvent Control+Option = 0xC0000; adding Shift = 0xE0000.
+        leftHalf = { keyCode = 123; modifierFlags = 786432; };
+        rightHalf = { keyCode = 124; modifierFlags = 786432; };
+        topHalf = { keyCode = 126; modifierFlags = 786432; };
+        bottomHalf = { keyCode = 125; modifierFlags = 786432; };
+        maximize = { keyCode = 36; modifierFlags = 786432; };
+        firstThird = { keyCode = 18; modifierFlags = 786432; };
+        centerThird = { keyCode = 19; modifierFlags = 786432; };
+        lastThird = { keyCode = 20; modifierFlags = 786432; };
+        firstTwoThirds = { keyCode = 21; modifierFlags = 786432; };
+        lastTwoThirds = { keyCode = 23; modifierFlags = 786432; };
+        previousDisplay = { keyCode = 123; modifierFlags = 917504; };
+        nextDisplay = { keyCode = 124; modifierFlags = 917504; };
       };
       # Photos does not open when a device is plugged in
       "com.apple.ImageCapture".disableHotPlug = true;
