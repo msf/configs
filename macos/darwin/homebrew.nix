@@ -1,6 +1,6 @@
 { ... }:
 
-# GUI applications through the existing /opt/homebrew installation.
+# Homebrew packages through the existing /opt/homebrew installation.
 #
 # Installed manually before this configuration, adopted as-is and not
 # re-declared (Homebrew refuses to overwrite an existing app):
@@ -15,12 +15,19 @@
       cleanup = "none";
     };
 
+    brews = [ "pgcli" ];
+
     casks = [
-      "ghostty"
-      "kitty"
-      "visual-studio-code"
+      "1password"
       "discord"
+      "ghostty"
+      "gimp"
+      "kitty"
+      "localsend"
+      "obsidian"
       "rectangle"
+      "stats"
+      "visual-studio-code"
     ];
   };
 }
