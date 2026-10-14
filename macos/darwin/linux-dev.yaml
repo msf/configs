@@ -1,0 +1,47 @@
+# Create: limactl start --name=linux-dev ~/configs/macos/darwin/linux-dev.yaml
+# Enter: limactl shell linux-dev
+minimumLimaVersion: 2.2.0
+base:
+  - template:_images/ubuntu-26.04
+vmType: vz
+arch: aarch64
+cpus: 8
+memory: 16GiB
+disk: 128GiB
+nestedVirtualization: true
+
+user:
+  name: miguel
+  home: /home/miguel
+  shell: /bin/bash
+
+# Keep source, credentials and test disks off macOS shared filesystems.
+mounts: []
+networks: []
+# Leave localhost service ports to OrbStack. Lima's dynamic SSH port is separate.
+portForwards:
+  - guestIP: 0.0.0.0
+    guestIPMustBeZero: false
+    guestPortRange: [1, 65535]
+    proto: any
+    ignore: true
+containerd:
+  system: false
+  user: false
+ssh:
+  loadDotSSHPubKeys: false
+  forwardAgent: true
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update -qq
+      apt-get install -y --no-install-recommends \
+        ca-certificates curl git gh openssh-client rsync \
+        tmux neovim zsh ripgrep fd-find jq \
+        build-essential pkg-config \
+        qemu-system-arm qemu-utils
+      usermod -aG kvm miguel

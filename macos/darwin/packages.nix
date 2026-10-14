@@ -52,9 +52,11 @@
     zstd
     weechat
 
-    # containers (stage 4: configured, not yet started)
-    colima
+    # Linux VMs (VZ does not require host QEMU)
     lima
+
+    # containers (separate from the Linux development VM)
+    colima
     docker-client
     docker-compose
   ];

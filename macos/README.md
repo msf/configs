@@ -180,6 +180,9 @@ Server snapshots/backups remain necessary: synchronization also propagates mista
 
 ## Linux VM and storage work
 
+The [Ubuntu development VM](linux-dev.md) uses `darwin/linux-dev.yaml` with Lima's
+VZ backend and nested virtualization. Its home directory is `/home/miguel`.
+
 Keep the Linux development VM separate from Colima. Kernel crashes must not take
 down the everyday container environment. Keep Linux source/build trees inside the
 guest filesystem and connect through SSH or VS Code Remote SSH.
