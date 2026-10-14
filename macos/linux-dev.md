@@ -100,6 +100,8 @@ Go, editor tools and Ubuntu's Chromium snap. The browser profile lives under
 Snap cannot write directly under `~/.pi`. Neovim plugins restore from
 `nvim/lazy-lock.json`. Replaced home files are backed up under
 `~/.local/state/home-setup/`. SSH files and credentials are not replaced.
+Zsh loads the repository through `~/.config/zsh/home-setup.zsh`; Lima can append
+its boot-time PATH block there without modifying the Git checkout.
 
 After installation, stop the VM and select zsh in Lima from macOS:
 

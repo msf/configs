@@ -74,7 +74,14 @@ install_archive uv-0.12.17 \
 link "$HOME/.local/opt/uv-0.12.17/uvx" "$HOME/.local/bin/uvx"
 link /usr/bin/fdfind "$HOME/.local/bin/fd"
 
-for path in .zshrc .zsh_prompt .gitconfig .gitignore .tmux.conf; do
+# Lima appends to .zshrc on boot; keep those writes out of the Git checkout.
+zsh_wrapper="$HOME/.config/zsh/home-setup.zsh"
+if [[ ! -e $zsh_wrapper ]]; then
+	mkdir -p "$(dirname "$zsh_wrapper")"
+	printf 'source "%s/.zshrc"\n' "$repo" >"$zsh_wrapper"
+fi
+link "$zsh_wrapper" "$HOME/.zshrc"
+for path in .zsh_prompt .gitconfig .gitignore .tmux.conf; do
 	link "$repo/$path" "$HOME/$path"
 done
 link "$repo/nvim" "$HOME/.config/nvim"
