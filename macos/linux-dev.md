@@ -116,10 +116,29 @@ The initial image uses bash because zsh is installed during provisioning.
 Changing the Linux login shell alone does not change Lima's shell setting.
 Ghostty terminfo is copied from the Mac, not replaced with `TERM=xterm-256color`.
 
-Start Pi inside Ubuntu and use `/login` for provider authentication. The public
-agent configuration is deployed through its manifest; `~/configs-private`,
-provider tokens, browser cookies and work integrations are not copied. The
-Mac-local LLM at `127.0.0.1:8090` is not exposed to the guest.
+Authenticate on macOS with Pi's `/login` or `/mcp login <server>`. Stop Pi
+sessions in the VM, then copy the main profile's credential stores from macOS:
+
+```sh
+bash ~/configs/macos/sync-pi-auth.sh
+```
+
+The script copies `~/.pi/agent/{auth,mcp-auth}.json` over SSH to `linux-dev`.
+Pass another Lima instance name as its only argument if needed. It validates
+JSON, replaces each guest file atomically with mode `0600`, and does not print
+credentials. Missing source files leave the corresponding guest files unchanged.
+Existing stores are replaced, not merged. Restart guest Pi sessions afterwards.
+
+Repeat after re-authenticating on the Mac. OAuth refresh-token rotation can make
+one copy stale when the other refreshes; these are copies of the same credentials,
+not independent logins. External keychain commands and environment secrets are
+not transferred.
+
+MCP credentials require the same server names and URLs in the guest's MCP
+configuration. This script copies neither server definitions nor browser cookies.
+The public agent configuration is deployed through its manifest;
+`~/configs-private` and work integrations remain separate. The Mac-local LLM at
+`127.0.0.1:8090` is not exposed to the guest.
 
 Run the agent checks inside Ubuntu:
 
@@ -128,10 +147,11 @@ Run the agent checks inside Ubuntu:
 uv run --quiet ~/.agents/skills/pi-skill-import/scripts/audit.py
 ```
 
-These checks are not fully green on a public-only, unauthenticated installation:
-the manifest verifier reports absent private resources and optional lean-profile
-state; the audit reports the absent private lessons journal and unavailable
-provider models. Do not copy secrets or create placeholder files to silence them.
+The initial public-only bootstrap did not pass these checks: the manifest
+verifier reported absent private resources and optional lean-profile state;
+the audit reported the absent private lessons journal and unavailable provider
+models. Recheck model availability after syncing auth. Do not create placeholder
+files or copy unrelated secrets merely to silence these checks.
 
 Verified on 2026-10-14: default Lima zsh login, shared prompt and aliases, tmux
 options and key bindings, Neovim startup and pinned plugins, rust-analyzer
