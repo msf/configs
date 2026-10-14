@@ -34,6 +34,10 @@ function resolveBrowserExecutable(): string {
   const explicitCandidates = [
     process.env.PI_BROWSER_EXECUTABLE,
     process.env.BROWSER_READ_EXECUTABLE,
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    join(homeDir, "Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    join(homeDir, "Applications/Chromium.app/Contents/MacOS/Chromium"),
     "/usr/bin/google-chrome-stable",
     "/usr/bin/google-chrome",
     "/snap/bin/chromium",
