@@ -109,6 +109,12 @@ Pi extensions execute with full user permissions. Direct dependencies are exact-
 
 `install-extensions.sh` uses `npm ci --omit=dev --ignore-scripts`, verifies lockfile integrity, and audits npm signatures.
 
+### Browser reader
+
+`browser-read` shares one persistent profile across Pi sessions. It uses kernel file locks (`/usr/bin/lockf` on macOS, `flock` from util-linux on Linux), with a 30-second wait limit. Closing the last `/browser-login` window quits the dedicated Chrome instance, including on macOS. Never delete `SingletonLock` while its Chrome process is running.
+
+Run `npm --prefix ~/.pi/agent/extensions/browser-read test`. To include real-browser lifecycle tests, set `PI_BROWSER_EXECUTABLE` to Chrome's executable path. These tests open temporary profiles and a headed window; they do not use your normal Chrome profile.
+
 ## Not tracked
 
 - Pi credentials, trust decisions, sessions, generated model stores, browser profiles, package checkouts, and caches.

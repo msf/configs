@@ -6,27 +6,20 @@ import {
   truncateHead,
 } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
-import { chromium } from "playwright-core";
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import { classifyPageFailure } from "./page-classification.ts";
+import { BrowserSession, waitForLastWindow } from "./browser-session.ts";
 
 const homeDir = process.env.HOME ?? ".";
 const browserRootDir = resolve(homeDir, ".pi/agent/browser-read");
 const browserProfileDir = join(browserRootDir, "profile");
 const browserArtifactRootDir = join(browserRootDir, "artifacts");
 
-let browserQueue: Promise<void> = Promise.resolve();
 let cachedBrowserExecutable: string | undefined;
-
-function withBrowserLock<T>(fn: () => Promise<T>): Promise<T> {
-  const next = browserQueue.then(() => fn(), () => fn());
-  browserQueue = next.then(() => undefined, () => undefined);
-  return next;
-}
 
 function resolveBrowserExecutable(): string {
   if (cachedBrowserExecutable) return cachedBrowserExecutable;
@@ -86,39 +79,33 @@ function makeArtifactDirName(): string {
   return `${timestamp}-${randomUUID().slice(0, 8)}`;
 }
 
-async function openPersistentBrowser(url: string): Promise<{ browserExecutable: string; profileDir: string }> {
+async function openPersistentBrowser(
+  browser: BrowserSession,
+  url: string,
+): Promise<{ browserExecutable: string; profileDir: string }> {
   const browserExecutable = resolveBrowserExecutable();
-  await mkdir(browserProfileDir, { recursive: true });
-
-  const context = await chromium.launchPersistentContext(browserProfileDir, {
+  await browser.run({
     executablePath: browserExecutable,
     headless: false,
     viewport: { width: 1440, height: 1600 },
-  });
-
-  try {
+  }, async (context) => {
     const page = context.pages()[0] ?? await context.newPage();
+    // On macOS the app stays running after the last window closes.
+    const windowsClosed = waitForLastWindow(context);
     if (url !== "about:blank") {
+      // Login is interactive; a failed initial navigation must not close its window.
       await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 }).catch(() => undefined);
     }
-
-    await new Promise<void>((resolve) => {
-      context.once("close", () => resolve());
-    });
-  } finally {
-    if (context.browser()?.isConnected()) {
-      await context.close().catch(() => undefined);
-    }
-  }
-
+    await windowsClosed;
+  });
   return { browserExecutable, profileDir: browserProfileDir };
 }
 
-async function readRenderedPage(params: {
+async function readRenderedPage(browser: BrowserSession, params: {
   url: string;
   timeoutMs: number;
   saveScreenshot: boolean;
-}): Promise<{
+}, signal?: AbortSignal): Promise<{
   title: string;
   finalUrl: string;
   responseStatus?: number;
@@ -137,13 +124,11 @@ async function readRenderedPage(params: {
   const artifactDir = join(browserArtifactRootDir, makeArtifactDirName());
   await mkdir(artifactDir, { recursive: true });
 
-  const context = await chromium.launchPersistentContext(browserProfileDir, {
+  return browser.run({
     executablePath: browserExecutable,
     headless: true,
     viewport: { width: 1440, height: 2000 },
-  });
-
-  try {
+  }, async (context) => {
     const page = context.pages()[0] ?? await context.newPage();
     const response = await page.goto(params.url, {
       waitUntil: "domcontentloaded",
@@ -198,12 +183,12 @@ async function readRenderedPage(params: {
       htmlPath,
       screenshotPath,
     };
-  } finally {
-    await context.close().catch(() => undefined);
-  }
+  }, signal);
 }
 
 export default function (pi: ExtensionAPI) {
+  const browser = new BrowserSession(browserProfileDir);
+  pi.on("session_shutdown", () => browser.close());
   pi.registerCommand("browser-login", {
     description: "Open a real browser with the persistent browser-read profile so you can solve CAPTCHA/login/consent manually",
     handler: async (args, ctx) => {
@@ -217,7 +202,7 @@ export default function (pi: ExtensionAPI) {
         );
       }
 
-      const result = await withBrowserLock(() => openPersistentBrowser(normalizedUrl));
+      const result = await openPersistentBrowser(browser, normalizedUrl);
 
       if (ctx.hasUI) {
         ctx.ui.notify(
@@ -250,7 +235,7 @@ export default function (pi: ExtensionAPI) {
         description: "Save a screenshot artifact alongside the extracted text",
       })),
     }),
-    async execute(_toolCallId, params, _signal, onUpdate) {
+    async execute(_toolCallId, params, signal, onUpdate) {
       const normalizedUrl = parseHttpUrl(params.url).toString();
       const timeoutMs = params.timeoutMs ?? 30000;
       const saveScreenshot = params.saveScreenshot ?? false;
@@ -260,11 +245,11 @@ export default function (pi: ExtensionAPI) {
         details: {},
       });
 
-      const result = await withBrowserLock(() => readRenderedPage({
+      const result = await readRenderedPage(browser, {
         url: normalizedUrl,
         timeoutMs,
         saveScreenshot,
-      }));
+      }, signal);
 
       const truncated = truncateHead(result.text, {
         maxBytes: DEFAULT_MAX_BYTES,

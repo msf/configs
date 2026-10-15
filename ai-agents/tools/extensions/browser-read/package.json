@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test page-classification.test.ts"
+    "test": "node --test *.test.ts"
   },
   "dependencies": {
     "@sinclair/typebox": "0.34.49",
