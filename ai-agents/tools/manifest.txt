@@ -119,3 +119,4 @@ pmirror .pi/agent/mcp.json
 home    .pi/agent-lean/mcp.json                  .pi/agent/mcp.json
 pmirror rlwy/.pi/mcp.json
 pmirror rlwy/AGENTS.md
+pskill  my-daily-wrap
