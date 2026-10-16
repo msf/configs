@@ -16,7 +16,7 @@
       }
     },
     "local": {
-      "baseUrl": "http://localhost:8090/v1",
+      "baseUrl": "http://127.0.0.1:8090/v1",
       "api": "openai-completions",
       "apiKey": "llama-swap",
       "compat": {
