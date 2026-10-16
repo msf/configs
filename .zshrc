@@ -23,6 +23,8 @@ alias vim='nvim'
 alias vimdiff='nvim -d'
 if [[ $OSTYPE == darwin* ]]; then
   alias nix-rebuild='sudo darwin-rebuild switch --flake ~/configs/macos\#liskov'
+  alias linux='limactl shell linux-dev'
+  alias shlinux='limactl shell linux-dev'
   # Node comes from Nix (read-only); global npm packages (pi, codex) go to ~/.local
   export NPM_CONFIG_PREFIX=$HOME/.local
   alias ls='ls -GFv'
