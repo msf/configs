@@ -15,13 +15,18 @@
       cleanup = "none";
     };
 
-    brews = [ "pgcli" ];
+    brews = [
+      "ffmpeg"
+      "pgcli"
+      "yt-dlp"
+    ];
 
     casks = [
       "1password"
       "discord"
       "ghostty"
       "gimp"
+      "iina"
       "kitty"
       "localsend"
       "obsidian"
