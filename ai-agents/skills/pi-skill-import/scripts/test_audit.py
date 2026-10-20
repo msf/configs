@@ -64,6 +64,28 @@ class AuditTest(unittest.TestCase):
             self.assertEqual(result.errors, [])
             self.assertEqual((result.skill_count, result.agent_count), (1, 1))
 
+    def test_snapshot_source_home_is_explicit_and_checked(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            home, public, live = self.make_home(Path(directory))
+            source_home = home / ".local/state/pi-config-sync/current"
+            snapshot = source_home / "configs/ai-agents"
+            snapshot.parent.mkdir(parents=True)
+            public.rename(snapshot)
+            for link in live.rglob("*"):
+                if link.is_symlink():
+                    relative = link.readlink().relative_to(public)
+                    link.unlink()
+                    link.symlink_to(snapshot / relative)
+
+            result = run_audit(home, validate=False, model_check=False, source_home=source_home)
+            self.assertEqual(result.errors, [])
+            result = run_audit(home, validate=False, model_check=False)
+            self.assertTrue(any("outside owned roots" in error for error in result.errors))
+            (live / "extensions/example").unlink()
+            (live / "extensions/example").symlink_to(source_home / "unowned")
+            result = run_audit(home, validate=False, model_check=False, source_home=source_home)
+            self.assertTrue(any("dangling" in error for error in result.errors))
+
     def test_lesson_journal_is_optional_and_must_not_be_managed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             home, public, live = self.make_home(Path(directory))

@@ -189,8 +189,8 @@ def model_id(value: str) -> str:
     return parts[0] if len(parts) == 2 and parts[1] in THINKING_LEVELS else value
 
 
-def manifest_targets(home: Path) -> tuple[dict[str, Path], list[str]]:
-    manifest = home / "configs/ai-agents/tools/manifest.txt"
+def manifest_targets(home: Path, source_home: Path) -> tuple[dict[str, Path], list[str]]:
+    manifest = source_home / "configs/ai-agents/tools/manifest.txt"
     if not manifest.is_file():
         return {}, [f"missing agent-config manifest: {manifest}"]
 
@@ -211,19 +211,19 @@ def manifest_targets(home: Path) -> tuple[dict[str, Path], list[str]]:
                 if shared_path in targets:
                     errors.append(f"duplicate manifest path: {shared_path}")
                     continue
-                targets[shared_path] = home / source_root / path
+                targets[shared_path] = source_home / source_root / path
             continue
         if path in targets:
             errors.append(f"duplicate manifest path: {path}")
             continue
         if kind == "mirror":
-            target = home / "configs/ai-agents/home" / path
+            target = source_home / "configs/ai-agents/home" / path
         elif kind == "pmirror":
-            target = home / "configs-private/home" / path
+            target = source_home / "configs-private/home" / path
         elif kind == "repo" and len(arguments) == 1:
-            target = home / "configs" / arguments[0]
+            target = source_home / "configs" / arguments[0]
         elif kind == "prepo" and len(arguments) == 1:
-            target = home / "configs-private" / arguments[0]
+            target = source_home / "configs-private" / arguments[0]
         elif kind == "home" and len(arguments) == 1:
             target = home / arguments[0]
         else:
@@ -292,13 +292,15 @@ def run_audit(
     *,
     validate: bool,
     model_check: bool,
+    source_home: Path | None = None,
 ) -> AuditResult:
+    source_home = source_home or home
     live_root = home / ".pi/agent"
     live_skills = live_root / "skills"
     live_agents = live_root / "agents"
     settings_path = live_root / "settings.json"
-    public_root = home / "configs/ai-agents"
-    private_root = home / "configs-private"
+    public_root = source_home / "configs/ai-agents"
+    private_root = source_home / "configs-private"
     owned_roots = [public_root, private_root]
     owned_skill_roots = [public_root / "skills", private_root / "skills"]
     owned_agent_roots = [public_root / "agents/pi", private_root / "agents/pi"]
@@ -308,7 +310,7 @@ def run_audit(
 
     errors: list[str] = []
     warnings: list[str] = []
-    targets, manifest_errors = manifest_targets(home)
+    targets, manifest_errors = manifest_targets(home, source_home)
     errors.extend(manifest_errors)
     if not settings_path.is_file():
         errors.append(f"missing Pi settings: {settings_path}")
@@ -483,6 +485,7 @@ def run_audit(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--home", type=Path, default=Path.home())
+    parser.add_argument("--source-home", type=Path, help="Root containing deployed configs/ and configs-private/")
     parser.add_argument("--no-validate", action="store_true")
     parser.add_argument("--no-model-check", action="store_true")
     args = parser.parse_args()
@@ -491,6 +494,7 @@ def main() -> None:
         args.home.resolve(),
         validate=not args.no_validate,
         model_check=not args.no_model_check,
+        source_home=args.source_home.resolve() if args.source_home else None,
     )
     print(f"skills={result.skill_count} agents={result.agent_count}")
     for warning in result.warnings:

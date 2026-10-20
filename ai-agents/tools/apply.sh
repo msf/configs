@@ -9,14 +9,17 @@
 #   tools/apply.sh                  # apply
 #   tools/apply.sh --dry-run        # show what would happen, change nothing
 #   tools/apply.sh --verify         # print only mismatches (exit 1 if any)
+#   tools/apply.sh --pi             # main Pi profile and shared skills only
 set -euo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 MODE=apply
+PI_ONLY=0
 for arg in "$@"; do
 	case $arg in
 		--dry-run) DRY_RUN=1 ;;
 		--verify)  MODE=verify ;;
+		--pi)      PI_ONLY=1 ;;
 		-h|--help) sed -n '2,15p' "$0"; exit 0 ;;
 		*) die "unknown arg: $arg" ;;
 	esac
@@ -26,6 +29,9 @@ mismatches=0
 
 apply_one() {
 	local type=$1 path=$2 arg2=${3:-}
+	if [ "$PI_ONLY" = 1 ]; then
+		case "$path" in .pi/agent/*|.agents/skills/*) ;; *) return ;; esac
+	fi
 	local target h
 	target=$(resolve_target "$type" "$path" "$arg2")
 	h=$HOME/$path
@@ -73,16 +79,18 @@ apply_one() {
 
 foreach_manifest apply_one
 
-case $MODE in
-	verify) "$TOOLS_DIR/codex-config.sh" --verify ;;
-	apply)
-		if [ "$DRY_RUN" = 1 ]; then
-			"$TOOLS_DIR/codex-config.sh" --dry-run
-		else
-			"$TOOLS_DIR/codex-config.sh"
-		fi
-		;;
-esac
+if [ "$PI_ONLY" = 0 ]; then
+	case $MODE in
+		verify) "$TOOLS_DIR/codex-config.sh" --verify ;;
+		apply)
+			if [ "$DRY_RUN" = 1 ]; then
+				"$TOOLS_DIR/codex-config.sh" --dry-run
+			else
+				"$TOOLS_DIR/codex-config.sh"
+			fi
+			;;
+	esac
+fi
 
 if [ "$MODE" = verify ]; then
 	[ "$mismatches" -eq 0 ] || exit 1

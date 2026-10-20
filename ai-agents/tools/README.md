@@ -84,6 +84,7 @@ Without the private clone, `apply.sh` skips unavailable private entries; public 
 - Add a resource with `tools/track.sh <live-path>`; add `--private` for internal content. Skills under Pi, Claude, or Codex's Agent Skills root, plus Pi agents, prompts, extensions, and wrappers, are routed to their canonical top-level directories automatically. Lesson journals stay machine-local; `track.sh` refuses them.
 - Preview projection changes with `tools/apply.sh --dry-run`.
 - Verify with `tools/apply.sh --verify`; Pi resources must also pass `uv run --quiet ~/.agents/skills/pi-skill-import/scripts/audit.py`.
+- `apply.sh --pi` limits deployment/verification to the main Pi profile and shared skills; it skips Claude/Codex-specific projections and Pi-lean settings. Harnesses that read shared skills or alias main-profile resources still see those changes. The Lima sync script (`../../macos/sync-pi-config.sh`) deploys a manifest-selected snapshot without changing guest checkouts. Audit that layout with `audit.py --source-home <snapshot-root>`; the normal default remains `$HOME`.
 - If `~/.codex/config.toml` already defines `project_doc_fallback_filenames`, add `CLAUDE.md` to that list manually; the tooling refuses to overwrite existing fallback choices.
 - Recover clobbered live links with `tools/checkpoint.sh --dry-run`, then checkpoint and apply deliberately.
 

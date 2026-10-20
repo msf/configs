@@ -176,16 +176,53 @@ not independent logins. External keychain commands and environment secrets are
 not transferred.
 
 MCP credentials require the same server names and URLs in the guest's MCP
-configuration. This script copies neither server definitions nor browser cookies.
-The public agent configuration is deployed through its manifest;
-`~/configs-private` and work integrations remain separate.
+configuration. The auth script copies neither server definitions nor browser cookies.
+
+### Sync Pi configuration
+
+Stop guest Pi sessions, then run on macOS whenever the configuration changes:
+
+```sh
+bash ~/configs/macos/sync-pi-config.sh
+```
+
+Pass another Lima instance name as the only argument if needed. This is a one-way
+sync of the manifest-managed **main profile**: settings, models, instructions,
+shared/Pi-only skills, agents, prompts, extensions and MCP server definitions.
+It includes selected private resources when declared in the Mac's manifest, not
+an entire private checkout. Missing declared sources fail before deployment.
+
+The guest deployment lives under `~/.local/state/pi-config-sync/current/`;
+`previous/` retains one older snapshot. The script uses the manifest tools to
+link resources from that deployment and leaves both guest Git checkouts untouched.
+Mac home paths in JSON become guest home paths. The guest's existing local-model
+URL is preserved; fresh installs translate Mac loopback to `host.lima.internal`.
+Extension dependencies are rebuilt on Linux with lifecycle scripts disabled;
+Pi packages are reconciled with `pi update --extensions` (logs in the state directory).
+A package-update failure is reported after configuration deployment, not rolled back.
+
+Repeat runs replace snapshot-managed content and remove its obsolete dangling
+links, but preserve guest-only resources. Credentials, sessions, browser profiles,
+lessons, trust state, Pi itself, other harness-specific configuration and lean
+settings are not synced. Shared skills and aliases into the main profile still
+reflect its updates. Use the auth script separately. Restart guest Pi after syncing. No scheduler is
+installed; run the script periodically yourself, with the VM running and Pi stopped.
+
+Verify the deployed snapshot inside Ubuntu rather than the untouched checkout:
+
+```sh
+state="$HOME/.local/state/pi-config-sync/current"
+PRIVATE_DIR="$state/configs-private" bash "$state/configs/ai-agents/tools/apply.sh" --pi --verify
+uv run --quiet ~/.agents/skills/pi-skill-import/scripts/audit.py --source-home "$state"
+```
 
 ### Mac-local Qwen from Ubuntu
 
 The guest's main and lean Pi profiles use
 `http://host.lima.internal:8090/v1` for the `local` provider. The Mac profiles
 keep `http://localhost:8090/v1`. This guest-specific change lives in the guest's
-config checkout; preserve it when updating that checkout. For a new guest, change
+config checkout until snapshot sync is used; preserve it when updating that checkout.
+The sync script preserves this URL in the deployed snapshot. For a new guest, change
 only `providers.local.baseUrl` through `~/.pi/agent/models.json` and
 `~/.pi/agent-lean/models.json` to the guest URL.
 
