@@ -35,7 +35,8 @@
       "source": "npm:@narumitw/pi-goal@0.54.4",
       "extensions": []
     },
-    "npm:pi-claude-bridge"
+    "npm:pi-claude-bridge",
+    "npm:pi-subagent-manager"
   ],
   "modelThinkingLevels": {
     "anthropic/claude-fable-5-1": "high",
