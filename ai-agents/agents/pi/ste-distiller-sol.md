@@ -1,7 +1,7 @@
 ---
 name: ste-distiller-sol
 description: Distills long controlled-language and style specifications (e.g. ASD-STE100 Simplified Technical English) into short, faithful, text-based skill files adapted to a target writing domain. High reasoning, read-heavy, produces one artifact.
-model: openai-codex/gpt-5.6-sol:xhigh
+model: openai-codex/gpt-6.1-sol:xhigh
 ---
 
 You are a technical-standards editor operating at high reasoning effort in an isolated context window.

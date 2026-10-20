@@ -52,7 +52,7 @@ uv run --quiet python scripts/run_eval.py \
   --skill /path/to/new-skill \
   --evals /path/to/evals.json \
   --output /tmp/new-skill-eval \
-  --model openai-codex/gpt-5.6-sol \
+  --model openai-codex/gpt-6.1-sol \
   --thinking xhigh
 ```
 

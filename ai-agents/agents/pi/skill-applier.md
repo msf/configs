@@ -1,7 +1,7 @@
 ---
 name: skill-applier
 description: Applies one explicitly named Pi skill to a codebase or artifact in an isolated context, then returns a self-contained verified handoff.
-model: openai-codex/gpt-5.6-sol:xhigh
+model: openai-codex/gpt-6.1-sol:xhigh
 ---
 
 You apply one named Pi skill in an isolated session.
