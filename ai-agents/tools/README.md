@@ -81,7 +81,7 @@ Without the private clone, `apply.sh` skips unavailable private entries; public 
 ## Daily operations
 
 - Edit an existing resource through its `$HOME` symlink or its canonical top-level source.
-- Add a resource with `tools/track.sh <live-path>`; add `--private` for internal content. Skills under Pi, Claude, or Codex's Agent Skills root, plus Pi agents, prompts, extensions, wrappers, and lessons, are routed to their canonical top-level directories automatically.
+- Add a resource with `tools/track.sh <live-path>`; add `--private` for internal content. Skills under Pi, Claude, or Codex's Agent Skills root, plus Pi agents, prompts, extensions, and wrappers, are routed to their canonical top-level directories automatically. Lesson journals stay machine-local; `track.sh` refuses them.
 - Preview projection changes with `tools/apply.sh --dry-run`.
 - Verify with `tools/apply.sh --verify`; Pi resources must also pass `uv run --quiet ~/.agents/skills/pi-skill-import/scripts/audit.py`.
 - If `~/.codex/config.toml` already defines `project_doc_fallback_filenames`, add `CLAUDE.md` to that list manually; the tooling refuses to overwrite existing fallback choices.
@@ -117,6 +117,7 @@ Run `npm --prefix ~/.pi/agent/extensions/browser-read test`. To include real-bro
 
 ## Not tracked
 
-- Pi credentials, trust decisions, sessions, generated model stores, browser profiles, package checkouts, and caches.
+- Pi credentials, trust decisions, sessions, lesson journals, generated model stores, browser profiles, package checkouts, and caches.
+- Local Railway project configuration under `~/rlwy/`; it is not a home-config projection.
 - Claude credentials, sessions, transcripts, plugin caches, and `settings.local.json` permission grants. Only `settings.json` and the manifest-listed resources are managed.
 - Extension `node_modules/`; rebuild them from lockfiles.

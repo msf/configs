@@ -23,7 +23,7 @@ Managed source and deployment:
 
 Read the tools README and manifest before changing harness configuration. The manifest is the deployment source of truth; ownership in a repository without a manifest entry is incomplete.
 
-Everything else under a harness config root is machine state, not a manifest entry: credentials, sessions, transcripts, permission history, trust decisions, caches, and generated model catalogs.
+Everything else under a harness config root is machine state, not a manifest entry: credentials, sessions, transcripts, lesson journals, permission history, trust decisions, caches, and generated model catalogs. Keep lesson journals out of Git.
 
 Read-only upstreams unless the user separately asks to change them:
 

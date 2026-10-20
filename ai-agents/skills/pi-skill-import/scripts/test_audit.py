@@ -39,10 +39,9 @@ class AuditTest(unittest.TestCase):
         (public / "tools/extensions/example/index.ts").write_text("export default function () {}\n")
         (public / "home/.pi/agent/settings.json").write_text("{}\n")
         (public / "AGENTS.md").write_text("# Agents\n")
-        (private / "lessons.md").write_text("# Lessons\n")
+        (live / "lessons.md").write_text("# Local lessons\n")
         (public / "tools/manifest.txt").write_text(
             "repo .pi/agent/AGENTS.md ai-agents/AGENTS.md\n"
-            "prepo .pi/agent/lessons.md lessons.md\n"
             "mirror .pi/agent/settings.json\n"
             "repo .pi/agent/skills/good ai-agents/skills/good\n"
             "repo .pi/agent/agents/worker.md ai-agents/agents/pi/worker.md\n"
@@ -56,7 +55,6 @@ class AuditTest(unittest.TestCase):
         (live / "extensions/example").symlink_to(public / "tools/extensions/example", target_is_directory=True)
         (live / "settings.json").symlink_to(public / "home/.pi/agent/settings.json")
         (live / "AGENTS.md").symlink_to(public / "AGENTS.md")
-        (live / "lessons.md").symlink_to(private / "lessons.md")
         return home, public, live
 
     def test_clean_owned_projection_passes(self) -> None:
@@ -65,6 +63,18 @@ class AuditTest(unittest.TestCase):
             result = run_audit(home, validate=False, model_check=False)
             self.assertEqual(result.errors, [])
             self.assertEqual((result.skill_count, result.agent_count), (1, 1))
+
+    def test_lesson_journal_is_optional_and_must_not_be_managed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            home, public, live = self.make_home(Path(directory))
+            (live / "lessons.md").unlink()
+            result = run_audit(home, validate=False, model_check=False)
+            self.assertEqual(result.errors, [])
+
+            manifest = public / "tools/manifest.txt"
+            manifest.write_text(manifest.read_text() + "prepo .pi/agent/lessons.md lessons.md\n")
+            result = run_audit(home, validate=False, model_check=False)
+            self.assertTrue(any("lessons.md must remain machine-local" in error for error in result.errors))
 
     def test_shared_skill_entry_is_audited(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -154,7 +164,7 @@ class AuditTest(unittest.TestCase):
             path = Path(directory) / "SKILL.md"
             path.write_text("---\nname: example\ndescription: >\n  Works.\n---\n")
             self.assertEqual(parse_frontmatter(path)["description"], "Works.")
-        self.assertEqual(model_id("openai-codex/gpt-5.6-sol:xhigh"), "openai-codex/gpt-5.6-sol")
+        self.assertEqual(model_id("openai-codex/gpt-6.1-sol:xhigh"), "openai-codex/gpt-6.1-sol")
 
 
 if __name__ == "__main__":

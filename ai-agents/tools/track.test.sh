@@ -5,6 +5,24 @@ tools=$(cd "$(dirname "$0")" && pwd)
 fixture=$(mktemp -d)
 trap 'rm -rf "$fixture"' EXIT
 
+home=$fixture/local-lessons
+mkdir -p "$home/configs/ai-agents/tools" "$home/.pi/agent"
+cp "$tools/track.sh" "$tools/lib.sh" "$home/configs/ai-agents/tools/"
+: > "$home/configs/ai-agents/tools/manifest.txt"
+printf 'local lesson\n' > "$home/.pi/agent/lessons.md"
+for visibility in public private; do
+  args=()
+  [ "$visibility" != private ] || args+=(--private)
+  if HOME="$home" bash "$home/configs/ai-agents/tools/track.sh" "${args[@]}" .pi/agent/lessons.md > /dev/null 2>&1; then
+    printf 'FAIL: track.sh accepted a %s lesson journal\n' "$visibility" >&2
+    exit 1
+  fi
+  test ! -L "$home/.pi/agent/lessons.md"
+  test "$(< "$home/.pi/agent/lessons.md")" = 'local lesson'
+  test ! -s "$home/configs/ai-agents/tools/manifest.txt"
+done
+printf 'PASS: lesson journals stay local in public and private modes\n'
+
 # A tracked skill is linked into every shared root, and nowhere else.
 assert_shared_links() {
   local home=$1 name=$2 target=$3 tracked_from=$4

@@ -21,6 +21,10 @@ case "$input" in
 	*) rel=$input ;;
 esac
 
+case "$rel" in
+	.pi/agent/lessons.md) die "lesson journals are machine-local and must not be tracked" ;;
+esac
+
 h=$HOME/$rel
 [ -e "$h" ] || [ -L "$h" ] || die "no such path: $h"
 [ -L "$h" ] && die "already a symlink: $h"
@@ -42,8 +46,6 @@ if [ "$PRIVATE" = 1 ]; then
 		.pi/agent/extensions/*)
 			suffix=${rel#.pi/agent/extensions/}
 			kind=prepo; manifest_target=tools/extensions/$suffix; target=$PRIVATE_DIR/$manifest_target ;;
-		.pi/agent/lessons.md)
-			kind=prepo; manifest_target=lessons.md; target=$PRIVATE_DIR/$manifest_target ;;
 	esac
 else
 	case "$rel" in

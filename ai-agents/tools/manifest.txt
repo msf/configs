@@ -20,7 +20,6 @@
 repo    .claude/CLAUDE.md             ai-agents/instructions.md
 repo    .pi/agent/AGENTS.md           ai-agents/instructions.md
 repo    .codex/AGENTS.md              ai-agents/instructions.md
-prepo   .pi/agent/lessons.md          lessons.md
 
 # ── Skills shared by Pi, Claude Code and Codex. Each `skill`/`pskill` name links
 # into ~/.agents/skills (Pi and Codex) and ~/.claude/skills (Claude). Per-skill
@@ -117,6 +116,4 @@ mirror  .claude/statusline.sh
 mirror  .claude/mcp/linear.json
 pmirror .pi/agent/mcp.json
 home    .pi/agent-lean/mcp.json                  .pi/agent/mcp.json
-pmirror rlwy/.pi/mcp.json
-pmirror rlwy/AGENTS.md
 pskill  my-daily-wrap

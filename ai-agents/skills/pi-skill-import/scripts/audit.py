@@ -454,7 +454,10 @@ def run_audit(
             errors.append(f"Pi command wrapper points outside owned roots: {script} -> {script.resolve()}")
         check_manifest_projection(script, home, targets, errors)
 
-    for name in ("AGENTS.md", "lessons.md"):
+    if ".pi/agent/lessons.md" in targets:
+        errors.append("Pi lessons.md must remain machine-local, not a manifest entry")
+
+    for name in ("AGENTS.md",):
         path = live_root / name
         if not path.exists():
             errors.append(f"missing Pi {name}: {path}")
