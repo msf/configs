@@ -1,3 +1,6 @@
+SYSTEM
+Cmd + Esc                   Lock screen (replaces Ctrl + Cmd + Q)
+
 DESKTOPS
 Ctrl + 1-9                  Go to desktop
 Ctrl + Left/Right           Previous/next desktop

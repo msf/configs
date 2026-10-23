@@ -49,6 +49,11 @@
       124 ${spaceShortcut 55 26} \
       125 ${spaceShortcut 56 28} \
       126 ${spaceShortcut 57 25}
+
+    # Override the native menu binding (Ctrl+Cmd+Q); preserve other app shortcuts.
+    /usr/bin/sudo -H -u ${lib.escapeShellArg config.system.primaryUser} \
+      /usr/bin/defaults write -g NSUserKeyEquivalents -dict-add \
+      'Lock Screen' "$(/usr/bin/printf '@\033')"
   '';
 
   # minutes until the display turns off (battery was 2, AC 10)

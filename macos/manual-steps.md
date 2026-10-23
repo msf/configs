@@ -71,6 +71,7 @@ log out/in if macOS has not reloaded the desktop shortcuts.
 
 | Shortcut | Action |
 | --- | --- |
+| Cmd + Esc | Lock screen (replaces Ctrl + Cmd + Q) |
 | Ctrl + 1–9 | Switch to desktop 1–9 |
 | Ctrl + Left / Right | Previous / next desktop |
 | Ctrl + Option + 1 / 2 / 3 | Left / middle / right third (full height on landscape displays) |
@@ -78,6 +79,9 @@ log out/in if macOS has not reloaded the desktop shortcuts.
 | Ctrl + Option + arrows | Left / right / top / bottom half |
 | Ctrl + Option + Return | Maximize without entering a fullscreen Space |
 | Ctrl + Option + Shift + Left / Right | Move window to previous / next monitor |
+
+The lock shortcut overrides the English Apple menu item **Lock Screen**. Relaunch
+open apps (or log out/in) if they still show the old shortcut.
 
 Create desktops in Mission Control with **+**; number shortcuts do not create them.
 Desktop order is fixed (`mru-spaces = false`). With separate Spaces per display,
