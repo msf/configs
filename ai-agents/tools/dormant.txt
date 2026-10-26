@@ -1,0 +1,4 @@
+# Skills that stay unlinked on a host: valid elsewhere, but they don't work there.
+# Format: <hostname -s> <skill-name>
+fw13    mail
+fw13    my-daily-wrap

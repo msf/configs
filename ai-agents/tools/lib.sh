@@ -14,6 +14,12 @@ HOME_MIRROR=$ROOT_DIR/home
 PRIVATE_DIR=${PRIVATE_DIR:-$HOME/configs-private}
 PRIVATE_MIRROR=$PRIVATE_DIR/home
 MANIFEST=$TOOLS_DIR/manifest.txt
+DORMANT=$TOOLS_DIR/dormant.txt
+AGENTS_HOST=${AGENTS_HOST:-$(hostname -s)}
+if [ -z "${HAS_CODEX:-}" ]; then
+	HAS_CODEX=0
+	command -v codex >/dev/null 2>&1 && HAS_CODEX=1
+fi
 
 TS=$(date +%Y%m%d-%H%M%S)
 DRY_RUN=${DRY_RUN:-0}
@@ -70,8 +76,15 @@ SKILL_ROOTS=".agents/skills .claude/skills"
 skill_link_type() { [ "$1" = pskill ] && echo prepo || echo repo; }
 skill_source()    { [ "$1" = pskill ] && echo "skills/$2" || echo "ai-agents/skills/$2"; }
 
+# A dormant skill is valid elsewhere but does not work on this host; keep it unlinked.
+is_dormant() {
+	[ -r "$DORMANT" ] || return 1
+	awk -v host="$AGENTS_HOST" -v skill="$1" \
+		'$1 == host && $2 == skill { found = 1 } END { exit !found }' "$DORMANT"
+}
+
 # Iterate manifest entries. Calls $1 (a function name) with type, path, [arg2].
-# Skips comments and blank lines.
+# Skips comments, blank lines, dormant skills, and Codex entries without Codex.
 foreach_manifest() {
 	local fn=$1
 	[ -r "$MANIFEST" ] || die "manifest not found: $MANIFEST"
@@ -90,14 +103,18 @@ foreach_manifest() {
 		case "$type" in
 			skill|pskill)
 				# One skill source, linked into every harness's skills root.
-				# Pi reads ~/.agents/skills; Claude reads only its own.
+				# Pi and Codex both read ~/.agents/skills; Claude reads only its own.
 				[ -z "${arg2:-}" ] || die "manifest: $type takes a name only: $line"
+				is_dormant "$path" && continue
 				local root
 				for root in $SKILL_ROOTS; do
 					"$fn" "$(skill_link_type "$type")" "$root/$path" "$(skill_source "$type" "$path")"
 				done
 				;;
-			*) "$fn" "$type" "$path" "${arg2:-}" ;;
+			*)
+				case "$path" in .codex/*) [ "$HAS_CODEX" = 1 ] || continue ;; esac
+				"$fn" "$type" "$path" "${arg2:-}"
+				;;
 		esac
 	done < "$MANIFEST"
 }

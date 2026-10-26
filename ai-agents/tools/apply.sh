@@ -71,6 +71,19 @@ apply_one() {
 
 foreach_manifest apply_one
 
+if [ "$PI_ONLY" = 0 ] && [ "$HAS_CODEX" = 1 ]; then
+	case $MODE in
+		verify) "$TOOLS_DIR/codex-config.sh" --verify ;;
+		apply)
+			if [ "$DRY_RUN" = 1 ]; then
+				"$TOOLS_DIR/codex-config.sh" --dry-run
+			else
+				"$TOOLS_DIR/codex-config.sh"
+			fi
+			;;
+	esac
+fi
+
 if [ "$MODE" = verify ]; then
 	[ "$mismatches" -eq 0 ] || exit 1
 fi

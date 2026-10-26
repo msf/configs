@@ -1,13 +1,13 @@
 # ai-agents — managed agent configuration
 
-Single source of truth for Pi and Claude Code, split across:
+Single source of truth for Pi, Claude Code, and Codex, split across:
 
 - **`~/configs/ai-agents` (public):** generic instructions, skills, agents, commands, tools, and path-specific settings. No secrets or internal infrastructure details.
 - **`~/configs-private` (private):** personal agents, lessons, and session-derived reviews. Tokens and machine state belong in neither repository.
 
 `tools/manifest.txt` declares every live projection. `apply.sh` links owned sources into `$HOME`.
 
-Pi and Claude Code share the canonical instructions and one skill set. Claude Code also gets two adapted subagents and `settings.json`.
+Pi, Claude Code, and Codex share the canonical instructions and one skill set. Claude Code also gets two adapted subagents and `settings.json`; Codex gets the canonical instructions through `~/.codex/AGENTS.md`. `apply.sh` also adds `CLAUDE.md` to Codex's project-instruction fallbacks, matching Pi without duplicating repository instructions. Other Codex settings remain machine state because its single user config also contains trust decisions, notices, and plugin state. Codex entries apply only on machines where `codex` is on `PATH`.
 
 Global instructions live in `instructions.md`, projected to each harness's conventional global instruction path. Do not duplicate them in this repository's `AGENTS.md` or `CLAUDE.md`: Pi loads global and ancestor/project context together.
 
@@ -26,7 +26,7 @@ ai-agents/
 ├── tools/
 │   ├── extensions/            Pi extensions
 │   ├── manifest.txt
-│   └── {apply,checkpoint,track}.sh
+│   └── {apply,checkpoint,codex-config,track}.sh
 └── home/                      only irreducibly path-specific settings
     ├── .claude/settings.json
     ├── .pi/agent/{settings,models}.json
@@ -38,7 +38,7 @@ The private repository mirrors the same ownership model: shared skills at `skill
 ## Resource entrypoints
 
 - Pi prompt templates: `/implement`, `/implement-and-review`, `/scout-and-plan`. Pi-lean lists those three files explicitly; it does not import command directories or inherit future main-profile prompts. For review, shipping, and reflection, use `/skill:code-review`, `/skill:send-pr`, `/skill:reflect`, and `/skill:weekly-review`; no duplicate command templates.
-- Skills: a `skill <name>` (public) or `pskill <name>` (private) manifest entry links one source into `~/.agents/skills/` and `~/.claude/skills/`. Pi reads `~/.agents/skills/`, so a shared skill must not also appear under `~/.pi/agent/skills/`, where Pi would load it twice. Skills there are Pi-only: they use native MCP/codemode or custom extensions (`browser-read`, `subagent`). Shared is the default; `track.sh` writes a `skill`/`pskill` entry for any skills-root path. Work skills that Claude must not load use a `repo`/`prepo` entry for `.agents/skills/<name>` instead, which projects them to Pi only.
+- Skills: a `skill <name>` (public) or `pskill <name>` (private) manifest entry links one source into `~/.agents/skills/` and `~/.claude/skills/`. Pi and Codex both read `~/.agents/skills/`, so a shared skill must not also appear under `~/.pi/agent/skills/`, where Pi would load it twice. Skills there are Pi-only: they use native MCP/codemode or custom extensions (`browser-read`, `subagent`). Shared is the default; `track.sh` writes a `skill`/`pskill` entry for any skills-root path. Work skills that Claude must not load use a `repo`/`prepo` entry for `.agents/skills/<name>` instead, which projects them to Pi only.
 - Claude Code: besides the shared skills, the manifest projects the `code-reviewer` and `skill-applier` subagents into `~/.claude/agents`, the canonical instructions as `~/.claude/CLAUDE.md`, and `settings.json` from the `home/` mirror.
 - Workspace services: `notion` prefers the workspace's configured Notion MCP, with `ntn` as a fallback when no MCP is configured; `workspace-apps` owns `gog`. The legacy workspace wrappers, Slack and Linear integrations, and `trino-bench` skill are retired.
 - Native MCP/codemode, `browser-read`, `web-search`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
@@ -91,7 +91,9 @@ Without the private clone, `apply.sh` skips unavailable private entries; public 
 - Add a resource with `tools/track.sh <live-path>`; add `--private` for internal content. Skills under Pi's, Claude's, or the shared Agent Skills root, plus Pi agents, prompts, extensions, and wrappers, are routed to their canonical top-level directories automatically. Lesson journals stay machine-local; `track.sh` refuses them.
 - Preview projection changes with `tools/apply.sh --dry-run`.
 - Verify with `tools/apply.sh --verify`; Pi resources must also pass `uv run --quiet ~/.agents/skills/pi-skill-import/scripts/audit.py`.
-- `apply.sh --pi` limits deployment/verification to the main Pi profile and shared skills; it skips Claude-specific projections and Pi-lean settings. Harnesses that read shared skills or alias main-profile resources still see those changes. The Lima sync script (`../../macos/sync-pi-config.sh`) deploys a manifest-selected snapshot without changing guest checkouts. Audit that layout with `audit.py --source-home <snapshot-root>`; the normal default remains `$HOME`.
+- `apply.sh --pi` limits deployment/verification to the main Pi profile and shared skills; it skips Claude/Codex-specific projections and Pi-lean settings. Harnesses that read shared skills or alias main-profile resources still see those changes. The Lima sync script (`../../macos/sync-pi-config.sh`) deploys a manifest-selected snapshot without changing guest checkouts. Audit that layout with `audit.py --source-home <snapshot-root>`; the normal default remains `$HOME`.
+- If `~/.codex/config.toml` already defines `project_doc_fallback_filenames`, add `CLAUDE.md` to that list manually; the tooling refuses to overwrite existing fallback choices.
+- A skill that is valid but doesn't work on one host (host-specific paths or services) goes in `tools/dormant.txt` as `<hostname -s> <skill>`. Every manifest operation skips it on that host, so it stays unlinked there and deploys everywhere else.
 - Recover clobbered live links with `tools/checkpoint.sh --dry-run`, then checkpoint and apply deliberately.
 
 ## Public/private boundary
