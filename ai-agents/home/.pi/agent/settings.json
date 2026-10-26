@@ -44,8 +44,6 @@
   "modelThinkingLevels": {
     "anthropic/claude-fable-5-1": "high",
     "claude-bridge/claude-fable-5-1": "high",
-    "pi-claude-code-provider/sonnet": "low",
-    "pi-claude-code-provider/opus": "low",
     "openai-codex/gpt-5.6-sol": "xhigh",
     "openai-codex/gpt-6-astra": "high"
   }
