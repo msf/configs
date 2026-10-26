@@ -18,6 +18,8 @@ Then decide whether each crate is a `service` or a `library`:
 - Service indicators: a `main.rs` composition root that serves requests or runs workers; `api/`, `service`, `store` and `model` modules; `migrations/`; `compose.yaml`. Apply the Layer contract and Service shape below.
 - Library indicators: no runtime entrypoint; reusable domain types and pure logic. Apply the Library shape below.
 
+Classify API audience separately from crate shape: reusable library versus application-internal code. Favor flexible reusable APIs without imposing generality on application code.
+
 ## Power of 10 in Rust
 
 How the `coding` skill's adapted rules land in Rust. Each has a lint in the baseline below; the text here is what the lint can't see.
@@ -28,8 +30,8 @@ How the `coding` skill's adapted rules land in Rust. Each has a lint in the base
 - **Function size:** body ≤ 60 lines is the norm, 80 is the lint ceiling (tests exempt). Long `match` arms mean the arm body wants a function.
 - **Assertions and input validation:** public constructors validate and return `Result<Self, Error>`; parse, don't validate (`NonZeroU32`, newtypes, `TryFrom`). Internal invariants use `assert!`/`debug_assert!` with a message naming the invariant, or `expect("<invariant>")`. `.unwrap()` is banned in production code: use `?`, `expect` with an invariant message, or a `let ... else`. Indexing is `.get()` or preceded by an `assert!` on the bound.
 - **Smallest scope:** `pub(crate)` by default, `pub` only for the crate's API. No `static mut`; `OnceLock`/`LazyLock` only for config and metrics. Declare at first use, shadow only to refine the same value.
-- **Check every return:** `#[must_use]` results are never dropped; `let _ = fallible()` needs a comment. `Result` in `Drop` is logged, not swallowed.
-- **`unsafe` (rule 8/9 analog):** `unsafe_code = "forbid"` everywhere except the one leaf crate that needs it, where it becomes `deny` with `#[expect(unsafe_code, reason = "...")]` per block, one unsafe op per block, and a `// SAFETY:` comment.
+- **Check every return:** `#[must_use]` results are never dropped; `let _ = fallible()` needs a comment. `Result` in `Drop` is logged, not swallowed. Mark functions `#[must_use]` when ignoring the output makes the operation ineffective or loses critical information; mark custom lazy or result-like types when the obligation belongs to the type. Avoid redundant annotations on functions returning already-must-use types.
+- **`unsafe` (rule 8/9 analog):** `unsafe_code = "forbid"` everywhere except the one leaf crate that needs it, where it becomes `deny` with `#[expect(unsafe_code, reason = "...")]` per block, one unsafe op per block, and a `// SAFETY:` comment. Document why safe alternatives cannot meet the requirement; performance claims need a reproducible benchmark against the safe implementation. Keep this necessity argument separate from the `SAFETY` proof of invariants. Expose a safe abstraction and test its boundary.
 - **Integer casts (rule 9 analog):** `From`/`TryFrom` over `as`; `checked_`/`saturating_` arithmetic on anything derived from input.
 
 ## Code writing rules
@@ -37,8 +39,9 @@ How the `coding` skill's adapted rules land in Rust. Each has a lint in the base
 - Errors: one `enum Error` per crate or module boundary with `thiserror`; `anyhow` only in binaries and tests. Variants carry the context the caller needs, not a `String`.
 - No `Box<dyn Error>` in library public APIs.
 - Traits for seams that have two real implementations or a test double; otherwise concrete types.
-- Prefer borrowing (`&str`, `&[T]`, `impl AsRef<Path>`) in signatures; `clone()` in a hot path needs a comment or a profile.
-- `async`: no blocking calls in async fns (`std::fs`, `std::thread::sleep`, `Mutex` held across `.await`). Spawned tasks are tracked (`JoinSet`) and cancelled on shutdown.
+- Prefer borrowing underlying data (`&str`, `&[T]`, `impl AsRef<Path>`), not its wrapper. Prefer unique ownership; use `Rc`/`Arc` for real sharing or when borrowing materially complicates the design. Keep slices, vectors, and pragmatic clones when they simplify application code; hot-path clones need a comment or profile.
+- For reusable traversal APIs, consider `IntoIterator` inputs and iterator outputs to avoid intermediate collections. Account for lazy execution and failure timing; do not mechanically replace every `Vec`. Verify performance claims on representative workloads: allocations, allocated bytes, throughput/latency, and retained or peak memory.
+- `async`: no blocking calls in async fns (`std::fs`, `std::thread::sleep`, `Mutex` held across `.await`). Spawned tasks have an owner, are tracked (`JoinSet`), and are cancelled and joined before shutdown cleanup. Cancellation alone does not prove completion.
 - Constructors with more than 5 parameters take a config struct or a builder. `too_many_arguments` enforces the 5.
 - Keep business rules in `service`, not in axum/tonic handlers.
 - Keep storage details in `store` (sqlx, object-store, redis adapters). It is the only module that runs queries.
@@ -136,6 +139,8 @@ Fix findings inside your diff, leave untouched code alone, and don't add `#[expe
 - Every constructor or public fn with precondition checks has one test per rejected input class.
 - `cargo test --doc` runs; examples in docs compile.
 - Don't unit-test metrics emission; test the logic that decides a label or value.
+- Test task cancellation and completion before cleanup; iterator APIs need partial-consumption and failure-timing tests.
+- Check important `#[must_use]` APIs with a consumer fixture: discarding the result must fail under `unused_must_use` without the library's lint baseline.
 
 ## Makefile / justfile DX contract
 

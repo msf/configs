@@ -55,14 +55,15 @@ Rules 8 (preprocessor) and 9 (pointers) from the original map to language specif
 
 ## Comments
 
-- Minimize comments — only explain non-obvious "why", never "what".
-- If a comment restates what the code does, delete it.
+- Implementation comments explain non-obvious reasons, not obvious statements.
+- API documentation states caller-visible contracts: behavior, ownership and cleanup, mutation and aliasing, concurrency and cancellation, significant errors, panics, and safety obligations where relevant. Add executable examples for non-obvious usage.
+- Delete tautologies, not contracts.
 
 ## Error Handling
 
-Every error falls into exactly one of three categories. Choose deliberately:
+Recover where the layer can meaningfully do so. Otherwise choose deliberately:
 
-1. **Propagate**: wrap with context and return. The caller decides what to do. This is the default.
+1. **Propagate**: return unchanged when no useful context is available; otherwise add non-redundant context. Preserve error identity when callers may inspect it; translate implementation errors at boundaries. Do not log and return the same failure by default.
 2. **Log and continue**: the operation is best-effort and the caller explicitly tolerates failure. Log the error with enough context to diagnose, and document why continuing is safe.
 3. **Impossible**: the error condition cannot occur given the program's invariants. This is an assertion (rule 5): panic/abort with a message naming the violated invariant, and comment why it holds.
 

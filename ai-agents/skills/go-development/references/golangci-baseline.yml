@@ -2,6 +2,7 @@
 # Merged from five production service/library configs, plus the
 # Power of 10 rules from the `coding` skill. Copy, then only ADD. Removing a
 # rule requires a comment here saying why.
+# Permit fmt.Errorf and %q: review error contracts, not constructor choice or quoted diagnostics.
 version: "2"
 
 linters:
@@ -31,8 +32,6 @@ linters:
   settings:
     forbidigo:
       forbid:
-        - pattern: ^fmt\.Errorf$
-          msg: use github.com/go-errors/errors instead of fmt.Errorf
         - pattern: ^fmt\.Printf$
           msg: use the shared structured log package instead
         - pattern: ^fmt\.Println$
@@ -90,15 +89,6 @@ linters:
             - []
         - name: string-format
           arguments:
-            - - fmt.Errorf[0]
-              - "!/%q/"
-              - should use '%s' instead of %q
-            - - errors.Errorf[0]
-              - "!/%q/"
-              - should use '%s' instead of %q
-            - - t.Fatalf[0]
-              - "!/%q/"
-              - should use '%s' instead of %q
             - - fmt.Errorf[0]
               - /(^|[^\.!?])$/
               - must not end in punctuation

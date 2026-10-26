@@ -42,7 +42,7 @@ Broad behavioral operating rules. Domain knowledge (code, k8s, Go, review) lives
 
 - Before writing or reviewing code, load `coding` and applicable language skills, including when transitioning from investigation.
 - Self-documenting: clear names for types, fields, variables, functions.
-- Minimize comments — explain non-obvious "why", never "what".
+- Implementation comments explain non-obvious reasons; API documentation states caller-visible contracts. Delete tautologies, not contracts.
 - Types encode meaning (Duration not string; enums not magic strings).
 - Propose tests.
 - Written deliverables (PRs, issues, docs): default terse, lead with outcome. PR descriptions are written for a human reviewer. List the changes one per line, in the active voice, starting with the verb; essential headers only; no decorative quote-blocks or ASCII tables in Linear. Don't co-author commits nor PRs.

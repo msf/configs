@@ -45,6 +45,12 @@ How the `coding` skill's adapted rules land in Go. Each has a lint in the baseli
 - In composition roots (`cmd/*/main.go`), wire dependencies explicitly and support graceful shutdown.
 - When a constructor exceeds 5 parameters, use an options/config struct. Optional dependencies are pointer fields, not positional args that force `nil` at every call site. `argument-limit` enforces the 5.
 
+## Concurrency and error contracts
+
+- Prefer synchronous APIs; callers add concurrency when needed. Every goroutine has an owner, an exit condition, and a completion mechanism. Functions normally wait for the goroutines they start before returning; background APIs document who stops and joins their work.
+- Cancellation signals shutdown, not completion. Blocking channel operations, worker admission, and downstream I/O must support the intended shutdown path.
+- Prefer standard error facilities unless the repository has a documented reason otherwise. Classify errors with `errors.Is`/`errors.As`, never message parsing. Use `%w` when exposing the underlying error is part of the contract; document and test that contract. Use `%q` when quoting makes string values unambiguous.
+
 ## Layer contract
 
 ```
@@ -140,6 +146,7 @@ Cobra (Holzmann's own checker) is not adopted for Go: its P10 checker is a set o
 - Run race detection, shuffle, and coverage in the default test target.
 - Don't unit-test metrics. it adds friction and discourages instrumentation. Test the logic that *decides* a label or value, not the `.Inc()`/`.Observe()` emission.
 - Every exported function with precondition checks has one test per rejected input class.
+- Test cancellation while workers are blocked on input, output, admission, and I/O; assert completion before cleanup. Test promised error identities through wrapping and boundary translation.
 
 ## Makefile DX contract
 
