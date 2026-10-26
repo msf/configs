@@ -62,7 +62,11 @@ Two Pi extensions; neither depends on another agent harness.
 - `web_read` (`extensions/browser-read`) reads one URL over plain HTTP and falls back to headless Chrome with the persistent profile in `~/.pi/agent/browser-read/profile`. Its output starts with an evidence label: `ACQUIRED(...)` is citable; `BLOCKED`, `INCOMPLETE` and `FAILED` are not. It keeps link targets and extracts PDF text with `pdftotext`. `/browser-login <url>` opens the profile in a visible browser to solve a login or CAPTCHA.
 - `web_search` (`extensions/web-search`) queries a local SearXNG container on `127.0.0.1:28100` (`SEARXNG_PORT` overrides it). The tool starts the container when it can't reach it. By hand: `~/.pi/agent/extensions/web-search/searxng.sh start|stop|status`.
 
-The container runs a digest-pinned image with `--restart unless-stopped`, so it survives reboots. SearXNG scrapes other search engines, which change their pages and rate-limit; `web_search` lists the engines that didn't answer. To update, bump `IMAGE` in `searxng.sh` and run `searxng.sh start`: it recreates a container whose image or port differs.
+The container runs a digest-pinned image with `--restart unless-stopped`, so it survives reboots. Settings are bind-mounted read-only from the extension directory, never `/tmp`. Startup recreates containers whose image, port, or settings mount differs. It rejects missing settings files and directories before touching the container. The explicit `--mount` also prevents Docker from creating a missing source as a directory.
+
+SearXNG scrapes other search engines, which change their pages and rate-limit; `web_search` lists the engines that didn't answer. To update, bump `IMAGE` in `searxng.sh` and run `searxng.sh start`.
+
+Run the offline search and startup tests with `node --test ~/.pi/agent/extensions/web-search/*.test.ts`. Startup tests use mock Docker and HTTP-health commands; they do not touch the live container.
 
 How these tools evolved and what was tested: `skills/web-tool-eval/history.md`.
 

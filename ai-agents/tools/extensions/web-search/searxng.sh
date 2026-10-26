@@ -16,9 +16,13 @@ healthy() {
 }
 
 start() {
-	want="$IMAGE 127.0.0.1:$PORT"
+	if [ ! -f "$SETTINGS" ]; then
+		echo "searxng: settings must be a regular file: $SETTINGS" >&2
+		return 1
+	fi
+	want="$IMAGE 127.0.0.1:$PORT bind:$SETTINGS:false"
 	have=$(docker inspect --format \
-		'{{.Config.Image}} {{(index (index .HostConfig.PortBindings "8080/tcp") 0).HostIp}}:{{(index (index .HostConfig.PortBindings "8080/tcp") 0).HostPort}}' \
+		'{{.Config.Image}} {{(index (index .HostConfig.PortBindings "8080/tcp") 0).HostIp}}:{{(index (index .HostConfig.PortBindings "8080/tcp") 0).HostPort}}{{range .Mounts}}{{if eq .Destination "/etc/searxng/settings.yml"}} {{.Type}}:{{.Source}}:{{.RW}}{{end}}{{end}}' \
 		"$NAME" 2>/dev/null || true)
 	if [ -n "$have" ] && [ "$have" != "$want" ]; then
 		docker rm -f "$NAME" >/dev/null
@@ -29,7 +33,7 @@ start() {
 		if ! docker run -d --name "$NAME" --restart unless-stopped \
 			-p "127.0.0.1:$PORT:8080" \
 			-e SEARXNG_SECRET="$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')" \
-			-v "$SETTINGS:/etc/searxng/settings.yml:ro" \
+			--mount "type=bind,src=$SETTINGS,dst=/etc/searxng/settings.yml,readonly" \
 			"$IMAGE" >/dev/null; then
 			# A concurrent caller may have created it; anything else is fatal.
 			docker inspect "$NAME" >/dev/null 2>&1 || exit 1
