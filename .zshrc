@@ -67,7 +67,6 @@ export XKB_DEFAULT_OPTIONS=caps:ctrl
 export MOZ_ENABLE_WAYLAND=1
 
 # Environment
-export GOPRIVATE=github.com/duneanalytics
 export KUBECONFIG=$HOME/.kube/config
 export PYENV_ROOT=$HOME/.pyenv
 export SDKMAN_DIR=$HOME/.sdkman
@@ -133,100 +132,6 @@ if [[ -s $SDKMAN_DIR/bin/sdkman-init.sh ]]; then
 fi
 
 [[ -f $HOME/.zshrc_private ]] && source $HOME/.zshrc_private
-
-function dpsql {
-	PGPASSWORD=$(aws secretsmanager get-secret-value --secret-id ${1}_${2}_db_${2}_user_password --output text --query SecretString) pgcli -U ${2} -h ${1}-${2}-db ${2}
-}
-
-# dbsh <env> <service> [dbname]
-# Connects read-only: prefers -db-rr host, falls back to primary;
-# prefers readonly credentials from Secrets Manager, falls back to service user.
-function dbsh {
-  local env="${1}" svc="${2}" db="${3:-}"
-
-  if [[ -z "$env" || -z "$svc" ]]; then
-    echo "usage: dbsh <env> <service> [dbname]" >&2
-    return 1
-  fi
-
-  # Prefer read replica in Tailscale, fall back to primary
-  local rr_host="${env}-${svc}-db-rr"
-  local host
-  if tailscale status 2>/dev/null | grep "  ${rr_host}  " | grep -qv "offline"; then
-    host="$rr_host"
-  else
-    host="${env}-${svc}-db"
-  fi
-
-  local secret user password
-
-  if [[ "$svc" == "core" ]]; then
-    # Engineer access uses the readonly credential, not rotated workload secrets.
-    secret="${env}_${svc}_db_readonly_user_secret"
-    user="readonly"
-    [[ -z "$db" ]] && db="$svc"
-  else
-    [[ -z "$db" ]] && db="$svc"
-    # Prefer readonly secret, fall back to service-user secret
-    local secret_ro="${env}_${svc}_db_readonly_user_secret"
-    if aws secretsmanager describe-secret --secret-id "$secret_ro" &>/dev/null; then
-      secret="$secret_ro"
-      user="readonly"
-    else
-      secret="${env}_${svc}_db_${svc}_user_password"
-      user="$svc"
-    fi
-  fi
-
-  if ! password=$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text); then
-    echo "error: could not retrieve secret '$secret'" >&2
-    return 1
-  fi
-  if [[ -z "$password" ]]; then
-    echo "error: empty credential in '$secret'" >&2
-    return 1
-  fi
-
-  echo "→ host=${host}  user=${user}  db=${db}  secret=${secret}" >&2
-  PGPASSWORD="$password" psql -U "$user" -h "$host" "$db"
-}
-
-# db-root-sh <env> <service> [dbname]
-# DANGER: connects to the PRIMARY with the RDS master user (full write/DDL).
-# Use only when dbsh's read replica is not enough — e.g. fixing a bad row.
-# Secret layout: ${env}/${svc}/db/master/${dbname:-$svc}
-function db-root-sh {
-  local env="${1}" svc="${2}" db="${3:-$2}"
-
-  if [[ -z "$env" || -z "$svc" ]]; then
-    echo "usage: db-root-sh <env> <service> [dbname]" >&2
-    return 1
-  fi
-
-  local host="${env}-${svc}-db"
-  local secret="${env}/${svc}/db/master/${db}"
-
-  local json
-  json=$(aws secretsmanager get-secret-value --secret-id "$secret" --query SecretString --output text 2>/dev/null)
-  if [[ -z "$json" ]]; then
-    echo "error: could not retrieve secret '$secret'" >&2
-    return 1
-  fi
-  local user password
-  user=$(printf '%s' "$json" | jq -r .username)
-  password=$(printf '%s' "$json" | jq -r .password)
-
-  print -P "%F{red}%B!! ROOT WRITE SESSION !!%b%f" >&2
-  echo "   host=${host}  user=${user}  db=${db}  secret=${secret}" >&2
-  local confirm
-  read "confirm?   type '${env}/${svc}' to continue: "
-  if [[ "$confirm" != "${env}/${svc}" ]]; then
-    echo "aborted (got: '${confirm}')." >&2
-    return 1
-  fi
-
-  PGPASSWORD="$password" pgcli -U "$user" -h "$host" "$db"
-}
 
 (( $+commands[direnv] )) && eval "$(direnv hook zsh)"
 [[ -t 0 && -t 1 ]] && (( $+commands[fzf] )) && source <(fzf --zsh)
