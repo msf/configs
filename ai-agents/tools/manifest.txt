@@ -125,3 +125,4 @@ mirror  .claude/statusline.sh
 pskill  my-daily-wrap
 skill   jvm-heapdump
 repo    .pi/agent/extensions/fast  ai-agents/tools/extensions/fast
+skill   linux-amd64 @liskov

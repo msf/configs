@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# linux-amd64 — persistent Ubuntu amd64 build machine on OrbStack (Rosetta).
+#
+#   linux-amd64 up              create/start the machine and apply provision.sh if it changed
+#   linux-amd64 run <cmd...>    run <cmd> in the current directory inside the machine
+#   linux-amd64 target-dir      print the Mac-visible Cargo target dir for the current project
+#
+# `run` calls `up` first, so it is safe on a fresh or stopped machine.
+set -euo pipefail
+
+readonly MACHINE=linux-amd64
+readonly DISTRO=ubuntu:noble
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+readonly SCRIPT_DIR
+readonly PROVISION="$SCRIPT_DIR/provision.sh"
+readonly MARKER=/var/lib/linux-amd64/provisioned
+
+die() { echo "linux-amd64: $*" >&2; exit 1; }
+
+machine_state() {
+  orb info "$MACHINE" -f json 2>/dev/null | jq -r '.record.state // empty'
+}
+
+ensure_running() {
+  local state
+  state="$(machine_state)"
+  case "$state" in
+    running) return 0 ;;
+    "") orb create -a amd64 "$DISTRO" "$MACHINE" >&2 ;;
+    *) orb start "$MACHINE" >&2 ;;
+  esac
+  [[ "$(machine_state)" == running ]] || die "machine $MACHINE did not reach running state"
+}
+
+ensure_provisioned() {
+  local want have
+  want="$(shasum -a 256 "$PROVISION" | cut -d' ' -f1)"
+  have="$(orb -m "$MACHINE" cat "$MARKER" 2>/dev/null || true)"
+  [[ "$want" == "$have" ]] && return 0
+  echo "linux-amd64: provisioning (first run or provision.sh changed)..." >&2
+  orb -m "$MACHINE" -u root bash "$PROVISION" "$(id -un)" >&2
+  echo "$want" | orb -m "$MACHINE" -u root tee "$MARKER" >/dev/null
+}
+
+up() {
+  command -v orb >/dev/null || die "OrbStack 'orb' CLI not found"
+  ensure_running
+  ensure_provisioned
+}
+
+target_dir() {
+  local root slug
+  root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
+  slug="${root#/}"
+  echo "$HOME/OrbStack/$MACHINE/home/$(id -un)/.cache/amd64-target/${slug//\//_}"
+}
+
+main() {
+  local cmd="${1:-}"
+  [[ $# -gt 0 ]] && shift
+  case "$cmd" in
+    up) up ;;
+    run)
+      [[ $# -gt 0 ]] || die "usage: linux-amd64 run <cmd> [args...]"
+      up
+      exec orb -m "$MACHINE" bash "$SCRIPT_DIR/guest-env.sh" "$@"
+      ;;
+    target-dir) target_dir ;;
+    *) die "usage: linux-amd64 {up|run <cmd...>|target-dir}" ;;
+  esac
+}
+
+main "$@"
