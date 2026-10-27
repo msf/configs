@@ -16,6 +16,8 @@
     };
 
     brews = [
+      # GNU timeout etc.; shell PATH already lists opt/coreutils/libexec/gnubin.
+      "coreutils"
       "ffmpeg"
       "pgcli"
       "yt-dlp"
@@ -23,7 +25,9 @@
 
     casks = [
       "1password"
+      "1password-cli"
       "discord"
+      "gcloud-cli"
       "ghostty"
       "gimp"
       "iina"
@@ -31,6 +35,7 @@
       "localsend"
       "obsidian"
       "rectangle"
+      "slack"
       "stats"
       "visual-studio-code"
     ];

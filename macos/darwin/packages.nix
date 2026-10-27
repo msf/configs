@@ -37,6 +37,8 @@
     ninja
     shellcheck
     shfmt
+    gitleaks
+    trufflehog
 
     # monitoring
     htop
