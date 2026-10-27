@@ -17,7 +17,7 @@ Target fewer than 500 changed lines per PR. Small PRs are more likely to receive
 - If it is over, separate hand-written logic from allowed bulk: dependency or lock graph updates, generated stubs, large test fixtures or matrices, and deletion-heavy changes. Ordinary test code is not bulk. Verify generated output has the corresponding source change and reproducible generation command.
 - Keep non-exempt changes under 500 lines. If they are not, stop before pushing or creating/updating the PR and propose a cohesive, dependency-ordered PR split. Do not use "cohesive" as a blanket exception or split implementation from its tests.
 - Proceed with an oversized PR only for allowed bulk or after the user explicitly accepts an unavoidable cohesive exception. Keep exceptional bulk in separate commits when practical; otherwise make commits small and ordered for incremental review.
-- For an oversized PR, state in its description the total changed lines, the exceptional files or generated portion, the approximate non-exempt size, and why the split is safe or impractical.
+- For an oversized PR, state in its description the total changed lines, the generated or bulk portion, and why one PR is safer than a split.
 
 ## Workflow
 1. Pre-flight
@@ -42,17 +42,37 @@ Target fewer than 500 changed lines per PR. Small PRs are more likely to receive
 4. Create or update PR
    - Read the complete final diff against the intended base before writing the description; statistics and commit titles are not enough.
    - Check for repository PR templates in `.github/`, the repository root, and `docs/`. Preserve the applicable template's required sections and machine-owned fields. If the template choice is ambiguous, ask; do not merge templates.
-   - Write the description for a human reviewer. List the changes, one change per line. Each line is in the active voice and starts with its verb; the qualifier or the reason rides along in the same line. Write readable English, not telegraphic shorthand:
+   - If the diff adds or changes a README or docs page, check it against the `tech-writing` skill's rules for repository docs before writing the description.
+   - Write the description for a reviewer from another team. Relevance decides what goes in, not a length budget. Use these parts in order, and leave out any that don't apply:
+     1. **Why**: the problem or goal and any constraint the change works under (for example, live changes only, no restarts), in plain sentences a reviewer understands on first read: one idea per sentence, no unexplained codenames or acronyms. The merge dependency, the PR's place in its stack, and the links the reviewer needs (issue, dashboard, runbook) go here.
+     2. **How**, when the change carries a design: who does what (data flow, threads, ownership), the guarantees it keeps (bounded memory, failure modes), and the trade-off you accepted. Assume a non-trivial change ships as a stack: the first PR lays out the how and describes the PR split layout by logical part, and later PRs point back to it instead of repeating it.
+     3. **Important settings**, when the PR mainly changes settings or config: the settings that matter, each with its value (`before → after` when it had one), what it does, and why. Choose them by relevance; a large config diff doesn't need every setting explained. On such a PR this part usually takes the place of How.
+     4. **The changes**, one per line, in the active voice, each line starting with its verb and carrying its reason.
+     5. **Suggested review order**, when the PR spans several files: numbered `path`, then what to look at there, ordered so understanding builds (core logic, then wiring, then tests). Leave it out of a one- or two-file PR.
 
      ```markdown
-     - Fixes a bug on datashare storage accounting (edge case)
-     - Improved logging for easier troubleshooting on storage account errors
-     - Moved storage and billing related logic to `billing_storage.go`
+     First of three stacked PRs (#101 → #102 → #103). The current exporter shares a lock with the I/O workers, so recording a metric can stall a request.
+
+     This PR adds per-worker counters and a way for one publisher thread to read them without blocking the workers.
+     Each worker keeps adding to its own counters. Every 10 s the publisher reads all of them, turns totals into deltas, and sends the deltas.
+     Memory per worker is fixed, and a slow or failed send loses nothing: the counters keep adding up until the next send succeeds.
+     This is more code than a shared registry, but the workers never take a lock.
+
+     - Adds the `metrics` crate: one fixed-size block of counters per worker, written only by that worker
+     - Indexes counters by fixed enums and buckets, so recording never allocates or locks
+
+     Following PRs:
+     - #102: the publisher thread and the DogStatsD encoding
+     - #103: request metrics
+
+     ## Suggested review order
+     1. `crates/metrics/src/lib.rs`: `Block` and `record`, the hot path
+     2. Same file: the bucket bounds that fix the memory per worker
      ```
 
-   - Put one or two sentences above the list when the list alone does not say why the change exists or what a user or operator will notice. Merge dependencies belong in that opening. A multi-setting config diff gets one `before → after` line per setting.
-   - When the change carries behavior, close with the facts a reviewer acts on, one per line: each file where a mistake would be expensive (it moves money, corrupts or drops data, changes auth, or breaks a downstream consumer) and what changed in it; the remainder as a count, such as "38 further files are generated fixtures and renames"; which flows you tested and which you did not; and what outside this repository the change reaches, or that nothing does.
-   - Do not pad. A behavior-neutral change needs only the list, and a line you have nothing to say in is left out rather than filled with "N/A".
+   - Leave out future work, "not in this PR" and "no X yet" lists, open items, test logs, and internal review history; they belong in the conversation or the notes.
+   - Say what runs outside this repository on merge (a deploy, a production apply), and mention validation or rollout process only as far as a reviewer needs it.
+   - When updating a PR, re-read the live description first and keep the user's text verbatim. Rewrite the rest to describe the current diff, not the history of its revisions.
    - Link a user-provided or confirmed issue with `Fixes ISSUE-ID` only when fully resolved, or `Towards ISSUE-ID` for partial progress. Never invent an issue reference.
    - If PR does not exist, create it via `gh pr create`; otherwise reuse it and continue.
    - If arguments are provided to the skill invocation, use them as PR title.
