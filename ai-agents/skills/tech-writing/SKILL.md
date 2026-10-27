@@ -2,9 +2,10 @@
 name: tech-writing
 description: >
   Write technical design docs in Miguel's voice and structure: RFCs/TDDs,
-  Tech Memos (TMDs), and ADRs. Use whenever drafting, restructuring, or
-  reviewing a design/architecture document, or when asked to "write this like
-  me" / "make this sound less like an LLM" / "de-slop this doc".
+  Tech Memos (TMDs), and ADRs, plus READMEs and docs pages that ship with code.
+  Use whenever drafting, restructuring, or reviewing a design/architecture
+  document or a README/docs page, or when asked to "write this like me" /
+  "make this sound less like an LLM" / "de-slop this doc".
 ---
 
 # Technical writing: Miguel's structures and voice
@@ -332,6 +333,31 @@ apply to this domain at all.
 15. Is the actor named where ownership matters, rather than hidden in passive voice?
 16. Does the rhythm vary, or do the patterns in §4 repeat paragraph after paragraph?
 17. Zero em-dashes?
+
+## 8. READMEs and docs pages that ship with code
+
+A README or `docs/` page describes what the code does today, for the next person who runs or
+changes it. It is not a design doc, and it is not the PR description. The voice rules in §3 and
+§4 still apply.
+
+1. **Keep what a reader needs to run, operate, or change the code:** what it is, how to run it,
+   the settings that matter, and where to look next. Leave out detail the code already shows,
+   such as a race a function handles internally or the order of startup steps.
+2. **Name only the settings that matter to this reader,** and say what each does and why it has
+   its value. A bare value with no explanation is noise.
+3. **State the intended scope:** the class of hosts, users, or inputs the code is for, not the
+   few you tested on.
+4. **Leave the PR's material in the PR:** test logs, review history, rollout narration, and
+   "not yet" lists don't belong here.
+5. **Never rewrite a document the user wrote.** When you convert or move it (an RFC into a
+   README, notes into a docs page), keep the text verbatim. Fix only spelling and formatting,
+   put new material in a clearly marked section after it, and flag anything else for the author
+   (§5, the prime directive).
+6. **Label provenance at the top,** by who wrote the text and who reviewed it:
+   - "Authored by LLM" when the user hasn't reviewed or commented on it, as with a doc asked for
+     in passing ("create a basic doc for ...", "track this experiment").
+   - "Authored by LLM, edited/reviewed by human" when the user reviewed or edited it.
+   - "Authored by human, edited/reviewed by LLM" when the user wrote it and you edited it.
 
 ## Appendix: corpus and method
 
