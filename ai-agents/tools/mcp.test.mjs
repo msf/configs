@@ -118,7 +118,7 @@ test("native MCP pagination, structured results, hidden tools, and writes withou
   }
 });
 
-test("explicit read-only subagent tool allowlist does not grow after native MCP connects", { timeout: 15000 }, async () => {
+test("explicit built-in tool selection survives native MCP connection", { timeout: 15000 }, async () => {
   const cwd = await mkdtemp(join(tmpdir(), "pi-native-mcp-restricted-"));
   let session;
   try {
@@ -126,8 +126,9 @@ test("explicit read-only subagent tool allowlist does not grow after native MCP 
     for (let attempt = 0; attempt < 100 && !existsSync(join(cwd, "calls.ready")); attempt++) await delay(25);
     assert(existsSync(join(cwd, "calls.ready")), "Restricted session's MCP server must complete tool discovery");
     await delay(25);
-    assert.deepEqual(session.getActiveToolNames(), ["read"]);
-    assert.deepEqual(session.getCallableToolNames(), ["read"]);
+    // Pi selects MCP tools separately; a built-in selection is not an MCP allowlist.
+    assert.deepEqual(session.getActiveToolNames().filter(name => !name.startsWith("mcp__")), ["read"]);
+    assert.deepEqual(session.getCallableToolNames().filter(name => !name.startsWith("mcp__")), ["read"]);
   } finally {
     if (session) {
       await session.extensionRunner.emit({ type: "session_shutdown" });
