@@ -51,11 +51,18 @@ for lock in "${LOCKS[@]}"; do
 		published=$(curl -fsS "$REGISTRY/$enc" 2>/dev/null \
 			| jq -r --arg v "$version" '.time[$v] // empty' || true)
 		if [ -z "$published" ]; then
-			warn "no publish date: $name@$version (skipped)"
+			warn "no publish date: $name@$version"
+			fail=1
 			continue
 		fi
-		pub_epoch=$(date -u -d "$published" +%s 2>/dev/null || echo 0)
-		[ "$pub_epoch" -gt 0 ] || { warn "unparseable date for $name@$version: $published"; continue; }
+		# GNU date on Linux; BSD date on macOS. Registry timestamps are UTC.
+		pub_epoch=$(date -u -d "$published" +%s 2>/dev/null ||
+			date -j -u -f '%Y-%m-%dT%H:%M:%S' "${published:0:19}" +%s 2>/dev/null || echo 0)
+		if [ "$pub_epoch" -le 0 ]; then
+			warn "unparseable date for $name@$version: $published"
+			fail=1
+			continue
+		fi
 		age=$(( now_epoch - pub_epoch ))
 		age_days=$(( age / 86400 ))
 		checked=$((checked+1))

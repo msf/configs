@@ -1,1 +1,3 @@
-/home/miguel/.pi/agent/bin/pi
+#!/bin/sh
+# Dispatch to this user's installer-managed Pi launcher on Linux and macOS.
+exec "$HOME/.pi/agent/bin/pi" "$@"

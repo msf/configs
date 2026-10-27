@@ -25,6 +25,7 @@
     ripgrep
     fd
     yq-go
+    poppler-utils # pdftotext for Pi web_read
 
     # development
     go
