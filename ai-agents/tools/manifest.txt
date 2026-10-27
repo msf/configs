@@ -15,6 +15,8 @@
 #
 # Order matters: targets referenced through earlier symlinks must come after
 # the entry creating that directory.
+# Optional final @hostname / @!hostname restricts an entry to / excludes a host.
+# Hostnames match `hostname -s` exactly; AGENTS_HOST overrides it for tests.
 
 # ── shared harness instructions
 repo    .claude/CLAUDE.md             ai-agents/instructions.md
@@ -47,21 +49,24 @@ skill   workspace-apps
 pskill  mail
 
 # ── Pi-only presentation skill
-repo    .agents/skills/google-slides       ai-agents/skills/google-slides
+repo    .agents/skills/google-slides       ai-agents/skills/google-slides @!liskov
+skill   google-slides @liskov
 
 # ── Pi-only skills: native MCP/codemode or custom extension integrations.
 repo    .pi/agent/skills/web-tool-eval    ai-agents/skills/web-tool-eval
 
 # ── Claude Code settings. Machine state (credentials, sessions, transcripts,
 # settings.local.json permission grants) stays untracked.
-mirror  .claude/settings.json
+mirror  .claude/settings.json @!liskov
+repo    .claude/settings.json ai-agents/hosts/liskov/claude-settings.json @liskov
 
 # Claude Code subagents: adapted from agents/pi, Claude frontmatter and tool names.
 repo    .claude/agents/code-reviewer.md  ai-agents/agents/claude/code-reviewer.md
 repo    .claude/agents/skill-applier.md  ai-agents/agents/claude/skill-applier.md
 
 # ── Pi core settings
-mirror  .pi/agent/settings.json
+mirror  .pi/agent/settings.json @!liskov
+repo    .pi/agent/settings.json ai-agents/hosts/liskov/pi-settings.json @liskov
 mirror  .pi/agent/models.json
 
 # ── Pi extensions
@@ -78,7 +83,8 @@ repo    .pi/agent/prompts/scout-and-plan.md        ai-agents/commands/scout-and-
 # ── Pi agents
 prepo   .pi/agent/agents/analyst-sol-max.md       agents/pi/analyst-sol-max.md
 repo    .pi/agent/agents/code-reviewer.md         ai-agents/agents/pi/code-reviewer.md
-repo    .pi/agent/agents/doc-reviewer-terra.md    ai-agents/agents/pi/doc-reviewer-terra.md
+repo    .pi/agent/agents/doc-reviewer-terra.md    ai-agents/agents/pi/doc-reviewer-terra.md @!liskov
+repo    .pi/agent/agents/doc-reviewer-terra.md    ai-agents/agents/pi/doc-reviewer-terra-direct.md @liskov
 prepo   .pi/agent/agents/doc-style-reviewer-sol.md agents/pi/doc-style-reviewer-sol.md
 repo    .pi/agent/agents/planner.md               ai-agents/agents/pi/planner.md
 repo    .pi/agent/agents/scout.md                 ai-agents/agents/pi/scout.md
@@ -86,6 +92,22 @@ repo    .pi/agent/agents/skill-applier.md         ai-agents/agents/pi/skill-appl
 repo    .pi/agent/agents/ste-distiller-sol.md      ai-agents/agents/pi/ste-distiller-sol.md
 repo    .pi/agent/agents/worker.md                ai-agents/agents/pi/worker.md
 repo    .pi/agent/agents/worker-xhigh.md          ai-agents/agents/pi/worker-xhigh.md
+
+# ── Work-laptop resources. Keep personal hosts free of work integrations.
+pskill  datashare-add-table @liskov
+pskill  dbsh @liskov
+pskill  dune-brand @liskov
+pskill  dune-explore @liskov
+pskill  trino-heapdump @liskov
+prepo   .pi/agent/skills/grafana-metrics skills/grafana-metrics @liskov
+prepo   .pi/agent/skills/linear-issues skills/linear-issues @liskov
+prepo   .pi/agent/skills/linear-update skills/linear-update @liskov
+pmirror .config/pr-triage.conf @liskov
+prepo   dune/AGENTS.md dune-workspace/AGENTS.md @liskov
+prepo   dune/GLOSSARY.md dune-workspace/GLOSSARY.md @liskov
+prepo   dune/agent-prompts dune-workspace/agent-prompts @liskov
+pmirror .pi/agent/mcp.json @liskov
+home    .pi/agent-lean/mcp.json .pi/agent/mcp.json @liskov
 
 # ── pi-lean local-model profile
 mirror  .pi/agent-lean/settings.json
@@ -96,6 +118,7 @@ home    .pi/agent-lean/agents                 .pi/agent/agents
 home    .pi/agent-lean/bin                    .pi/agent/bin
 home    .pi/agent-lean/browser-read           .pi/agent/browser-read
 home    .pi/agent-lean/extensions/browser-read .pi/agent/extensions/browser-read
+home    .pi/agent-lean/extensions/web-search .pi/agent/extensions/web-search
 home    .pi/agent-lean/extensions/subagent     .pi/agent/extensions/subagent
 repo    .pi/agent/extensions/disable-spinner.ts  ai-agents/tools/extensions/disable-spinner.ts
 mirror  .claude/statusline.sh

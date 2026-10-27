@@ -36,8 +36,7 @@
     "local/gemma4-26b-qat-mtp-nothink"
   ],
   "skills": [
-    "~/configs/ai-agents/skills",
-    "~/configs-private/skills"
+    "~/.pi/agent/skills"
   ],
   "prompts": [
     "~/.pi/agent/prompts/implement.md",

@@ -3,7 +3,7 @@
 Single source of truth for Pi, Claude Code, and Codex, split across:
 
 - **`~/configs/ai-agents` (public):** generic instructions, skills, agents, commands, tools, and path-specific settings. No secrets or internal infrastructure details.
-- **`~/configs-private` (private):** personal agents, lessons, and session-derived reviews. Tokens and machine state belong in neither repository.
+- **`~/configs-private` (private):** private skills, agents, and application configuration. Tokens, lesson journals, and other machine state belong in neither repository.
 
 `tools/manifest.txt` declares every live projection. `apply.sh` links owned sources into `$HOME`.
 
@@ -38,14 +38,14 @@ The private repository mirrors the same ownership model: shared skills at `skill
 ## Resource entrypoints
 
 - Pi prompt templates: `/implement`, `/implement-and-review`, `/scout-and-plan`. Pi-lean lists those three files explicitly; it does not import command directories or inherit future main-profile prompts. For review, shipping, and reflection, use `/skill:code-review`, `/skill:send-pr`, `/skill:reflect`, and `/skill:weekly-review`; no duplicate command templates.
-- Skills: a `skill <name>` (public) or `pskill <name>` (private) manifest entry links one source into `~/.agents/skills/` and `~/.claude/skills/`. Pi and Codex both read `~/.agents/skills/`, so a shared skill must not also appear under `~/.pi/agent/skills/`, where Pi would load it twice. Skills there are Pi-only: they use native MCP/codemode or custom extensions (`browser-read`, `subagent`). Shared is the default; `track.sh` writes a `skill`/`pskill` entry for any skills-root path. Work skills that Claude must not load use a `repo`/`prepo` entry for `.agents/skills/<name>` instead, which projects them to Pi only.
+- Skills: a `skill <name>` (public) or `pskill <name>` (private) manifest entry links one source into `~/.agents/skills/` and `~/.claude/skills/`. Pi and Codex both read `~/.agents/skills/`, so a shared skill must not also appear under `~/.pi/agent/skills/`, where Pi would load it twice. Skills there are Pi-only: they use native MCP/codemode or custom extensions (`browser-read`, `subagent`). Shared is the default; `track.sh` writes a `skill`/`pskill` entry for any skills-root path. A `repo`/`prepo` entry for `.agents/skills/<name>` skips Claude but remains visible to Pi and Codex.
 - Claude Code: besides the shared skills, the manifest projects the `code-reviewer` and `skill-applier` subagents into `~/.claude/agents`, the canonical instructions as `~/.claude/CLAUDE.md`, and `settings.json` from the `home/` mirror.
-- Workspace services: `notion` prefers the workspace's configured Notion MCP, with `ntn` as a fallback when no MCP is configured; `workspace-apps` owns `gog`. The legacy workspace wrappers, Slack and Linear integrations, and `trino-bench` skill are retired.
+- Workspace services: `notion` prefers the workspace's configured Notion MCP, with `ntn` as a fallback when no MCP is configured; `workspace-apps` owns `gog`. Work integrations are selected by host in the manifest. Slack remains frozen; the legacy workspace wrappers and `trino-bench` skill are retired.
 - Native MCP/codemode, `browser-read`, `web-search`, `subagent`, their tool names, and their command syntax are Pi-specific. Do not copy their routing/evaluation skills or agent templates to another harness without checking its native integrations.
 
 ## Native MCP (Pi 0.99+)
 
-Pi's built-in MCP replaces the retired `mcp-bridge`. The Dune-only server configuration and its main/lean projections were removed on 2026-10-09; no MCP server configuration is currently managed by the manifest. Register any future configuration deliberately through `track.sh`. Keep credentials in machine-local stores, default exposure to `hidden`, and expose only reviewed tools through exact allowlists.
+Pi's built-in MCP replaces the retired `mcp-bridge`. The work laptop projects its private server configuration into main and lean; personal hosts don't deploy it. Keep credentials in machine-local stores, default exposure to `hidden`, and expose only reviewed tools through exact allowlists.
 
 Pi activates codemode automatically when these tools connect. Ordinary tools stay available; neither profile uses codemode-only mode. Discover MCP schemas with codemode's `searchTools()` / `describeTool()`. Native results are `CallToolResult`, including `structuredContent` and `isError`, not flattened strings.
 
@@ -69,6 +69,14 @@ SearXNG scrapes other search engines, which change their pages and rate-limit; `
 Run the offline search and startup tests with `node --test ~/.pi/agent/extensions/web-search/*.test.ts`. Startup tests use mock Docker and HTTP-health commands; they do not touch the live container.
 
 How these tools evolved and what was tested: `skills/web-tool-eval/history.md`.
+
+## Host-specific configuration
+
+Manifest entries accept a final `@hostname` or `@!hostname` selector. Matching uses `hostname -s`; `AGENTS_HOST` overrides it for tests. Nonmatching entries don't deploy or verify; duplicate active paths fail. Selectors don't remove links left by older manifests: archive those outside resource discovery when retiring them.
+
+`liskov` selects direct Anthropic/OpenAI Pi settings, Claude Opus, a direct-Anthropic document reviewer, and the private work resources. Other hosts retain the common settings, including Claude Bridge. Keep credentials and generated device IDs out of both settings sources. Edit host settings through their live symlink; `checkpoint.sh` skips `repo` entries, and `track.sh` refuses already-managed paths.
+
+`tools/dormant.txt` skips shared skills that don't work on a named host. `fw13` keeps `mail` and `my-daily-wrap` dormant; `liskov` also keeps the server-local `mail` skill dormant. Pi-lean loads the selected shared and main-profile skill links instead of scanning source directories. The Lima sync script snapshots the sender's selected entries without selectors, so the guest deploys the same selection under its own hostname.
 
 ## Optional Pi packages
 
