@@ -14,7 +14,7 @@ input=$1
 case "$input" in
 	/*)
 		case "$input" in
-			"$HOME"/*) rel=${input#$HOME/} ;;
+			"$HOME"/*) rel=${input#"$HOME"/} ;;
 			*) die "path must be under \$HOME: $input" ;;
 		esac
 		;;
@@ -75,7 +75,7 @@ case "$kind" in skill|pskill) entry=$suffix ;; esac
 escaped_entry=${entry//\//\/}
 manifest_pattern="^[[:space:]]*(mirror|pmirror|repo|prepo|home|skill|pskill)[[:space:]]+${escaped_entry}([[:space:]]|$)"
 if grep -qE "$manifest_pattern" "$MANIFEST"; then
-	warn "already in manifest: $rel"
+	die "already in manifest: $rel; edit the managed source or restore it with apply.sh"
 fi
 
 run mkdir -p -- "$(dirname "$target")"

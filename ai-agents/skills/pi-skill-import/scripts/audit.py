@@ -10,6 +10,7 @@ import argparse
 import json
 import os
 import re
+import socket
 import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
@@ -189,6 +190,33 @@ def model_id(value: str) -> str:
     return parts[0] if len(parts) == 2 and parts[1] in THINKING_LEVELS else value
 
 
+def host_manifest_fields(raw_line: str, host: str) -> list[str]:
+    fields = raw_line.split("#", 1)[0].split()
+    if not fields:
+        return []
+    if any(field.startswith("@") for field in fields[:-1]):
+        raise ValueError("host selector must be final")
+    if not fields[-1].startswith("@"):
+        return fields
+    selector = fields.pop()
+    if not re.fullmatch(r"@!?[A-Za-z0-9][A-Za-z0-9_.-]*", selector):
+        raise ValueError(f"invalid host selector: {selector}")
+    excluded = selector.startswith("@!")
+    selected_host = selector[2:] if excluded else selector[1:]
+    return fields if (host == selected_host) != excluded else []
+
+
+def dormant_skills(path: Path, host: str) -> set[str]:
+    if not path.is_file():
+        return set()
+    dormant = set()
+    for raw_line in path.read_text().splitlines():
+        fields = raw_line.split()
+        if len(fields) >= 2 and fields[0] == host:
+            dormant.add(fields[1])
+    return dormant
+
+
 def manifest_targets(home: Path, source_home: Path) -> tuple[dict[str, Path], list[str]]:
     manifest = source_home / "configs/ai-agents/tools/manifest.txt"
     if not manifest.is_file():
@@ -196,8 +224,14 @@ def manifest_targets(home: Path, source_home: Path) -> tuple[dict[str, Path], li
 
     targets: dict[str, Path] = {}
     errors: list[str] = []
+    host = os.environ.get("AGENTS_HOST") or socket.gethostname().split(".")[0]
+    dormant = dormant_skills(manifest.with_name("dormant.txt"), host)
     for line_number, raw_line in enumerate(manifest.read_text().splitlines(), 1):
-        fields = raw_line.split("#", 1)[0].split()
+        try:
+            fields = host_manifest_fields(raw_line, host)
+        except ValueError as error:
+            errors.append(f"invalid manifest line {line_number}: {error}")
+            continue
         if not fields:
             continue
         if len(fields) < 2:
@@ -205,6 +239,8 @@ def manifest_targets(home: Path, source_home: Path) -> tuple[dict[str, Path], li
             continue
         kind, path, *arguments = fields
         if kind in ("skill", "pskill") and not arguments:
+            if path in dormant:
+                continue
             source_root = "configs/ai-agents/skills" if kind == "skill" else "configs-private/skills"
             for root in SHARED_SKILL_ROOTS:
                 shared_path = f"{root}/{path}"

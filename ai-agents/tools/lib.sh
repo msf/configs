@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Shared helpers for apply.sh / checkpoint.sh / track.sh.
 # Sourced, not executed. Assumes set -euo pipefail in caller.
 
@@ -48,7 +49,7 @@ backup() {
 	# rebuild absolute path: prefix BACKUP_ROOT/TS, then full path after $HOME or /
 	local rel
 	case "$p" in
-		"$HOME"/*) rel=${p#$HOME/} ;;
+		"$HOME"/*) rel=${p#"$HOME"/} ;;
 		/*)        rel=ROOT${p} ;;
 		*)         rel=$p ;;
 	esac
@@ -83,12 +84,37 @@ is_dormant() {
 		'$1 == host && $2 == skill { found = 1 } END { exit !found }' "$DORMANT"
 }
 
+# Selectors are exact short hostnames, optionally negated; never shell patterns.
+validate_host_selector() {
+	local host=${1#@}
+	host=${host#!}
+	[[ $1 == @* && $host =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]] ||
+		die "invalid manifest host selector: $1"
+}
+
+host_matches() {
+	local selector=$1
+	case "$selector" in
+		@!*) [ "$AGENTS_HOST" != "${selector#@!}" ] ;;
+		@*) [ "$AGENTS_HOST" = "${selector#@}" ] ;;
+	esac
+}
+
+emit_manifest_entry() {
+	local fn=$1 type=$2 path=$3 arg2=${4:-}
+	case "$manifest_paths" in
+		*$'\n'"$path"$'\n'*) die "duplicate active manifest path: $path" ;;
+	esac
+	manifest_paths+="$path"$'\n'
+	"$fn" "$type" "$path" "$arg2"
+}
+
 # Iterate manifest entries. Calls $1 (a function name) with type, path, [arg2].
-# Skips comments, blank lines, dormant skills, and Codex entries without Codex.
+# Skips nonmatching host selectors, dormant skills, and unavailable harnesses.
 foreach_manifest() {
 	local fn=$1
 	[ -r "$MANIFEST" ] || die "manifest not found: $MANIFEST"
-	local type path arg2
+	local type path arg2 selector extra line manifest_paths=$'\n'
 	while IFS= read -r line || [ -n "$line" ]; do
 		# strip leading whitespace and inline comments after content
 		line=${line%%#*}
@@ -96,10 +122,19 @@ foreach_manifest() {
 		line=${line#"${line%%[![:space:]]*}"}
 		line=${line%"${line##*[![:space:]]}"}
 		[ -z "$line" ] && continue
-		# split into up to 3 tokens
-		read -r type path arg2 <<<"$line"
+		read -r type path arg2 selector extra <<<"$line"
 		[ -z "$type" ] && continue
 		[ -z "$path" ] && die "manifest: missing path: $line"
+		[ -z "$extra" ] || die "manifest: too many fields: $line"
+		if [[ ${arg2:-} == @* ]]; then
+			[ -z "$selector" ] || die "manifest: host selector must be last: $line"
+			selector=$arg2
+			arg2=
+		fi
+		if [ -n "$selector" ]; then
+			validate_host_selector "$selector"
+			host_matches "$selector" || continue
+		fi
 		case "$type" in
 			skill|pskill)
 				# One skill source, linked into every harness's skills root.
@@ -108,12 +143,12 @@ foreach_manifest() {
 				is_dormant "$path" && continue
 				local root
 				for root in $SKILL_ROOTS; do
-					"$fn" "$(skill_link_type "$type")" "$root/$path" "$(skill_source "$type" "$path")"
+					emit_manifest_entry "$fn" "$(skill_link_type "$type")" "$root/$path" "$(skill_source "$type" "$path")"
 				done
 				;;
 			*)
 				case "$path" in .codex/*) [ "$HAS_CODEX" = 1 ] || continue ;; esac
-				"$fn" "$type" "$path" "${arg2:-}"
+				emit_manifest_entry "$fn" "$type" "$path" "${arg2:-}"
 				;;
 		esac
 	done < "$MANIFEST"

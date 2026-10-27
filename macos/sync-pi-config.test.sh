@@ -102,6 +102,20 @@ rm "$agent/models.json"
 run_sync
 [[ $(jq -r .providers.local.baseUrl "$agent/models.json") == http://host.lima.internal:8090/v1 ]]
 printf 'PASS: fresh model config maps Mac localhost to host.lima.internal\n'
+
+# Resolve host selectors and dormant entries before sending to a differently named guest.
+export AGENTS_HOST=work
+printf 'work private-probe\n' > "$tools/dormant.txt"
+printf 'repo .pi/agent/work-only ai-agents/instructions.md @work\nrepo .pi/agent/personal-only ai-agents/missing @!work\n' >> "$tools/manifest.txt"
+run_sync
+[[ -f $agent/work-only && ! -e $agent/personal-only ]]
+[[ ! -L $FIXTURE_GUEST_HOME/.agents/skills/private-probe ]]
+if grep -q '@work\|@!work\|private-probe' "$state/current/configs/ai-agents/tools/manifest.txt"; then exit 1; fi
+rm "$tools/dormant.txt"
+grep -v ' @' "$tools/manifest.txt" > "$fixture/manifest"
+mv "$fixture/manifest" "$tools/manifest.txt"
+unset AGENTS_HOST
+printf 'PASS: snapshot freezes selected host entries and omits dormant skills\n'
 printf 'updated skill\n' >"$HOME/configs/ai-agents/skills/probe/SKILL.md"
 mkdir -p "$FIXTURE_GUEST_HOME/.agents/skills/guest-only"
 grep -v '^pskill ' "$tools/manifest.txt" >"$fixture/manifest"

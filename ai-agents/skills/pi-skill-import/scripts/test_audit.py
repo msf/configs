@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from audit import model_id, parse_frontmatter, run_audit, scan_tree
 
@@ -118,6 +120,76 @@ class AuditTest(unittest.TestCase):
             (shared / "notes.md").write_text("see Task tool\n")
             result = run_audit(home, validate=False, model_check=False)
             self.assertTrue(any("OpenCode task tool" in error for error in result.errors))
+
+    def test_host_selectors_choose_settings_and_skills_before_duplicate_checks(self) -> None:
+        for host in ("work-host_1", "personal"):
+            with self.subTest(host=host), tempfile.TemporaryDirectory() as directory:
+                home, public, live = self.make_home(Path(directory))
+                work_settings = public / "home/work-settings.json"
+                work_settings.write_text("{}\n")
+                manifest = public / "tools/manifest.txt"
+                manifest.write_text(manifest.read_text().replace(
+                    "mirror .pi/agent/settings.json\n",
+                    "mirror .pi/agent/settings.json @!work-host_1\n"
+                    "repo .pi/agent/settings.json ai-agents/home/work-settings.json @work-host_1\n",
+                ) + "skill hosted @work-host_1\n" + "skill hosted @!work-host_1\n")
+                hosted = public / "skills/hosted"
+                hosted.mkdir()
+                (hosted / "SKILL.md").write_text("---\nname: hosted\ndescription: Host skill.\n---\n")
+                (home / ".agents/skills").mkdir(parents=True)
+                (home / ".agents/skills/hosted").symlink_to(hosted)
+                if host == "work-host_1":
+                    (live / "settings.json").unlink()
+                    (live / "settings.json").symlink_to(work_settings)
+                with patch.dict(os.environ, {"AGENTS_HOST": host}):
+                    result = run_audit(home, validate=False, model_check=False)
+                self.assertEqual(result.errors, [])
+                self.assertEqual(result.skill_count, 2)
+
+    def test_host_defaults_to_short_socket_hostname(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            home, public, _ = self.make_home(Path(directory))
+            manifest = public / "tools/manifest.txt"
+            manifest.write_text(manifest.read_text().replace(
+                "mirror .pi/agent/settings.json\n", "mirror .pi/agent/settings.json @workhost\n",
+            ))
+            with patch.dict(os.environ), patch("audit.socket.gethostname", return_value="workhost.example"):
+                os.environ.pop("AGENTS_HOST", None)
+                result = run_audit(home, validate=False, model_check=False)
+            self.assertEqual(result.errors, [])
+
+    def test_dormant_public_and_private_skills_follow_host(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            home, public, _ = self.make_home(Path(directory))
+            manifest = public / "tools/manifest.txt"
+            manifest.write_text(manifest.read_text() + "skill optional\npskill private-optional\n")
+            (public / "tools/dormant.txt").write_text(
+                "# personal-only exclusions\npersonal optional\npersonal private-optional\n",
+            )
+            (home / ".agents/skills").mkdir(parents=True)
+            for name, root in (("optional", public), ("private-optional", home / "configs-private")):
+                source = root / "skills" / name
+                source.mkdir(parents=True)
+                (source / "SKILL.md").write_text(f"---\nname: {name}\ndescription: Optional.\n---\n")
+                (home / ".agents/skills" / name).symlink_to(source)
+            for host in ("workhost", "personal"):
+                with self.subTest(host=host), patch.dict(os.environ, {"AGENTS_HOST": host}):
+                    result = run_audit(home, validate=False, model_check=False)
+                    self.assertEqual(result.errors, [])
+                    self.assertEqual(bool(result.warnings), host == "personal")
+                    if host == "personal":
+                        self.assertIn("optional, private-optional", result.warnings[0])
+
+    def test_malformed_host_selectors_are_manifest_errors(self) -> None:
+        for selector in ("@", "@!", "@wo*", "@-work", "@work trailing", "@work @other"):
+            with self.subTest(selector=selector), tempfile.TemporaryDirectory() as directory:
+                home, public, _ = self.make_home(Path(directory))
+                manifest = public / "tools/manifest.txt"
+                manifest.write_text(manifest.read_text() + f"skill optional {selector}\n")
+                result = run_audit(home, validate=False, model_check=False)
+                self.assertEqual(len(result.errors), 1)
+                self.assertIn("invalid manifest line 7:", result.errors[0])
+                self.assertIn("host selector", result.errors[0])
 
     def test_shared_skill_also_linked_under_pi_collides(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

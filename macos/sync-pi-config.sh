@@ -46,17 +46,16 @@ collect_source() {
 	# Resolve managed links, but rebuild dependencies for Linux instead of copying them.
 	rsync -aL --exclude=node_modules --exclude=.git --exclude=__pycache__ \
 		"$source_file" "$snapshot/payload/$(dirname "$destination")/"
+	# Freeze the sender's resolved projection; guest hostnames must not reselect it.
+	printf '%s %s %s\n' "$type" "$path" "$arg2" >>"$snapshot/payload/configs/ai-agents/tools/manifest.txt"
 }
 
 mkdir -p "$snapshot/payload/configs/ai-agents/tools"
+: >"$snapshot/payload/configs/ai-agents/tools/manifest.txt"
 foreach_manifest collect_source
 for name in apply.sh lib.sh; do
 	cp "$TOOLS_DIR/$name" "$snapshot/payload/configs/ai-agents/tools/$name"
 done
-# A scoped manifest prevents missing/unrelated harness resources from being deployed.
-awk '$1 == "skill" || $1 == "pskill" || $2 ~ /^\.pi\/agent\// {
-	if ($1 != "home" && $2 !~ /^\.pi\/agent\/(auth\.json|mcp-auth\.json|secrets)(\/|$)/) print
-}' "$MANIFEST" >"$snapshot/payload/configs/ai-agents/tools/manifest.txt"
 for name in settings.json models.json mcp.json; do
 	while IFS= read -r file; do
 		jq -e objects "$file" >/dev/null

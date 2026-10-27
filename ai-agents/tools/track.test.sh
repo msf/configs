@@ -23,6 +23,44 @@ for visibility in public private; do
 done
 printf 'PASS: lesson journals stay local in public and private modes\n'
 
+# A regular replacement of host-selected settings must not overwrite owned sources.
+home=$fixture/owned-settings
+repo=$home/configs/ai-agents
+mkdir -p "$repo/tools" "$repo/home/.pi/agent" "$home/.pi/agent"
+cp "$tools/track.sh" "$tools/lib.sh" "$repo/tools/"
+printf 'replacement settings\n' > "$home/.pi/agent/settings.json"
+printf 'existing mirror settings\n' > "$repo/home/.pi/agent/settings.json"
+printf 'work settings\n' > "$repo/home/work-settings.json"
+printf 'personal settings\n' > "$repo/home/personal-settings.json"
+cat > "$repo/tools/manifest.txt" <<'MANIFEST'
+repo .pi/agent/settings.json ai-agents/home/work-settings.json @liskov
+repo .pi/agent/settings.json ai-agents/home/personal-settings.json @!liskov
+MANIFEST
+cp "$home/.pi/agent/settings.json" "$fixture/original-settings"
+cp "$repo/home/.pi/agent/settings.json" "$fixture/original-mirror"
+cp "$repo/home/work-settings.json" "$fixture/original-work"
+cp "$repo/home/personal-settings.json" "$fixture/original-personal"
+cp "$repo/tools/manifest.txt" "$fixture/original-manifest"
+for host in liskov fw13; do
+  for visibility in public private; do
+    args=()
+    [ "$visibility" != private ] || args+=(--private)
+    if HOME="$home" AGENTS_HOST="$host" bash "$repo/tools/track.sh" "${args[@]}" .pi/agent/settings.json > "$fixture/refusal" 2>&1; then
+      printf 'FAIL: track.sh accepted already-owned %s settings on %s\n' "$visibility" "$host" >&2
+      exit 1
+    fi
+    grep -Fq 'already in manifest: .pi/agent/settings.json' "$fixture/refusal"
+    test ! -L "$home/.pi/agent/settings.json"
+    cmp "$fixture/original-settings" "$home/.pi/agent/settings.json"
+    cmp "$fixture/original-mirror" "$repo/home/.pi/agent/settings.json"
+    cmp "$fixture/original-work" "$repo/home/work-settings.json"
+    cmp "$fixture/original-personal" "$repo/home/personal-settings.json"
+    cmp "$fixture/original-manifest" "$repo/tools/manifest.txt"
+    test ! -e "$home/.agents-backup" && test ! -e "$home/configs-private"
+  done
+done
+printf 'PASS: already-owned conditional settings are refused without changing live/source/manifest bytes\n'
+
 # A tracked skill is linked into every shared root, and nowhere else.
 assert_shared_links() {
   local home=$1 name=$2 target=$3 tracked_from=$4
