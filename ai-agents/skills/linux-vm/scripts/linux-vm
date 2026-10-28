@@ -6,17 +6,21 @@
 #   linux-vm path           print the guest project directory without syncing
 #   linux-vm setup-amd64    install/repair the amd64 cross toolchain (idempotent)
 #
-# The project is the enclosing Git work tree, or the current directory. It is
-# mirrored to ~/src/<path relative to the Mac home> in the guest, deleting guest
-# files that are gone on the Mac. Files matched by .gitignore, and any top-level
-# target/, are neither sent nor deleted, so build outputs there persist. Put other
-# guest outputs in an ignored path or outside the project (for example ~/out).
+# The project is the enclosing Git work tree, or the current directory; it must be
+# below $HOME. It is copied to ~/src/<path below $HOME> in the guest:
+# - Git projects send exactly the files Git sees (tracked plus untracked, not
+#   ignored), plus the .git directory. Submodule contents are not sent.
+# - Other directories send every regular file and symlink.
+# A file that an earlier sync sent and that is no longer sent is deleted in the
+# guest. Files created in the guest (build outputs) are never deleted.
 set -euo pipefail
 
 readonly VM=linux-dev
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 readonly SCRIPT_DIR
 readonly SSH_CONFIG="$HOME/.lima/$VM/ssh.config"
+GUEST_HOME="/home/$(id -un)"
+readonly GUEST_HOME
 
 die() { echo "linux-vm: $*" >&2; exit 1; }
 
@@ -31,35 +35,95 @@ project_root() {
   git rev-parse --show-toplevel 2>/dev/null || pwd -P
 }
 
-# Guest directory for a Mac path: ~/src/<path below $HOME>, or ~/src/<absolute path>.
-guest_dir() {
+# Path below $HOME, so that distinct Mac paths never share a guest directory.
+home_relative() {
   local mac_path="$1"
-  local rel="${mac_path#"$HOME"/}"
-  echo "/home/$(id -un)/src/${rel#/}"
+  [[ "$mac_path" == "$HOME"/* ]] || die "$mac_path is not below $HOME"
+  echo "${mac_path#"$HOME"/}"
 }
 
+# NUL-separated project files relative to $1: regular files and symlinks only.
+list_files() {
+  local root="$1" file
+  if git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$root" ls-files -z --cached --others --exclude-standard --deduplicate
+  else
+    (cd "$root" && find . -mindepth 1 \( -type f -o -type l \) -print0)
+  fi | while IFS= read -r -d '' file; do
+    file="${file#./}"
+    # Skips deleted-but-tracked paths and submodule directories.
+    if [[ -f "$root/$file" || -L "$root/$file" ]]; then
+      printf '%s\0' "$file"
+    fi
+  done
+}
+
+# Guest side, before the transfer. Args: <guest project dir> <manifest>; stdin: the
+# new NUL list. Deletes files that an earlier sync sent but this one will not, so
+# that a path can switch between file and directory, then removes directories this
+# left empty. The new list is staged as <manifest>.new until the transfer succeeds;
+# a list left staged by a failed transfer still counts as sent, since that transfer
+# may have copied some of its files.
+# shellcheck disable=SC2016 # expanded by the guest shell
+readonly PREPARE_SCRIPT='
+set -euo pipefail
+dest="$1" manifest="$2"
+mkdir -p "$dest" "$(dirname "$manifest")"
+dest_real="$(realpath -- "$dest")"
+touch "$manifest"
+if [[ -f "$manifest.new" ]]; then
+  LC_ALL=C sort -z -u "$manifest" "$manifest.new" > "$manifest.merged"
+  mv -f "$manifest.merged" "$manifest"
+fi
+LC_ALL=C sort -z -u > "$manifest.new"
+LC_ALL=C comm -z -23 "$manifest" "$manifest.new" | while IFS= read -r -d "" f; do
+  # A guest-created symlink among the parents would redirect rm outside the copy.
+  [[ "$(realpath -m -- "$(dirname -- "$dest/$f")")" == "$(dirname -- "$dest_real/$f")" ]] || continue
+  if [[ -L "$dest/$f" || ! -d "$dest/$f" ]]; then
+    rm -f -- "$dest/$f"
+  fi
+  parent="$(dirname -- "$dest/$f")"
+  while [[ "$parent" != "$dest" ]] && rmdir -- "$parent" 2>/dev/null; do
+    parent="$(dirname -- "$parent")"
+  done
+done
+'
+
 sync_project() {
-  local root guest
+  local root rel guest manifest list
   root="$(project_root)"
-  [[ "$root" != "$HOME" ]] || die "refusing to sync the whole home directory"
-  guest="$(guest_dir "$root")"
-  limactl shell --workdir / "$VM" -- mkdir -p "$guest"
-  rsync -a --delete -f ':- .gitignore' -f 'P /target/' -f '- /target/' -e "ssh -F $SSH_CONFIG" "$root/" "lima-$VM:$guest/"
+  rel="$(home_relative "$root")"
+  guest="$GUEST_HOME/src/$rel"
+  manifest="$GUEST_HOME/.cache/linux-vm/manifests/$rel.files"
+  list="$(mktemp)"
+  list_files "$root" > "$list"
+
+  limactl shell --workdir / "$VM" -- bash -c "$PREPARE_SCRIPT" _ "$guest" "$manifest" < "$list"
+  rsync -a -0 --files-from="$list" -e "ssh -F $SSH_CONFIG" "$root/" "lima-$VM:$guest/"
+  if [[ -d "$root/.git" ]]; then
+    rsync -a --delete -e "ssh -F $SSH_CONFIG" "$root/.git/" "lima-$VM:$guest/.git/"
+  fi
+  limactl shell --workdir / "$VM" -- mv -f "$manifest.new" "$manifest"
+  rm -f "$list"
   echo "$guest"
 }
 
 main() {
-  local cmd="${1:-}"
+  local cmd="${1:-}" workdir
   [[ $# -gt 0 ]] && shift
   case "$cmd" in
     run)
       [[ $# -gt 0 ]] || die "usage: linux-vm run <cmd> [args...]"
+      workdir="$GUEST_HOME/src/$(home_relative "$(pwd -P)")"
       ensure_running
       sync_project >/dev/null
-      exec limactl shell --workdir "$(guest_dir "$(pwd -P)")" "$VM" -- "$@"
+      exec limactl shell --workdir "$workdir" "$VM" -- "$@"
       ;;
     sync) ensure_running; sync_project ;;
-    path) guest_dir "$(project_root)" ;;
+    path)
+      workdir="$GUEST_HOME/src/$(home_relative "$(project_root)")"
+      echo "$workdir"
+      ;;
     setup-amd64)
       ensure_running
       limactl shell --workdir / "$VM" -- sudo bash -s "$(id -un)" < "$SCRIPT_DIR/amd64-cross-setup.sh"

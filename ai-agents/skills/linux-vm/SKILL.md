@@ -16,8 +16,11 @@ $V sync             # sync only; prints the guest dir (~/src/<path below the Mac
 $V path             # print the guest dir
 ```
 
-- The project (Git work tree or current directory) is mirrored to the guest with deletions. `.gitignore`d paths and a top-level `target/` are not sent and not deleted, so build outputs persist in the guest. Put other outputs in an ignored path or outside the project, such as `~/out`.
+- The project is the Git work tree or the current directory, and it must be below the Mac home directory.
+- A Git project sends exactly the files Git sees (tracked, plus untracked files that are not ignored) and `.git`. Submodule contents are not sent. A non-Git directory sends all its files.
+- A file is deleted in the guest only after an earlier sync sent it and the Mac no longer has it. Guest-created files, such as `target/` or other build outputs, persist.
 - Copy results back with `limactl copy linux-dev:/home/$USER/out/<file> <mac-dest>`.
+- `<cmd>` runs without a shell. Wrap anything that the guest must expand (`~`, `$(...)`, `&&`, globs) in `sh -c '...'` with single quotes, or the Mac shell expands it first.
 - Mac environment variables are not forwarded: `$V run env FOO=bar <cmd>`.
 - For a command that needs no project, use `limactl shell --workdir / linux-dev -- <cmd>`.
 
@@ -32,9 +35,9 @@ Cross-compile in `linux-dev`. It is as fast as a native arm64 build. Rosetta and
 ```sh
 $V run cargo build --release --target x86_64-unknown-linux-gnu
 $V run cargo test --target x86_64-unknown-linux-gnu
-$V run env GOARCH=amd64 CGO_ENABLED=0 go build -o ~/out/app .            # pure Go (also works on the Mac)
-$V run env GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-linux-gnu-gcc go build -o ~/out/app .
-$V run x86_64-linux-gnu-gcc main.c -o ~/out/app $(x86_64-linux-gnu-pkg-config --libs zlib)
+$V run sh -c 'mkdir -p ~/out && GOARCH=amd64 CGO_ENABLED=0 go build -o ~/out/app .'   # pure Go (also works on the Mac)
+$V run sh -c 'mkdir -p ~/out && GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-linux-gnu-gcc go build -o ~/out/app .'
+$V run sh -c 'mkdir -p ~/out && x86_64-linux-gnu-gcc main.c -o ~/out/app $(x86_64-linux-gnu-pkg-config --libs zlib)'
 ```
 
 - C/C++ build systems: `CC=x86_64-linux-gnu-gcc CXX=x86_64-linux-gnu-g++ PKG_CONFIG=x86_64-linux-gnu-pkg-config`, autotools `--host=x86_64-linux-gnu`, CMake `-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=x86_64` with those compilers.
