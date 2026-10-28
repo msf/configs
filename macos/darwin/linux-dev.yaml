@@ -13,6 +13,12 @@ additionalDisks:
     format: true
     fsType: ext4
 nestedVirtualization: true
+# Runs amd64 binaries (cross-built output, cargo test) through Rosetta binfmt.
+vmOpts:
+  vz:
+    rosetta:
+      enabled: true
+      binfmt: true
 
 user:
   name: miguel

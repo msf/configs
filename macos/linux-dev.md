@@ -254,6 +254,33 @@ options and key bindings, Neovim startup and pinned plugins, rust-analyzer
 initialization, Chromium HTTPS rendering with Pi's persistent profile, and a
 repeated bootstrap without additional dotfile backups.
 
+## amd64 builds
+
+The VM cross-compiles for `x86_64-linux-gnu` at native arm64 speed and runs the
+amd64 output through Rosetta (`vmOpts.vz.rosetta`). The guest has the `amd64`
+dpkg architecture, cross GCC, `:amd64` libraries, a `x86_64-linux-gnu-pkg-config`
+wrapper, and the Rust `x86_64-unknown-linux-gnu` target with its Cargo linker
+settings. `ai-agents/skills/linux-vm/scripts/amd64-cross-setup.sh` installs or
+repairs all of this idempotently. Agents use the `linux-vm` skill.
+
+An existing instance does not pick up Rosetta from this YAML. Enable it once:
+
+```sh
+limactl stop linux-dev
+limactl edit --tty=false --set '.vmOpts.vz.rosetta.enabled = true | .vmOpts.vz.rosetta.binfmt = true' linux-dev
+limactl start linux-dev
+```
+
+Verified on 2026-10-28: Rust with `openssl-sys` and zlib, `cargo test`, Go cgo,
+and C cross builds produced x86-64 ELF binaries that ran in the guest. A clean
+Rust release build took the same time cross as native (about 4.5 s). The same
+build in an amd64 userland under Rosetta took 17–22 s in both OrbStack and Lima.
+Lima's Rosetta reports AVX2 (x86-64-v3); OrbStack's does not.
+
+VZ keeps guest memory that the guest has touched until the VM stops. After
+`drop_caches` freed 14 GiB in the guest, the host footprint stayed at 16 GB.
+Stop the VM when it is idle.
+
 ## Storage testing
 
 `linux-scratch` is a separate sparse 250 GiB raw virtual disk on the Mac at

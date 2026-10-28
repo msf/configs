@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# linux-vm — run commands for the current Mac project inside the Lima VM linux-dev.
+#
+#   linux-vm run <cmd...>   sync the project into the guest, then run <cmd> there
+#   linux-vm sync           sync only; prints the guest project directory
+#   linux-vm path           print the guest project directory without syncing
+#   linux-vm setup-amd64    install/repair the amd64 cross toolchain (idempotent)
+#
+# The project is the enclosing Git work tree, or the current directory. It is
+# mirrored to ~/src/<path relative to the Mac home> in the guest, deleting guest
+# files that are gone on the Mac. Files matched by .gitignore, and any top-level
+# target/, are neither sent nor deleted, so build outputs there persist. Put other
+# guest outputs in an ignored path or outside the project (for example ~/out).
+set -euo pipefail
+
+readonly VM=linux-dev
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+readonly SCRIPT_DIR
+readonly SSH_CONFIG="$HOME/.lima/$VM/ssh.config"
+
+die() { echo "linux-vm: $*" >&2; exit 1; }
+
+ensure_running() {
+  local status
+  status="$(limactl list "$VM" --format '{{.Status}}' 2>/dev/null)" || die "Lima instance $VM not found"
+  [[ "$status" == Running ]] && return 0
+  limactl start "$VM" >&2
+}
+
+project_root() {
+  git rev-parse --show-toplevel 2>/dev/null || pwd -P
+}
+
+# Guest directory for a Mac path: ~/src/<path below $HOME>, or ~/src/<absolute path>.
+guest_dir() {
+  local mac_path="$1"
+  local rel="${mac_path#"$HOME"/}"
+  echo "/home/$(id -un)/src/${rel#/}"
+}
+
+sync_project() {
+  local root guest
+  root="$(project_root)"
+  [[ "$root" != "$HOME" ]] || die "refusing to sync the whole home directory"
+  guest="$(guest_dir "$root")"
+  limactl shell --workdir / "$VM" -- mkdir -p "$guest"
+  rsync -a --delete -f ':- .gitignore' -f 'P /target/' -f '- /target/' -e "ssh -F $SSH_CONFIG" "$root/" "lima-$VM:$guest/"
+  echo "$guest"
+}
+
+main() {
+  local cmd="${1:-}"
+  [[ $# -gt 0 ]] && shift
+  case "$cmd" in
+    run)
+      [[ $# -gt 0 ]] || die "usage: linux-vm run <cmd> [args...]"
+      ensure_running
+      sync_project >/dev/null
+      exec limactl shell --workdir "$(guest_dir "$(pwd -P)")" "$VM" -- "$@"
+      ;;
+    sync) ensure_running; sync_project ;;
+    path) guest_dir "$(project_root)" ;;
+    setup-amd64)
+      ensure_running
+      limactl shell --workdir / "$VM" -- sudo bash -s "$(id -un)" < "$SCRIPT_DIR/amd64-cross-setup.sh"
+      ;;
+    *) die "usage: linux-vm {run <cmd...>|sync|path|setup-amd64}" ;;
+  esac
+}
+
+main "$@"
