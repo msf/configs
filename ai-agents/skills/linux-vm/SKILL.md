@@ -52,10 +52,11 @@ $V run sh -c 'mkdir -p ~/out && x86_64-linux-gnu-gcc main.c -o ~/out/app $(x86_6
 - **A real amd64 kernel (modules, ublk, KVM, kernel behavior):** create a disposable Lima QEMU VM. Copy prebuilt artifacts into it; do not compile there.
 
   ```sh
-  nix shell nixpkgs#qemu -c limactl start --name=<task>-amd64 --vm-type=qemu --arch=x86_64 --mount-none template:ubuntu-24.04
+  nix shell --impure --expr 'with import <nixpkgs> {}; { lima = lima.override { withAdditionalGuestAgents = true; }; inherit qemu; }' lima qemu \
+    -c limactl start --name=<task>-amd64 --vm-type=qemu --arch=x86_64 --mount-none template:ubuntu-24.04
   ```
 
-  QEMU must be on `PATH` for every `limactl start`, so prefix restarts the same way. Delete the VM when done with `limactl delete -f <task>-amd64`.
+  The system `lima` ships only aarch64 guest agents, so an x86_64 guest needs the `withAdditionalGuestAgents` build. QEMU must be on `PATH` for every `limactl start`, so prefix restarts with the same `nix shell`. Delete the VM when done with `limactl delete -f <task>-amd64`.
 
 ## Memory
 
