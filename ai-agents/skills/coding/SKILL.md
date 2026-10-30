@@ -16,14 +16,18 @@ The burden of proof is on complexity, not simplicity.
 
 ## Change sequencing
 
-Small pull requests are more likely to receive fast reviews, introduce fewer bugs, carry less risk, and earn higher approval rates. Treat review size as a design constraint before implementation, not cleanup at submission time.
+Commits are the small, incremental review units; PRs group them into a logically complete outcome. Plan that sequence before implementation, not at submission time. PRs have no line-count limit: do not create a stack merely to satisfy a size target.
 
-- Sequence work into cohesive PRs that each target fewer than 500 changed lines (additions plus deletions from the intended merge base).
-- Prefer the smallest complete change with a clear review narrative. Split by independently reviewable outcomes, not arbitrary file or line boundaries. A reviewer must be able to understand each PR's intent, behavior, and verification without reconstructing the full stack. Each PR must be safe to merge in sequence, include the tests for its behavior, and state any dependency on an earlier PR.
-- Put prerequisites before dependents. Keep mechanical bulk separate from hand-written logic when practical.
-- Dependency or lock graph updates, generated stubs, large test fixtures or matrices, and deletion-heavy changes may take a PR over 500 lines. Ordinary test code still counts. Keep the non-exempt portion under 500 lines and make the exceptional bulk obvious to reviewers.
-- Group the commits inside a PR by layer, so each one reviews on its own: config and types first, then implementation, then tests. Keep infrastructure (`k8s/`, terraform) out of code commits, keep migrations out of application code, and give proto or API definition changes their own commit.
-- "Cohesive" alone is not an exception. Split an oversized hand-written change across PRs; if splitting would make the change less safe, order it into small reviewable commits and document why one larger PR is necessary.
+- Target at most 500 changed lines per commit, counting additions plus deletions against its parent. Each commit has one clear purpose, includes tests for the behavior it changes, and leaves the code buildable and its tests passing. Split by responsibility, not arbitrary file or line boundaries; put prerequisites before dependents.
+- Dependency or lock graph updates, generated stubs, large test fixtures or matrices, and deletion-heavy changes may exceed the commit target. Ordinary test code still counts. Keep non-exempt changes at or below 500 lines and isolate mechanical bulk when practical. If a hand-written change cannot be split safely, explain why and get the user's agreement to a larger commit rather than separating behavior from its tests.
+- Separate infrastructure, migrations, and proto or API definitions from application implementation when each can stand on its own. Do not force layer boundaries that leave a commit broken. Use the ordered commits to explain how the complete change fits together.
+- Group related commits into one coherent PR with a clear purpose and verification story; keep unrelated outcomes separate. Split into multiple PRs only for a meaningful review, dependency, or rollout boundary, not size. Each PR must be safe to merge in sequence and state any dependency on an earlier PR.
+
+## Commit messages
+
+- Use a specific, imperative subject stating the change; follow the repository's subject convention.
+- Add a concise body explaining why the change is needed and how it addresses the problem. Include non-obvious constraints, trade-offs, or important settings only when they help understand this commit. A trivial change may need only the subject.
+- Apply the same clarity and rationale as a PR description, but keep the message shorter and scoped to its own diff. Never include a "Suggested review order" or "Review order" section, a file-by-file tour, or the entire PR description.
 
 ## Power of 10 (adapted)
 

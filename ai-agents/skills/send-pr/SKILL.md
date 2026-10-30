@@ -1,6 +1,6 @@
 ---
 name: send-pr
-description: Prepare, size-check, push, create, and monitor pull requests until checks are green and merge state is clean.
+description: Prepare cohesive pull requests with small, well-explained commits; push, create, and monitor them until checks are green and merge state is clean.
 ---
 
 ## What I do
@@ -8,16 +8,14 @@ description: Prepare, size-check, push, create, and monitor pull requests until 
 - Rebase on `origin/main`, run formatters/tests, push safely, create/update PR, and monitor checks.
 - Iterate on failures and valid review feedback until PR checks pass and `mergeStateStatus` is `CLEAN`.
 
-## Review-size gate
+## Commit review gate
 
-Target fewer than 500 changed lines per PR. Small PRs are more likely to receive fast reviews, introduce fewer bugs, carry less risk, and earn higher approval rates.
+Load the `coding` skill's change-sequencing and commit-message rules. Target at most 500 changed lines per commit; PRs have no line-count limit. Group related commits into a logically complete PR, and split PRs only at meaningful review, dependency, or rollout boundaries—not to meet a size target.
 
-- Measure additions plus deletions from the intended base's merge base with `git diff --numstat`; inspect both the largest files and the commit sequence. Re-check after generation, formatting, or fixes change the diff and immediately before pushing.
-- If the total is under 500 lines, proceed.
-- If it is over, separate hand-written logic from allowed bulk: dependency or lock graph updates, generated stubs, large test fixtures or matrices, and deletion-heavy changes. Ordinary test code is not bulk. Verify generated output has the corresponding source change and reproducible generation command.
-- Keep non-exempt changes under 500 lines. If they are not, stop before pushing or creating/updating the PR and propose a cohesive, dependency-ordered PR split. Do not use "cohesive" as a blanket exception or split implementation from its tests.
-- Proceed with an oversized PR only for allowed bulk or after the user explicitly accepts an unavoidable cohesive exception. Keep exceptional bulk in separate commits when practical; otherwise make commits small and ordered for incremental review.
-- For an oversized PR, state in its description the total changed lines, the generated or bulk portion, and why one PR is safer than a split.
+- Enumerate the commits introduced since the intended base's merge base, in dependency order. Measure each commit's additions plus deletions against its parent with `git diff --numstat <commit>^ <commit>`; inspect merge commits explicitly rather than treating an empty merge summary as zero changes. Re-check after generation, formatting, or fixes and immediately before pushing.
+- For a commit over 500 lines, separate hand-written logic from allowed bulk: dependency or lock graph updates, generated stubs, large test fixtures or matrices, and deletion-heavy changes. Ordinary test code is not bulk. Verify generated output has the corresponding source change and reproducible generation command; isolate bulk when practical.
+- If a commit's non-exempt portion exceeds 500 lines, stop before pushing or creating/updating the PR and propose splitting that commit within the same PR. Keep each commit buildable and tested; do not separate behavior from its tests to meet the target. Proceed with an unavoidable larger hand-written commit only after the user agrees. The PR's total size requires neither an exception nor a size justification in its description.
+- Read every commit message against its diff: a specific imperative subject, with a concise why/how body when needed. Keep messages shorter than the PR description and scoped to the commit; no review-order section. The PR description explains the combined outcome and may still include a suggested review order.
 
 ## Workflow
 1. Pre-flight
@@ -26,7 +24,7 @@ Target fewer than 500 changed lines per PR. Small PRs are more likely to receive
    - Fetch the intended base. If rebasing is required, set `GIT_EDITOR=true GIT_SEQUENCE_EDITOR=true` and rebase onto the fetched base.
    - Re-run repo generation commands if required by repo docs.
    - Verify no unintended drift in protected paths (for example `k8s/prod/`).
-   - Apply the review-size gate before mutating remote state.
+   - Apply the commit review gate before mutating remote state.
 
 2. Format and test
    - Run the repo formatter or linter (make lint, cargo fmt, `./gradlew spotlessApply`, etc) )
@@ -35,7 +33,7 @@ Target fewer than 500 changed lines per PR. Small PRs are more likely to receive
    - If there are no documented format/lint/test commands, report the verification gap; do not add scaffolding just for this PR.
 
 3. Push
-   - Re-run the review-size gate against the final committed diff.
+   - Re-run the commit review gate against the final commit sequence.
    - Use `git push --force-with-lease` after rebase/history rewrite.
    - For a new branch, use an explicit refspec: `git push origin HEAD:refs/heads/<branch>`, then set upstream to `origin/<branch>`. Never rely on an inherited upstream.
 
@@ -45,13 +43,13 @@ Target fewer than 500 changed lines per PR. Small PRs are more likely to receive
    - If the diff adds or changes a README or docs page, check it against the `tech-writing` skill's rules for repository docs before writing the description.
    - Write the description for a reviewer from another team. Relevance decides what goes in, not a length budget. Use these parts in order, and leave out any that don't apply:
      1. **Why**: the problem or goal and any constraint the change works under (for example, live changes only, no restarts), in plain sentences a reviewer understands on first read: one idea per sentence, no unexplained codenames or acronyms. The merge dependency, the PR's place in its stack, and the links the reviewer needs (issue, dashboard, runbook) go here.
-     2. **How**, when the change carries a design: who does what (data flow, threads, ownership), the guarantees it keeps (bounded memory, failure modes), and the trade-off you accepted. Assume a non-trivial change ships as a stack: the first PR lays out the how and describes the PR split layout by logical part, and later PRs point back to it instead of repeating it.
+     2. **How**, when the change carries a design: who does what (data flow, threads, ownership), the guarantees it keeps (bounded memory, failure modes), and the trade-off you accepted. Explain the complete design in this PR, using its logical parts and commit sequence where helpful. Do not assume a non-trivial change needs a stack. If a meaningful boundary does require multiple PRs, explain the split and link their dependencies.
      3. **Important settings**, when the PR mainly changes settings or config: the settings that matter, each with its value (`before → after` when it had one), what it does, and why. Choose them by relevance; a large config diff doesn't need every setting explained. On such a PR this part usually takes the place of How.
      4. **The changes**, one per line, in the active voice, each line starting with its verb and carrying its reason.
      5. **Suggested review order**, when the PR spans several files: numbered `path`, then what to look at there, ordered so understanding builds (core logic, then wiring, then tests). Leave it out of a one- or two-file PR.
 
      ```markdown
-     First of three stacked PRs (#101 → #102 → #103). The current exporter shares a lock with the I/O workers, so recording a metric can stall a request.
+     The current exporter shares a lock with the I/O workers, so recording a metric can stall a request.
 
      This PR adds per-worker counters and a way for one publisher thread to read them without blocking the workers.
      Each worker keeps adding to its own counters. Every 10 s the publisher reads all of them, turns totals into deltas, and sends the deltas.
@@ -60,14 +58,14 @@ Target fewer than 500 changed lines per PR. Small PRs are more likely to receive
 
      - Adds the `metrics` crate: one fixed-size block of counters per worker, written only by that worker
      - Indexes counters by fixed enums and buckets, so recording never allocates or locks
-
-     Following PRs:
-     - #102: the publisher thread and the DogStatsD encoding
-     - #103: request metrics
+     - Publishes counter deltas from a separate thread so sending never blocks workers
+     - Records request metrics through the per-worker counters
 
      ## Suggested review order
-     1. `crates/metrics/src/lib.rs`: `Block` and `record`, the hot path
-     2. Same file: the bucket bounds that fix the memory per worker
+     1. `crates/metrics/src/lib.rs`: `Block`, `record`, and the fixed bucket bounds
+     2. `crates/metrics/src/publisher.rs`: delta tracking and send failures
+     3. `crates/server/src/worker.rs`: request instrumentation
+     4. `crates/metrics/tests/publisher.rs`: failed-send recovery
      ```
 
    - Leave out future work, "not in this PR" and "no X yet" lists, open items, test logs, and internal review history; they belong in the conversation or the notes.
