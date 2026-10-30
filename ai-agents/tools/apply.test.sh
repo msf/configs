@@ -50,6 +50,24 @@ test "$(readlink "$home/.agents/skills/probe")" = "$repo/skills/probe"
 rm "$repo/tools/dormant.txt"
 printf 'PASS: dormant skills stay unlinked only on their host\n'
 
+# Direct skill projections obey dormancy without disabling same-named non-skills.
+printf 'thishost probe\n' > "$repo/tools/dormant.txt"
+for kind in repo prepo; do
+	for root in .pi/agent/skills .agents/skills .claude/skills; do
+		printf '%s %s/probe ai-agents/skills/probe\nrepo .pi/agent/prompts/probe ai-agents/skills/probe/SKILL.md\n' "$kind" "$root" > "$repo/tools/manifest.txt"
+		rm -f "$home/$root/probe"
+		HOME="$home" PRIVATE_DIR="$home/configs" AGENTS_HOST=thishost bash "$repo/tools/apply.sh" > /dev/null
+		test ! -L "$home/$root/probe"
+		test -L "$home/.pi/agent/prompts/probe"
+		HOME="$home" PRIVATE_DIR="$home/configs" AGENTS_HOST=thishost bash "$repo/tools/apply.sh" --verify
+		HOME="$home" PRIVATE_DIR="$home/configs" AGENTS_HOST=otherhost bash "$repo/tools/apply.sh" > /dev/null
+		test "$(readlink "$home/$root/probe")" = "$repo/skills/probe"
+		HOME="$home" PRIVATE_DIR="$home/configs" AGENTS_HOST=otherhost bash "$repo/tools/apply.sh" --verify
+	done
+done
+rm "$repo/tools/dormant.txt"
+printf 'PASS: direct public/private skills respect dormancy only on the selected host\n'
+
 # Host selectors choose one source per path without deploying work-only skills elsewhere.
 printf 'work\n' > "$repo/skills/probe/work.md"
 printf 'personal\n' > "$repo/skills/probe/personal.md"

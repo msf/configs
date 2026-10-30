@@ -249,6 +249,9 @@ def manifest_targets(home: Path, source_home: Path) -> tuple[dict[str, Path], li
                     continue
                 targets[shared_path] = source_home / source_root / path
             continue
+        skill_path = Path(path)
+        if str(skill_path.parent) in (".pi/agent/skills", *SHARED_SKILL_ROOTS) and skill_path.name in dormant:
+            continue
         if path in targets:
             errors.append(f"duplicate manifest path: {path}")
             continue

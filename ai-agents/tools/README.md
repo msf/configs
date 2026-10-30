@@ -76,7 +76,7 @@ Manifest entries accept a final `@hostname` or `@!hostname` selector. Matching u
 
 `liskov` selects direct Anthropic/OpenAI Pi settings, Claude Opus, a direct-Anthropic document reviewer, and the private work resources. Other hosts retain the common settings, including Claude Bridge. Keep credentials and generated device IDs out of both settings sources. Edit host settings through their live symlink; `checkpoint.sh` skips `repo` entries, and `track.sh` refuses already-managed paths.
 
-`tools/dormant.txt` skips shared skills that don't work on a named host. `fw13` keeps `mail` and `my-daily-wrap` dormant; `liskov` also keeps the server-local `mail` skill dormant. Pi-lean loads the selected shared and main-profile skill links instead of scanning source directories. The Lima sync script snapshots the sender's selected entries without selectors, so the guest deploys the same selection under its own hostname.
+`tools/dormant.txt` skips skills that don't work on a named host, including direct `repo`/`prepo` projections under `.pi/agent/skills`, `.agents/skills`, and `.claude/skills`. Existing links must be archived outside discovery when marking a skill dormant. `fw13` keeps `mail` and `my-daily-wrap` dormant; `liskov` also keeps the server-local `mail` and private `grafana-metrics` skills dormant. Pi-lean loads the selected shared and main-profile skill links instead of scanning source directories. The Lima sync script snapshots the sender's selected entries without selectors, so the guest deploys the same selection under its own hostname.
 
 ## Optional Pi packages
 

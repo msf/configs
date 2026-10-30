@@ -147,6 +147,10 @@ foreach_manifest() {
 				done
 				;;
 			*)
+				case "${path%/*}" in
+					.pi/agent/skills|.agents/skills|.claude/skills)
+						is_dormant "${path##*/}" && continue ;;
+				esac
 				case "$path" in .codex/*) [ "$HAS_CODEX" = 1 ] || continue ;; esac
 				emit_manifest_entry "$fn" "$type" "$path" "${arg2:-}"
 				;;

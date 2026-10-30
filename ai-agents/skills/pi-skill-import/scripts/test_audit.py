@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from audit import model_id, parse_frontmatter, run_audit, scan_tree
+from audit import manifest_targets, model_id, parse_frontmatter, run_audit, scan_tree
 
 
 class AuditTest(unittest.TestCase):
@@ -179,6 +179,24 @@ class AuditTest(unittest.TestCase):
                     self.assertEqual(bool(result.warnings), host == "personal")
                     if host == "personal":
                         self.assertIn("optional, private-optional", result.warnings[0])
+
+    def test_direct_skill_dormancy_is_host_scoped(self) -> None:
+        for kind in ("repo", "prepo"):
+            for root in (".pi/agent/skills", ".agents/skills", ".claude/skills"):
+                with self.subTest(kind=kind, root=root), tempfile.TemporaryDirectory() as directory:
+                    home, public, _ = self.make_home(Path(directory))
+                    path = f"{root}/optional"
+                    (public / "tools/manifest.txt").write_text(
+                        f"{kind} {path} skills/optional\n"
+                        f"{kind} .pi/agent/prompts/optional prompts/optional.md\n"
+                    )
+                    (public / "tools/dormant.txt").write_text("thishost optional\n")
+                    for host in ("thishost", "otherhost"):
+                        with patch.dict(os.environ, {"AGENTS_HOST": host}):
+                            targets, errors = manifest_targets(home, home)
+                        self.assertEqual(errors, [])
+                        self.assertEqual(path in targets, host == "otherhost")
+                        self.assertIn(".pi/agent/prompts/optional", targets)
 
     def test_malformed_host_selectors_are_manifest_errors(self) -> None:
         for selector in ("@", "@!", "@wo*", "@-work", "@work trailing", "@work @other"):
