@@ -84,6 +84,18 @@ if [ "$PI_ONLY" = 0 ] && [ "$HAS_CODEX" = 1 ]; then
 	esac
 fi
 
+# Host-specific patches to installed Pi packages (tools/package-patches.txt).
+case $MODE in
+	verify) "$TOOLS_DIR/package-patches.sh" --verify || mismatches=$((mismatches+1)) ;;
+	apply)
+		if [ "$DRY_RUN" = 1 ]; then
+			"$TOOLS_DIR/package-patches.sh" --dry-run
+		else
+			"$TOOLS_DIR/package-patches.sh"
+		fi
+		;;
+esac
+
 if [ "$MODE" = verify ]; then
 	[ "$mismatches" -eq 0 ] || exit 1
 fi

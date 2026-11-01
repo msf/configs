@@ -104,6 +104,12 @@ Without the private clone, `apply.sh` skips unavailable private entries; public 
 - A skill that is valid but doesn't work on one host (host-specific paths or services) goes in `tools/dormant.txt` as `<hostname -s> <skill>`. Every manifest operation skips it on that host, so it stays unlinked there and deploys everywhere else.
 - Recover clobbered live links with `tools/checkpoint.sh --dry-run`, then checkpoint and apply deliberately.
 
+## Local package patches
+
+`tools/package-patches.txt` lists patches to installed Pi npm packages, one `<hostname -s> <package> <base-version> <patch>` line per host; `tools/patches/` holds the patches (`-p1` from the package root). `apply.sh` runs `package-patches.sh`, so a re-sync, reinstall, or `pi update` that restores the same version gets the patch back, and `apply.sh --verify` fails when it is missing. If the installed version moves past the entry's base version, the patch is not applied: check whether upstream took the fix, then drop the entry or rebase the patch. Hosts without an entry are untouched.
+
+Current entry: `pi-claude-bridge` 0.9.3, so claude-bridge subagent children run under `pi-subagent-manager` (upstream PR https://github.com/elidickinson/pi-claude-bridge/pull/239). Test with `bash tools/package-patches.test.sh`.
+
 ## Public/private boundary
 
 Anything naming internal endpoints, hostnames, schemas, infrastructure topology, team identity, or internal repositories belongs in `~/configs-private`. Tokens and credentials stay in untracked stores such as `~/.pi/agent/mcp-auth.json`, `~/.pi/agent/secrets/`, and tool keyrings.

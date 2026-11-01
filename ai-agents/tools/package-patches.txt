@@ -1,0 +1,8 @@
+# Local patches to installed Pi npm packages, applied per host by package-patches.sh.
+# Format: <hostname -s> <package> <base-version> <patch-file in tools/patches>
+# The patch is -p1 from the package root and applies only to <base-version>. When the
+# installed version moves, apply.sh warns and --verify fails: re-check whether upstream
+# merged the fix (pi-claude-bridge: https://github.com/elidickinson/pi-claude-bridge/pull/239),
+# then drop the entry or rebase the patch.
+fw13    pi-claude-bridge  0.9.3  pi-claude-bridge-0.9.3.patch
+hopper  pi-claude-bridge  0.9.3  pi-claude-bridge-0.9.3.patch
