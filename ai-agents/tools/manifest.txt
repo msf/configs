@@ -128,3 +128,4 @@ repo    .pi/agent/extensions/fast  ai-agents/tools/extensions/fast
 skill   linux-vm @liskov
 pskill  rail-pr
 pmirror bin/rail-pr
+skill   gcp-machines
