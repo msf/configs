@@ -1,6 +1,7 @@
 [user]
-    name = Miguel Filipe
+	name = Miguel Filipe
 	email = miguel.filipe@gmail.com
+	signingkey = /Users/miguel/.ssh/id_ecdsa_sk_git
 
 [alias]
     ci = commit
@@ -83,3 +84,12 @@
     insteadOf = https://github.com/
 [init]
     defaultBranch = main
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Users/miguel/.config/git/hardware-ssh-sign
+	allowedSignersFile = /Users/miguel/.config/git/allowed_signers
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
