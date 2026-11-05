@@ -19,6 +19,7 @@
       # GNU timeout etc.; shell PATH already lists opt/coreutils/libexec/gnubin.
       "coreutils"
       "ffmpeg"
+      "go"
       "pgcli"
       "yt-dlp"
     ];
