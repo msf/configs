@@ -315,6 +315,8 @@ apply to this domain at all.
 
 ## 7. Review checklist (for mentoring)
 
+Present feedback and corrected sentences as plain text, with replacement text separate from explanations. Keep each replacement paragraph on one source line, without blockquotes, code fences, decorative prefixes, or manual line breaks, so it can be copied and pasted cleanly. Headings may label each fix outside the replacement text.
+
 1. Is this the lightest of the three forms that holds?
 2. Does it open on the forcing function, a specific checkable failure, rather than an abstraction?
 3. Can the reader find the actual decision, stated flat in one sentence somewhere?
