@@ -1,0 +1,26 @@
+{
+  "BraveRewardsDisabled": true,
+  "BraveWalletDisabled": true,
+  "BraveAIChatEnabled": false,
+  "BraveNewsDisabled": true,
+  "BraveVPNDisabled": true,
+  "BraveTalkDisabled": true,
+  "ExtensionInstallForcelist": [
+    "nngceckbapebfimnlniiiahkandclblb;https://clients2.google.com/service/update2/crx",
+    "eimadpbcbfnmbkopoojfekhnkhdbieeh;https://clients2.google.com/service/update2/crx",
+    "ponfpcnoihfmfllpaingbgckeeldkhle;https://clients2.google.com/service/update2/crx",
+    "acmacodkjbdgmoleebolmdjonilkdbch;https://clients2.google.com/service/update2/crx",
+    "bfnaelmomeimhlpmgjnjophhpkkoljpa;https://clients2.google.com/service/update2/crx"
+  ],
+  "SpellcheckLanguage": [
+    "pt-PT",
+    "en-US"
+  ],
+  "BraveStatsPingEnabled": false,
+  "BraveWebDiscoveryEnabled": false,
+  "MetricsReportingEnabled": false,
+  "BravePlaylistEnabled": false,
+  "BraveLocalAIEnabled": false,
+  "BraveWaybackMachineEnabled": false,
+  "IPFSEnabled": false
+}

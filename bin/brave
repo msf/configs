@@ -1,0 +1,5 @@
+#!/bin/sh
+exec /usr/bin/brave-browser-stable \
+  --ozone-platform=wayland \
+  --enable-features=VaapiVideoDecoder,VaapiVideoEncoder,AcceleratedVideoDecodeLinuxGL \
+  "$@"
