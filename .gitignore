@@ -11,17 +11,21 @@ __pycache__/
 
 # Machine-installed binaries and generated output
 .vim/.netrwhist
+.vim/bundle/
 bin/Telegram
 bin/build/
 bin/clickhouse
 bin/duckdb
 bin/ectool
 bin/flux
+bin/fzf
+bin/hugo
 bin/kubectl
 bin/llama-cli
 bin/llama-server
 bin/nohup.out
 bin/ntn
+bin/nvim
 bin/rpk
 bin/sim
 bin/sops
