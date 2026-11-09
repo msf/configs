@@ -24,3 +24,4 @@ if [[ -t 1 ]]; then
 fi
 
 rclone sync --size-only --fast-list "${progress[@]}" "$repo" "$remote"
+"$(dirname "$0")/report-success.sh" r2-sync
