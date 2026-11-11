@@ -130,3 +130,4 @@ skill   linux-vm @liskov
 pskill  rail-pr
 pmirror bin/rail-pr
 skill   gcp-machines
+pskill  my-prod-debug
