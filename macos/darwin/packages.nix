@@ -1,6 +1,18 @@
 { pkgs, ... }:
 
 let
+  # Upstream 20261015 removed the broken Darwin logging interlock in 20260926.
+  # Use the fixed release until nixpkgs catches up; keep its build and checks.
+  mbufferDarwin =
+    if pkgs.lib.versionAtLeast pkgs.mbuffer.version "20261024" then pkgs.mbuffer
+    else pkgs.mbuffer.overrideAttrs (finalAttrs: _previousAttrs: {
+      version = "20261024";
+      src = pkgs.fetchurl {
+        url = "https://www.maier-komor.de/software/mbuffer/mbuffer-${finalAttrs.version}.tgz";
+        hash = "sha256-7Ztxf5UXsK0KDB+0LICd+2FdtEKDO3tchELiJLRdhr8=";
+      };
+    });
+
   # Not in the pinned nixpkgs; use Notion's native macOS release.
   ntn = pkgs.stdenvNoCC.mkDerivation rec {
     pname = "ntn";
@@ -74,7 +86,7 @@ in
     awscli2
     rclone
     restic
-    mbuffer
+    mbufferDarwin
     zstd
     weechat
 
