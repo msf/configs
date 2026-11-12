@@ -69,19 +69,16 @@ Use native `aarch64-darwin` packages. Avoid an Intel Homebrew installation unles
 specific dependency requires one. Keep `$HOME` portable; macOS uses `/Users/...`,
 not `/home/...`.
 
-## Install and upgrade packages
+## Installing packages/software
 
-Authored by LLM.
+Authored by LLM, reviewed by human.
 
 These commands apply to the Mac. Before editing, follow the repository's
 [Working across machines](../README.md#working-across-machines) workflow.
-Run activation from your normal terminal so macOS user preferences use your login session.
-
-### Install missing packages
 
 Declare Nix CLI tools in `darwin/packages.nix` under `environment.systemPackages`,
 and fonts under `fonts.packages`. Declare Homebrew formulae and casks in
-`darwin/homebrew.nix`. Then apply:
+`darwin/homebrew.nix`. Then apply from your normal terminal:
 
 ```zsh
 sudo darwin-rebuild switch --flake "path:$HOME/configs/macos#liskov"
@@ -91,39 +88,38 @@ This installs missing declared packages. Nix uses the versions in `flake.lock`;
 Homebrew installs its currently available versions. Existing Homebrew packages
 aren't upgraded because `homebrew.onActivation.autoUpdate` and `upgrade` are both
 `false`. The explicit `path:` avoids root treating the user-owned checkout as a
-Git repository.
+Git repository. Commit your package declarations after verifying the installation.
 
-### Upgrade Nix packages
+## Keeping it up to date
 
-Update the pinned nixpkgs and nix-darwin inputs:
+Authored by LLM, reviewed by human.
+
+The equivalent of `apt update && apt upgrade -y` for this Mac's Nix and Homebrew
+packages is:
 
 ```zsh
-nix flake update --flake "$HOME/configs/macos"
+nix flake update --flake "$HOME/configs/macos" &&
+  sudo darwin-rebuild switch --flake "path:$HOME/configs/macos#liskov" &&
+  brew update &&
+  brew upgrade
+```
+
+Run this from your normal terminal. The chain updates nixpkgs and nix-darwin,
+activates the new Nix package versions, then upgrades eligible installed Homebrew
+packages. This includes Homebrew packages outside `darwin/homebrew.nix`.
+There's no separate `-y` flag needed; administrator authentication may still be required.
+If a command fails, the chain stops: fix that failure before continuing.
+
+**The Brew commands are required:** updating the Nix lockfile and rebuilding alone
+doesn't upgrade existing Homebrew packages with the current configuration.
+Homebrew versions aren't pinned by `flake.lock` or rolled back by Nix.
+This doesn't update macOS itself or project dependency lockfiles.
+
+After verification, review and commit the updated Nix lockfile:
+
+```zsh
 git -C "$HOME/configs" diff -- macos/flake.lock
 ```
-
-Review the lockfile changes, then build and activate:
-
-```zsh
-sudo darwin-rebuild switch --flake "path:$HOME/configs/macos#liskov"
-```
-
-Check that activation succeeds and the affected tools work. Commit
-`macos/flake.lock` after verification. Updating the lockfile alone doesn't install
-anything, and neither command upgrades existing Homebrew packages.
-
-### Upgrade Homebrew packages
-
-Refresh Homebrew metadata and review available upgrades:
-
-```zsh
-brew update
-brew outdated
-```
-
-Run `brew upgrade <package-name>` for selected packages, or `brew upgrade` for all
-eligible installed packages, including those outside `darwin/homebrew.nix`.
-Homebrew versions aren't pinned by `flake.lock` or rolled back by Nix.
 
 ## Agent-driven setup stages
 
