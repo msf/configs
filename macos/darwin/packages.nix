@@ -89,6 +89,8 @@ in
 
   fonts.packages = with pkgs; [
     dejavu_fonts # ghostty/config
+    hack-font
+    jetbrains-mono
     inconsolata
     liberation_ttf # .gitconfig gui.fontui
     source-code-pro
