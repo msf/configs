@@ -314,7 +314,14 @@ cmd_lab() {
   case $sub in
     shell) cmd_shell lab ;;
     stop) limactl stop --tty=false lab ;;
-    recreate) exists lab && limactl delete -f lab >/dev/null; cmd_lab create --from "$from" ;;
+    recreate)
+      # Clean shutdown first: delete -f kills the VM and loses uncommitted btrfs data.
+      if exists lab; then
+        [ "$(status lab)" = Stopped ] || lc stop --tty=false lab >/dev/null
+        lc delete lab >/dev/null
+      fi
+      cmd_lab create --from "$from"
+      ;;
     create)
       exists lab && die "lab exists; 'vmlab lab recreate' re-clones it and keeps its data disk"
       exists "golden-$from" || die "no golden-$from"
