@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# linux-vm — run commands for the current Mac project inside the Lima VM linux-dev.
+# linux-vm — run commands for the current Mac project inside the OrbStack machine
+# `dev` (Debian 13 arm64; set LINUX_VM_MACHINE to use another machine).
 #
 #   linux-vm run <cmd...>   sync the project into the guest, then run <cmd> there
 #   linux-vm sync           sync only; prints the guest project directory
 #   linux-vm path           print the guest project directory without syncing
-#   linux-vm setup-amd64    install/repair the amd64 cross toolchain (idempotent)
+#   linux-vm setup          install/repair toolchains with orb-dev-setup.sh (idempotent;
+#                           passes RO_MOUNT and RUST_PIN through)
 #
 # The project is the enclosing Git work tree, or the current directory; it must be
 # below $HOME. It is copied to ~/src/<path below $HOME> in the guest:
@@ -15,10 +17,10 @@
 # guest. Files created in the guest (build outputs) are never deleted.
 set -euo pipefail
 
-readonly VM=linux-dev
+readonly VM="${LINUX_VM_MACHINE:-dev}"
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 readonly SCRIPT_DIR
-readonly SSH_CONFIG="$HOME/.lima/$VM/ssh.config"
+readonly SETUP_SCRIPT="$SCRIPT_DIR/../../../../macos/vmlab/orb-dev-setup.sh"
 GUEST_HOME="/home/$(id -un)"
 readonly GUEST_HOME
 
@@ -26,10 +28,13 @@ die() { echo "linux-vm: $*" >&2; exit 1; }
 
 ensure_running() {
   local status
-  status="$(limactl list "$VM" --format '{{.Status}}' 2>/dev/null)" || die "Lima instance $VM not found"
-  [[ "$status" == Running ]] && return 0
-  limactl start "$VM" >&2
+  status="$(orb list 2>/dev/null | awk -v m="$VM" '$1 == m {print $2}')"
+  [[ -n "$status" ]] || die "OrbStack machine $VM not found (see ~/configs/macos/vmlab/README.md)"
+  [[ "$status" == running ]] && return 0
+  orb start "$VM" >&2
 }
+
+guest() { orb -m "$VM" "$@"; }
 
 project_root() {
   git rev-parse --show-toplevel 2>/dev/null || pwd -P
@@ -98,12 +103,12 @@ sync_project() {
   list="$(mktemp)"
   list_files "$root" > "$list"
 
-  limactl shell --workdir / "$VM" -- bash -c "$PREPARE_SCRIPT" _ "$guest" "$manifest" < "$list"
-  rsync -a -0 --files-from="$list" -e "ssh -F $SSH_CONFIG" "$root/" "lima-$VM:$guest/"
+  guest bash -c "$PREPARE_SCRIPT" _ "$guest" "$manifest" < "$list"
+  rsync -a -0 --files-from="$list" -e ssh "$root/" "$VM@orb:$guest/"
   if [[ -d "$root/.git" ]]; then
-    rsync -a --delete -e "ssh -F $SSH_CONFIG" "$root/.git/" "lima-$VM:$guest/.git/"
+    rsync -a --delete -e ssh "$root/.git/" "$VM@orb:$guest/.git/"
   fi
-  limactl shell --workdir / "$VM" -- mv -f "$manifest.new" "$manifest"
+  guest mv -f "$manifest.new" "$manifest"
   rm -f "$list"
   echo "$guest"
 }
@@ -117,18 +122,19 @@ main() {
       workdir="$GUEST_HOME/src/$(home_relative "$(pwd -P)")"
       ensure_running
       sync_project >/dev/null
-      exec limactl shell --workdir "$workdir" "$VM" -- "$@"
+      exec orb -m "$VM" -w "$workdir" "$@"
       ;;
     sync) ensure_running; sync_project ;;
     path)
       workdir="$GUEST_HOME/src/$(home_relative "$(project_root)")"
       echo "$workdir"
       ;;
-    setup-amd64)
+    setup)
       ensure_running
-      limactl shell --workdir / "$VM" -- sudo bash -s "$(id -un)" < "$SCRIPT_DIR/amd64-cross-setup.sh"
+      orb -m "$VM" -u root env RO_MOUNT="${RO_MOUNT:-}" RUST_PIN="${RUST_PIN:-}" \
+        bash -s -- "$(id -un)" < "$SETUP_SCRIPT"
       ;;
-    *) die "usage: linux-vm {run <cmd...>|sync|path|setup-amd64}" ;;
+    *) die "usage: linux-vm {run <cmd...>|sync|path|setup}" ;;
   esac
 }
 

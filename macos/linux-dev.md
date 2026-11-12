@@ -1,5 +1,10 @@
 # Ubuntu development VM
 
+> **Legacy (2026-11-12).** Builds moved to the OrbStack machine `dev` and kernel,
+> KVM and block-device tests to disposable Lima VMs (`vmlab`); see
+> [vmlab/README.md](vmlab/README.md). The `linux-vm` skill no longer uses this VM.
+> It stays only for interactive use and Pi-in-Linux until those move.
+
 `darwin/linux-dev.yaml` defines a persistent Ubuntu 26.04 ARM64 VM for Linux
 storage development. Lima is already in `darwin/packages.nix`. The VZ backend
 does not need host QEMU; QEMU for nested ARM guests is installed inside Ubuntu.
@@ -260,8 +265,8 @@ The VM cross-compiles for `x86_64-linux-gnu` at native arm64 speed and runs the
 amd64 output through Rosetta (`vmOpts.vz.rosetta`). The guest has the `amd64`
 dpkg architecture, cross GCC, `:amd64` libraries, a `x86_64-linux-gnu-pkg-config`
 wrapper, and the Rust `x86_64-unknown-linux-gnu` target with its Cargo linker
-settings. `ai-agents/skills/linux-vm/scripts/amd64-cross-setup.sh` installs or
-repairs all of this idempotently. Agents use the `linux-vm` skill.
+settings. This was set up by `amd64-cross-setup.sh`, now replaced by
+`vmlab/orb-dev-setup.sh` for the `dev` machine (removed from the `linux-vm` skill).
 
 An existing instance does not pick up Rosetta from this YAML. Enable it once:
 
