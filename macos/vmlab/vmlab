@@ -1,0 +1,353 @@
+#!/usr/bin/env bash
+# vmlab: Debian golden images and disposable Lima VMs for kernel/storage tests.
+# See README.md next to this script.
+set -euo pipefail
+
+HERE=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+STATE=${VMLAB_STATE:-$HOME/.cache/vmlab}
+GOLDEN=${VMLAB_GOLDEN:-prod}
+GC_HOURS=${VMLAB_GC_HOURS:-24}
+LAB_DISK=${VMLAB_LAB_DISK:-lab-data}
+
+usage() {
+  cat <<'EOF'
+usage: vmlab golden <tag> [--param KEY=VALUE]... [--force]   build golden-<tag> (stopped when done)
+       vmlab golden <tag> --refresh      reinstall guest/ tools, rerun selftest, restamp (no rebuild)
+       vmlab new <task> [--from TAG] [--disk SIZE|0] [--cpus N] [--memory GIB] [--raw-disk]
+                                         clone golden-TAG into t-<task>; data disk gets the lab layout
+       vmlab put <vm> <path>...          copy inputs into the VM's /lab/in (read-only in the guest)
+       vmlab run <vm> [--timeout DUR] <script> [args...]
+                                         run a script file as root; output tee'd to /lab/out on the Mac
+       vmlab ab <task> <script> <inputs-a> <inputs-b> [--keep] [new options]
+                                         run one script in two fresh clones and diff their /lab/out
+       vmlab shell <vm>                  interactive shell (starts the VM if stopped)
+       vmlab keep <vm>                   exempt a t-* VM from gc
+       vmlab rm <vm>...                  delete VMs and their data disks; keeps out/
+       vmlab gc [--hours N] [--yes]      delete t-* VMs older than N hours (default 24) and orphan disks
+       vmlab ls                          golden images, test VMs and the lab VM
+       vmlab lab create|recreate [--from TAG] [--size SIZE]
+                                         persistent hand-experiment VM "lab"; its data disk survives recreate
+       vmlab lab shell|stop
+Per-VM host files: ~/.cache/vmlab/vms/<vm>/{in,out}; guest paths /lab/in and /lab/out.
+EOF
+}
+
+die() { echo "vmlab: $*" >&2; exit 1; }
+log() { echo "vmlab: $*" >&2; }
+valid_name() { [[ $1 =~ ^[a-z0-9][a-z0-9-]{0,40}$ ]] || die "invalid name '$1' (use [a-z0-9-])"; }
+exists() { limactl list -q 2>/dev/null | grep -qx "$1"; }
+status() { limactl list --format '{{.Status}}' "$1" 2>/dev/null; }
+gshell() { limactl shell --workdir / "$1" -- "${@:2}"; }
+lc() { limactl --log-level=error "$@"; }
+disks() { limactl disk list --json 2>/dev/null | jq -r .name; }
+vmdir() { echo "$STATE/vms/$1"; }
+
+# Accept "t-foo", "foo" (meaning t-foo), "lab" or "golden-x".
+resolve() {
+  if exists "$1"; then echo "$1"; elif exists "t-$1"; then echo "t-$1"; else die "no VM '$1'"; fi
+}
+
+ensure_running() {
+  [ "$(status "$1")" = Running ] || limactl start --tty=false "$1" >/dev/null 2>&1 || die "cannot start $1"
+}
+
+recipe_hash() {
+  (cd "$HERE" && cat deb13-golden.yaml provision.sh guest/*) | shasum -a 256 | cut -c1-12
+}
+
+install_guest_tools() {
+  local vm=$1 f
+  for f in labctl vmlab-selftest vmlab-lab-up.service; do
+    limactl copy "$HERE/guest/$f" "$vm:/tmp/$f"
+  done
+  gshell "$vm" sudo sh -c 'install -m 0755 /tmp/labctl /tmp/vmlab-selftest /usr/local/sbin/ &&
+    install -m 0644 /tmp/vmlab-lab-up.service /etc/systemd/system/ &&
+    systemctl daemon-reload && systemctl enable --quiet vmlab-lab-up.service &&
+    rm -f /tmp/labctl /tmp/vmlab-selftest /tmp/vmlab-lab-up.service'
+}
+
+# Boot check plus removal of every kernel except the selected one, so grub's
+# default entry cannot drift.
+finalize_golden() {
+  gshell "$1" sudo bash -s <<'EOF'
+set -euo pipefail
+k=$(cat /var/lib/vmlab/kernel)
+[ "$(uname -r)" = "$k" ] || { echo "booted $(uname -r), expected $k" >&2; exit 1; }
+abi=${k%%-*}
+export DEBIAN_FRONTEND=noninteractive
+apt-mark manual "linux-image-$k" "linux-headers-$k" >/dev/null
+purge=$(dpkg-query -W -f '${db:Status-Abbrev} ${Package}\n' 'linux-image-*' 'linux-headers-*' 2>/dev/null |
+  awk '$1 == "ii" {print $2}' | grep -v -F "$abi" || true)
+# shellcheck disable=SC2086
+[ -z "$purge" ] || apt-get purge -y -q $purge >/dev/null
+apt-get autoremove -y -q --purge >/dev/null
+apt-get clean
+update-grub 2>/dev/null
+EOF
+}
+
+stamp_golden() {
+  gshell "$1" sudo env TAG="$2" RECIPE="$(recipe_hash)" bash -s <<'EOF'
+set -euo pipefail
+{
+  echo "tag=$TAG"
+  echo "built=$(date -u +%FT%TZ)"
+  echo "recipe_hash=$RECIPE"
+  echo "recipe=$(cat /var/lib/vmlab/provisioned)"
+  echo "kernel=$(uname -r)"
+  echo "zfs=$(cat /sys/module/zfs/version)"
+  echo "debian=$(cat /etc/debian_version)"
+} > /etc/vmlab-golden
+cat /etc/vmlab-golden
+EOF
+}
+
+cmd_golden() {
+  local tag="" force=0 refresh=0 params=()
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --force) force=1 ;;
+      --refresh) refresh=1 ;;
+      --param) params+=(--param "$2"); shift ;;
+      -*) die "unknown option $1" ;;
+      *) tag=$1 ;;
+    esac
+    shift
+  done
+  [ -n "$tag" ] || die "usage: vmlab golden <tag> [--param KEY=VALUE]... [--force]"
+  valid_name "$tag"
+  local vm="golden-$tag" logf="$STATE/logs/golden-$tag.log"
+  mkdir -p "$STATE/logs"
+  if [ "$refresh" = 1 ]; then
+    exists "$vm" || die "no $vm"
+    ensure_running "$vm"
+    install_guest_tools "$vm" >>"$logf" 2>&1
+    verify_golden "$vm" "$tag" "$logf"
+    return
+  fi
+  : > "$logf"
+  if exists "$vm"; then
+    [ "$force" = 1 ] || die "$vm exists; --force rebuilds it"
+    limactl delete -f "$vm" >>"$logf" 2>&1
+  fi
+  log "creating $vm (log: $logf)"
+  limactl create --tty=false --name "$vm" "${params[@]}" "$HERE/deb13-golden.yaml" >>"$logf" 2>&1
+  limactl start --tty=false --timeout 40m "$vm" >>"$logf" 2>&1 ||
+    die "provisioning failed; see $logf and ~/.lima/$vm/serial*.log"
+  install_guest_tools "$vm" >>"$logf" 2>&1
+  log "rebooting into the selected kernel"
+  limactl restart --tty=false "$vm" >>"$logf" 2>&1
+  finalize_golden "$vm" >>"$logf" 2>&1 || die "finalize failed; see $logf"
+  limactl restart --tty=false "$vm" >>"$logf" 2>&1
+  verify_golden "$vm" "$tag" "$logf"
+}
+
+verify_golden() {
+  local vm=$1 tag=$2 logf=$3
+  log "selftest"
+  gshell "$vm" sudo /usr/local/sbin/vmlab-selftest | tee -a "$logf" ||
+    die "selftest failed; $vm left running for inspection"
+  stamp_golden "$vm" "$tag" | tee "$STATE/golden-$tag.txt"
+  limactl stop --tty=false "$vm" >>"$logf" 2>&1
+  log "$vm ready"
+}
+
+# Prints the clone's name. Options are shared with `ab`.
+cmd_new() {
+  local task="" from=$GOLDEN disk=64GiB cpus=8 mem=8 layout=1
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --from) from=$2; shift ;;
+      --disk) disk=$2; shift ;;
+      --cpus) cpus=$2; shift ;;
+      --memory) mem=$2; shift ;;
+      --raw-disk) layout=0 ;;
+      -*) die "unknown option $1" ;;
+      *) task=$1 ;;
+    esac
+    shift
+  done
+  [ -n "$task" ] || die "usage: vmlab new <task> [options]"
+  valid_name "$task"
+  local vm="t-$task" golden="golden-$from"
+  exists "$vm" && die "$vm already exists"
+  exists "$golden" || die "no $golden; build it with: vmlab golden $from"
+  [ "$(status "$golden")" = Stopped ] || die "$golden must be stopped to clone it"
+  clone_vm "$golden" "$vm" "$disk" "$cpus" "$mem" ""
+  if [ "$disk" != 0 ] && [ "$layout" = 1 ]; then
+    gshell "$vm" sudo labctl init >/dev/null
+  fi
+  echo "$vm"
+}
+
+# clone_vm <golden> <vm> <disk-size|0> <cpus> <memory-gib> <extra mounts yq>
+clone_vm() {
+  local golden=$1 vm=$2 disk=$3 cpus=$4 mem=$5 extra=$6 d expr
+  d=$(vmdir "$vm")
+  mkdir -p "$d/in" "$d/out"
+  expr=".mounts = [{\"location\": \"$d/in\", \"mountPoint\": \"/lab/in\", \"writable\": false},"
+  expr+=" {\"location\": \"$d/out\", \"mountPoint\": \"/lab/out\", \"writable\": true}$extra]"
+  if [ "$disk" != 0 ]; then
+    disks | grep -qx "$vm-data" ||
+      lc disk create "$vm-data" --size "$disk" --format raw >/dev/null
+    expr+=" | .additionalDisks = [{\"name\": \"$vm-data\", \"format\": false}]"
+  fi
+  limactl clone --tty=false "$golden" "$vm" --cpus "$cpus" --memory "$mem" --set "$expr" >/dev/null
+  date +%s > "$d/created"
+  echo "$golden" > "$d/golden"
+  limactl start --tty=false "$vm" >/dev/null 2>&1 || die "cannot start $vm; see ~/.lima/$vm/ha.stderr.log"
+}
+
+cmd_put() {
+  [ $# -ge 2 ] || die "usage: vmlab put <vm> <path>..."
+  local vm d
+  vm=$(resolve "$1"); shift
+  d=$(vmdir "$vm")/in
+  /bin/cp -cR "$@" "$d/"
+}
+
+cmd_run() {
+  local vm to=30m script d logf rc
+  vm=$(resolve "${1:?usage: vmlab run <vm> [--timeout DUR] <script> [args...]}"); shift
+  if [ "${1:-}" = --timeout ]; then to=$2; shift 2; fi
+  script=${1:?missing script}; shift
+  [ -f "$script" ] || die "no script $script"
+  d=$(vmdir "$vm")
+  /bin/cp -c "$script" "$d/in/"
+  logf="$d/out/run-$(date +%Y%m%dT%H%M%S).log"
+  ensure_running "$vm"
+  set +e
+  gshell "$vm" sudo timeout --kill-after=30s "$to" bash "/lab/in/$(basename "$script")" "$@" 2>&1 | tee "$logf"
+  rc=${PIPESTATUS[0]}
+  set -e
+  log "exit=$rc log=$logf"
+  return "$rc"
+}
+
+cmd_ab() {
+  [ $# -ge 4 ] || die "usage: vmlab ab <task> <script> <inputs-a> <inputs-b> [--keep] [new options]"
+  local task=$1 script=$2 in_a=$3 in_b=$4 keep=0 opts=() pa pb rc=0
+  shift 4
+  while [ $# -gt 0 ]; do
+    case $1 in --keep) keep=1 ;; *) opts+=("$1") ;; esac
+    shift
+  done
+  cmd_new "$task-a" "${opts[@]}" >/dev/null & pa=$!
+  cmd_new "$task-b" "${opts[@]}" >/dev/null & pb=$!
+  wait "$pa" || rc=1
+  wait "$pb" || rc=1
+  [ "$rc" = 0 ] || die "clone failed"
+  cmd_put "t-$task-a" "$in_a"/.
+  cmd_put "t-$task-b" "$in_b"/.
+  cmd_run "t-$task-a" "$script" >/dev/null & pa=$!
+  cmd_run "t-$task-b" "$script" >/dev/null & pb=$!
+  wait "$pa" || { rc=1; log "side a failed"; }
+  wait "$pb" || { rc=1; log "side b failed"; }
+  diff -ru -x 'run-*.log' "$(vmdir "t-$task-a")/out" "$(vmdir "t-$task-b")/out" || true
+  log "logs: $(vmdir "t-$task-a")/out $(vmdir "t-$task-b")/out"
+  [ "$keep" = 1 ] || cmd_rm "t-$task-a" "t-$task-b"
+  return "$rc"
+}
+
+cmd_shell() {
+  local vm
+  vm=$(resolve "${1:?usage: vmlab shell <vm>}")
+  ensure_running "$vm"
+  limactl shell --workdir / "$vm"
+}
+
+cmd_keep() {
+  local vm
+  vm=$(resolve "${1:?usage: vmlab keep <vm>}")
+  touch "$(vmdir "$vm")/keep"
+}
+
+cmd_rm() {
+  local vm
+  for vm in "$@"; do
+    vm=$(resolve "$vm")
+    case $vm in t-*) ;; *) die "vmlab rm only deletes t-* VMs (got $vm)" ;; esac
+    lc delete -f "$vm" >/dev/null
+    limactl disk delete "$vm-data" >/dev/null 2>&1 || true
+    rm -rf "$(vmdir "$vm")/in"
+    log "deleted $vm (results kept in $(vmdir "$vm")/out)"
+  done
+}
+
+cmd_gc() {
+  local hours=$GC_HOURS yes=0 now vm d created victims=() disk
+  while [ $# -gt 0 ]; do
+    case $1 in --hours) hours=$2; shift ;; --yes) yes=1 ;; *) die "unknown option $1" ;; esac
+    shift
+  done
+  now=$(date +%s)
+  for vm in $(limactl list -q | grep '^t-' || true); do
+    d=$(vmdir "$vm")
+    [ -e "$d/keep" ] && continue
+    created=$(cat "$d/created" 2>/dev/null || stat -f %m "$HOME/.lima/$vm/lima.yaml")
+    [ $((now - created)) -ge $((hours * 3600)) ] && victims+=("$vm")
+  done
+  for disk in $(disks | grep '^t-.*-data$' || true); do
+    exists "${disk%-data}" || { echo "orphan disk $disk"; [ "$yes" = 0 ] || limactl disk delete "$disk"; }
+  done
+  [ "${#victims[@]}" -gt 0 ] || { log "no t-* VMs older than ${hours}h"; return 0; }
+  printf 'expired: %s\n' "${victims[@]}"
+  if [ "$yes" = 1 ]; then cmd_rm "${victims[@]}"; else log "dry run; pass --yes to delete"; fi
+}
+
+cmd_ls() {
+  limactl list | awk 'NR == 1 || $1 ~ /^(golden-|t-)/ || $1 == "lab"'
+  local f
+  for f in "$STATE"/golden-*.txt; do
+    [ -e "$f" ] && echo "$(basename "$f" .txt): $(grep -E '^(kernel|zfs|built)=' "$f" | tr '\n' ' ')"
+  done
+  return 0
+}
+
+cmd_lab() {
+  local sub=${1:-shell} from=$GOLDEN size=250GiB rlwy
+  shift || true
+  while [ $# -gt 0 ]; do
+    case $1 in --from) from=$2; shift ;; --size) size=$2; shift ;; *) die "unknown option $1" ;; esac
+    shift
+  done
+  case $sub in
+    shell) cmd_shell lab ;;
+    stop) limactl stop --tty=false lab ;;
+    recreate) exists lab && limactl delete -f lab >/dev/null; cmd_lab create --from "$from" ;;
+    create)
+      exists lab && die "lab exists; 'vmlab lab recreate' re-clones it and keeps its data disk"
+      exists "golden-$from" || die "no golden-$from"
+      disks | grep -qx "$LAB_DISK" ||
+        limactl disk create "$LAB_DISK" --size "$size" --format raw >/dev/null
+      rlwy=", {\"location\": \"$HOME/rlwy\", \"mountPoint\": \"/home/miguel/rlwy\", \"writable\": false}"
+      clone_lab "$from" "$rlwy"
+      gshell lab sudo sh -c 'vgs lab >/dev/null 2>&1 || labctl init' >/dev/null
+      gshell lab sudo labctl up
+      log "lab ready: vmlab lab shell"
+      ;;
+    *) die "usage: vmlab lab create|recreate|shell|stop" ;;
+  esac
+}
+
+# The lab VM reuses the persistent $LAB_DISK instead of a per-VM disk.
+clone_lab() {
+  local d expr
+  d=$(vmdir lab)
+  mkdir -p "$d/in" "$d/out"
+  expr=".mounts = [{\"location\": \"$d/in\", \"mountPoint\": \"/lab/in\", \"writable\": false},"
+  expr+=" {\"location\": \"$d/out\", \"mountPoint\": \"/lab/out\", \"writable\": true}$2]"
+  expr+=" | .additionalDisks = [{\"name\": \"$LAB_DISK\", \"format\": false}]"
+  limactl clone --tty=false "golden-$1" lab --cpus 8 --memory 16 --set "$expr" >/dev/null
+  echo "golden-$1" > "$d/golden"
+  limactl start --tty=false lab >/dev/null 2>&1 || die "cannot start lab"
+}
+
+[ $# -ge 1 ] || { usage; exit 2; }
+cmd=$1
+shift
+case $cmd in
+  golden|new|put|run|ab|shell|keep|rm|gc|ls|lab) "cmd_$cmd" "$@" ;;
+  -h|--help|help) usage ;;
+  *) usage; exit 2 ;;
+esac

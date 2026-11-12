@@ -1,0 +1,104 @@
+#!/bin/bash
+# Acceptance checks for a vmlab golden image or clone; run as root inside the VM.
+# Prints PASS/FAIL per check and exits non-zero if any check fails.
+# shellcheck disable=SC2329  # checks are invoked indirectly through check()
+set -uo pipefail
+
+work=$(mktemp -d /var/tmp/vmlab-selftest.XXXXXX)
+tag="vst$$"
+cleanup() {
+  zpool destroy -f "$tag" 2>/dev/null
+  vgremove -f "$tag" >/dev/null 2>&1
+  umount "$work/mnt" 2>/dev/null
+  losetup -j "$work/lvm.img" -O NAME --noheadings 2>/dev/null | xargs -r losetup -d
+  losetup -j "$work/btrfs.img" -O NAME --noheadings 2>/dev/null | xargs -r losetup -d
+  rm -rf "$work"
+}
+trap cleanup EXIT
+
+failed=0
+check() {
+  local name=$1 out
+  shift
+  if out=$("$@" 2>&1); then
+    echo "PASS $name"
+  else
+    echo "FAIL $name: $(tail -n 3 <<<"$out" | tr '\n' ' ')"
+    failed=1
+  fi
+}
+
+kernel_is_selected() { [ "$(uname -r)" = "$(cat /var/lib/vmlab/kernel)" ]; }
+# Not `dmesg | grep -q`: under pipefail, grep's early exit SIGPIPEs dmesg.
+vgic_trap_enabled() { grep -q 'GICv3 sysreg trapping enabled' < <(dmesg); }
+user_in_kvm_group() { grep -qw kvm < <(id -nG "${SUDO_USER:-miguel}"); }
+
+kvm_create_vm() {
+  python3 - <<'EOF'
+import fcntl, os
+fd = os.open("/dev/kvm", os.O_RDWR)
+assert fcntl.ioctl(fd, 0xAE00) == 12, "KVM_GET_API_VERSION"
+vm = fcntl.ioctl(fd, 0xAE01, 0)
+assert vm >= 0, "KVM_CREATE_VM"
+EOF
+}
+
+zfs_zvol_ext4() {
+  set -e
+  modprobe zfs
+  truncate -s 1G "$work/pool.img"
+  zpool create -o cachefile=none "$tag" "$work/pool.img"
+  zfs create -s -V 256M -o volblocksize=16K -o compression=off "$tag/vol"
+  udevadm settle
+  mkfs.ext4 -q -b 4096 -m 0 "/dev/zvol/$tag/vol"
+  zpool destroy "$tag"
+}
+
+ublk_control() { modprobe ublk_drv && [ -c /dev/ublk-control ]; }
+
+io_uring_fio() {
+  fio --name=vst --filename="$work/fio" --size=64M --rw=randwrite --bs=4k \
+    --ioengine=io_uring --direct=1 --runtime=2 --time_based --output-format=terse >/dev/null
+}
+
+lvm_thin_xfs() {
+  set -e
+  truncate -s 1G "$work/lvm.img"
+  local loop
+  loop=$(losetup -f --show "$work/lvm.img")
+  vgcreate "$tag" "$loop" >/dev/null
+  lvcreate -y -L 512M -T "$tag/thin" >/dev/null
+  lvcreate -y -V 256M -T "$tag/thin" -n vol >/dev/null
+  mkfs.xfs -q "/dev/$tag/vol"
+  vgremove -f "$tag" >/dev/null
+  losetup -d "$loop"
+}
+
+btrfs_subvolumes() {
+  set -e
+  truncate -s 1G "$work/btrfs.img"
+  local loop
+  loop=$(losetup -f --show "$work/btrfs.img")
+  mkfs.btrfs -q "$loop"
+  mkdir -p "$work/mnt"
+  mount -o compress=zstd:1 "$loop" "$work/mnt"
+  btrfs subvolume create "$work/mnt/a" >/dev/null
+  btrfs subvolume create "$work/mnt/a/nested" >/dev/null
+  btrfs subvolume snapshot "$work/mnt/a" "$work/mnt/b" >/dev/null
+  btrfs subvolume delete -R "$work/mnt/a" >/dev/null
+  btrfs subvolume delete "$work/mnt/b" >/dev/null
+  umount "$work/mnt"
+  losetup -d "$loop"
+}
+
+check kernel_is_selected kernel_is_selected
+check vgic_trap_enabled vgic_trap_enabled
+check user_in_kvm_group user_in_kvm_group
+check kvm_create_vm kvm_create_vm
+check zfs_zvol_ext4 zfs_zvol_ext4
+check ublk_control ublk_control
+check io_uring_fio io_uring_fio
+check lvm_thin_xfs lvm_thin_xfs
+check btrfs_subvolumes btrfs_subvolumes
+echo "kernel=$(uname -r) zfs=$(cat /sys/module/zfs/version 2>/dev/null)"
+exit "$failed"

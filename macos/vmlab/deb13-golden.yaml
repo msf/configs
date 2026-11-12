@@ -1,0 +1,48 @@
+# Debian 13 golden image for disposable kernel/storage test VMs (see README.md).
+# Built and cloned by ./vmlab; do not start it by hand.
+#
+# Kernel selection (param KERNEL), see provision.sh:
+#   stock                              trixie's own kernel
+#   backports                          newest trixie-backports kernel
+#   snapshot/<YYYYMMDDTHHMMSSZ>/<abi>  exact kernel from snapshot.debian.org,
+#                                      e.g. snapshot/20260317T000000Z/6.18.15+deb13
+# KFLAVOR is the Debian kernel flavour; cloud-arm64 has KVM, ublk and io_uring.
+minimumLimaVersion: 2.2.0
+base:
+  - template:_images/debian-13
+vmType: vz
+arch: aarch64
+cpus: 8
+memory: 8GiB
+disk: 32GiB
+nestedVirtualization: true
+
+param:
+  KERNEL: stock
+  KFLAVOR: cloud-arm64
+
+user:
+  name: miguel
+  home: /home/miguel
+  shell: /bin/bash
+
+# Test VMs see only what vmlab mounts per task (/lab/in, /lab/out).
+mounts: []
+networks: []
+# Never publish guest ports on the Mac: tests may bind anything.
+portForwards:
+  - guestIP: 0.0.0.0
+    guestIPMustBeZero: false
+    guestPortRange: [1, 65535]
+    proto: any
+    ignore: true
+containerd:
+  system: false
+  user: false
+ssh:
+  loadDotSSHPubKeys: false
+  forwardAgent: false
+
+provision:
+  - mode: system
+    file: provision.sh

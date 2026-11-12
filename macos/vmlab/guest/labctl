@@ -1,0 +1,166 @@
+#!/bin/bash
+# labctl: task-scoped storage on a vmlab VM's data disk.
+#
+# `labctl init` turns the data disk into VG "lab" holding a thin pool (lab/thin),
+# the zpool "lab" (on lab/zfs) and a zstd-compressed btrfs (lab/scratch, mounted
+# at /lab/scratch). Every resource a task creates is named or tagged with the
+# task, so `labctl drop <task>` removes exactly that task's state.
+set -euo pipefail
+
+VG=lab
+POOL=lab
+SCRATCH=/lab/scratch
+MNT=/lab/mnt
+THIN_PCT=${LABCTL_THIN_PCT:-45}
+ZFS_PCT=${LABCTL_ZFS_PCT:-25}
+SCRATCH_PCT=${LABCTL_SCRATCH_PCT:-25}
+
+usage() {
+  cat <<'EOF'
+usage: labctl init [DEVICE]                  data disk -> VG lab: thin pool, zpool lab, btrfs scratch
+       labctl up                             activate after boot (idempotent; run by vmlab-lab-up.service)
+       labctl zvol   <task> <name> <size>    sparse zvol with Stacker's flags; prints the device
+       labctl lv     <task> <name> <size>    thin LV; prints the device
+       labctl fs     <task> <name> <size> <xfs|ext4|btrfs>
+                                             thin LV + filesystem mounted at /lab/mnt/<task>/<name>
+       labctl subvol <task>                  btrfs subvolume /lab/scratch/<task>, owned by the invoking user
+       labctl snap   <task> <new-task>       writable snapshot of a task's subvolume
+       labctl drop   <task>                  remove everything the task created
+       labctl ls                             list resources
+EOF
+}
+
+die() { echo "labctl: $*" >&2; exit 1; }
+need_root() { [ "$(id -u)" = 0 ] || die "run as root (sudo labctl ...)"; }
+valid_name() { [[ $1 =~ ^[a-z0-9][a-z0-9_-]*$ ]] || die "invalid name '$1' (use [a-z0-9_-])"; }
+owner() { echo "${SUDO_USER:-root}"; }
+
+# The only whole disk that is neither the root disk nor Lima's cidata ISO and has
+# no partitions or filesystem.
+pick_disk() {
+  local root_disk name type fstype candidates=()
+  root_disk=$(lsblk -no PKNAME "$(findmnt -no SOURCE /)")
+  while read -r name type fstype; do
+    [ "$type" = disk ] && [ "$name" != "$root_disk" ] && [ -z "$fstype" ] || continue
+    [ "$(lsblk -no NAME "/dev/$name" | wc -l)" = 1 ] || continue
+    candidates+=("/dev/$name")
+  done < <(lsblk -dno NAME,TYPE,FSTYPE)
+  [ "${#candidates[@]}" = 1 ] || die "expected one blank data disk, found: ${candidates[*]:-none}; pass DEVICE"
+  echo "${candidates[0]}"
+}
+
+cmd_init() {
+  need_root
+  vgs "$VG" >/dev/null 2>&1 && die "VG $VG already exists"
+  local dev=${1:-$(pick_disk)}
+  pvcreate -y "$dev" >/dev/null
+  vgcreate "$VG" "$dev" >/dev/null
+  lvcreate -y -l "${THIN_PCT}%VG" -T "$VG/thin" >/dev/null
+  lvcreate -y -l "${ZFS_PCT}%VG" -n zfs "$VG" >/dev/null
+  lvcreate -y -l "${SCRATCH_PCT}%VG" -n scratch "$VG" >/dev/null
+  zpool create -f -o ashift=12 -O compression=off -O atime=off -m none "$POOL" "/dev/$VG/zfs"
+  mkfs.btrfs -q -L lab-scratch "/dev/$VG/scratch"
+  cmd_up
+  cmd_ls
+}
+
+cmd_up() {
+  need_root
+  vgs "$VG" >/dev/null 2>&1 || exit 0
+  vgchange -ay "$VG" >/dev/null
+  zpool list "$POOL" >/dev/null 2>&1 || zpool import -N -d "/dev/$VG/zfs" "$POOL"
+  mkdir -p "$SCRATCH" "$MNT"
+  mountpoint -q "$SCRATCH" || mount -o compress=zstd:1,noatime "/dev/$VG/scratch" "$SCRATCH"
+}
+
+require_layout() { vgs "$VG" >/dev/null 2>&1 || die "no VG $VG; run 'labctl init' first"; }
+
+cmd_zvol() {
+  need_root; require_layout
+  [ $# = 3 ] || die "usage: labctl zvol <task> <name> <size>"
+  valid_name "$1"; valid_name "$2"
+  zfs list "$POOL/$1" >/dev/null 2>&1 || zfs create -o mountpoint=none "$POOL/$1"
+  zfs create -s -V "$3" -o volblocksize=16K -o compression=off "$POOL/$1/$2"
+  udevadm settle
+  echo "/dev/zvol/$POOL/$1/$2"
+}
+
+cmd_lv() {
+  need_root; require_layout
+  [ $# = 3 ] || die "usage: labctl lv <task> <name> <size>"
+  valid_name "$1"; valid_name "$2"
+  lvcreate -y -V "$3" -T "$VG/thin" -n "$1.$2" --addtag "task.$1" >/dev/null
+  echo "/dev/$VG/$1.$2"
+}
+
+cmd_fs() {
+  [ $# = 4 ] || die "usage: labctl fs <task> <name> <size> <xfs|ext4|btrfs>"
+  local dev dir="$MNT/$1/$2"
+  dev=$(cmd_lv "$1" "$2" "$3")
+  case "$4" in
+    xfs) mkfs.xfs -q "$dev" ;;
+    ext4) mkfs.ext4 -q -b 4096 -m 0 "$dev" ;;
+    btrfs) mkfs.btrfs -q "$dev" ;;
+    *) die "unknown filesystem $4" ;;
+  esac
+  mkdir -p "$dir"
+  mount "$dev" "$dir"
+  chown "$(owner):" "$dir"
+  echo "$dir"
+}
+
+cmd_subvol() {
+  need_root; require_layout
+  [ $# = 1 ] || die "usage: labctl subvol <task>"
+  valid_name "$1"
+  btrfs subvolume create "$SCRATCH/$1" >/dev/null
+  chown "$(owner):" "$SCRATCH/$1"
+  echo "$SCRATCH/$1"
+}
+
+cmd_snap() {
+  need_root; require_layout
+  [ $# = 2 ] || die "usage: labctl snap <task> <new-task>"
+  valid_name "$1"; valid_name "$2"
+  btrfs subvolume snapshot "$SCRATCH/$1" "$SCRATCH/$2" >/dev/null
+  echo "$SCRATCH/$2"
+}
+
+# A just-exited VMM can hold a zvol for a moment; retry instead of failing.
+destroy_dataset() {
+  local i
+  for i in 1 2 3 4 5; do
+    zfs destroy -r "$1" && return 0
+    udevadm settle; sleep "$i"
+  done
+  return 1
+}
+
+cmd_drop() {
+  need_root; require_layout
+  [ $# = 1 ] || die "usage: labctl drop <task>"
+  valid_name "$1"
+  local m lv
+  for m in $(findmnt -rno TARGET | grep "^$MNT/$1/" | sort -r); do umount "$m"; done
+  [ -d "$MNT/$1" ] && find "$MNT/$1" -depth -type d -empty -delete
+  for lv in $(lvs --noheadings -o lv_full_name "@task.$1"); do lvremove -y "$lv" >/dev/null; done
+  if zfs list "$POOL/$1" >/dev/null 2>&1; then destroy_dataset "$POOL/$1"; fi
+  if [ -d "$SCRATCH/$1" ]; then btrfs subvolume delete -R "$SCRATCH/$1" >/dev/null; fi
+  echo "dropped $1"
+}
+
+cmd_ls() {
+  require_layout
+  echo "== zfs ($POOL)"; zfs list -r -o name,volsize,used "$POOL"
+  echo "== thin LVs ($VG)"; lvs -o lv_name,lv_size,data_percent,lv_tags "$VG"
+  echo "== btrfs subvolumes ($SCRATCH)"; btrfs subvolume list -o "$SCRATCH" 2>/dev/null || true
+  echo "== mounts"; findmnt -rno TARGET,SOURCE | grep "^$MNT/" || true
+}
+
+[ $# -ge 1 ] || { usage; exit 2; }
+cmd=$1; shift
+case "$cmd" in
+  init|up|zvol|lv|fs|subvol|snap|drop|ls) "cmd_$cmd" "$@" ;;
+  -h|--help|help) usage ;;
+  *) usage; exit 2 ;;
+esac

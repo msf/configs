@@ -1,0 +1,12 @@
+[Unit]
+Description=Activate the vmlab data disk (VG lab, zpool lab, /lab/scratch)
+After=lvm2-monitor.service zfs-import.target local-fs.target
+Wants=zfs-import.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/labctl up
+
+[Install]
+WantedBy=multi-user.target
