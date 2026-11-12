@@ -27,6 +27,18 @@ Authored by LLM.
    for d in i3status-rust mako kanshi fuzzel swaylock xdg-desktop-portal; do ln -s ~/configs/sway/$d ~/.config/$d; done
    ```
 
+### Terminal fonts
+
+Authored by LLM.
+
+Kitty and Ghostty use JetBrains Mono at 14 pt. macOS installs it through
+`macos/darwin/packages.nix`. On Debian/Ubuntu, install the font before using the
+shared terminal configs:
+
+```sh
+sudo apt install fonts-jetbrains-mono
+```
+
 ### Neovim
 
 1. Start `nvim` once. It clones lazy.nvim and installs the plugins.

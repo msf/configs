@@ -8,6 +8,7 @@ doas
 dstat
 fancontrol
 fio
+fonts-jetbrains-mono
 fwupd
 fzf
 git-lfs
