@@ -17,7 +17,7 @@ Two backends, split by what each can do. Details, measurements and the golden-im
 
 ## Builds: OrbStack `dev`
 
-Debian 13 arm64, glibc 2.41, Go, rustup (stable plus any pinned toolchain), gcc/clang, the amd64 cross toolchain. It is an isolated machine: no `/mnt/mac`, no Mac commands, no SSH agent; selected Mac directories may be mounted read-only. The human enters it with `orb -m dev`.
+Debian 13 arm64, glibc 2.41, Go, rustup (stable plus any pinned toolchain), gcc/clang, the amd64 cross toolchain, zsh and the human's dotfiles. It is an isolated machine (no `/mnt/mac`, no Mac commands; selected Mac directories may be mounted read-only) but it forwards the Mac's SSH agent for git, so treat it as trusted: no untrusted code there; use a disposable `vmlab` VM or container instead. The human enters it with `shlinux` (`orb -m dev`).
 
 Agents use the skill-relative wrapper `scripts/linux-vm` from the Mac project directory:
 

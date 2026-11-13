@@ -23,11 +23,12 @@ alias vim='nvim'
 alias vimdiff='nvim -d'
 if [[ $OSTYPE == darwin* ]]; then
   alias nix-rebuild='sudo darwin-rebuild switch --flake ~/configs/macos\#liskov'
-  alias linux='limactl shell linux-dev'
-  alias shlinux='limactl shell linux-dev'
+  # Linux shell: OrbStack build machine `dev` (git via the forwarded SSH agent).
+  alias linux='orb -m dev'
+  alias shlinux='orb -m dev'
+  alias linuxsh='orb -m dev'
   alias vmlab='~/configs/macos/vmlab/vmlab'
   alias shlab='~/configs/macos/vmlab/vmlab lab shell'
-  alias shdev='orb -m dev'
   # Node comes from Nix (read-only); global npm packages (pi, codex) go to ~/.local
   export NPM_CONFIG_PREFIX=$HOME/.local
   alias ls='ls -GFv'

@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # Ubuntu CLI environment. Leaves SSH identities and private integrations alone.
+# --shell-only (Ubuntu or Debian): shell tools and dotfiles only; no Pi, browser,
+# agent resources or language toolchains (e.g. the OrbStack build machine).
 set -euo pipefail
 
+mode=full
+[[ ${1:-} != --shell-only ]] || mode=shell
 repo=$(cd "$(dirname "$0")/.." && pwd)
 [[ $(uname -s) == Linux && $(uname -m) == aarch64 ]] || {
-	printf 'This setup requires Ubuntu ARM64.\n' >&2
+	printf 'This setup requires Linux ARM64.\n' >&2
 	exit 1
 }
 [[ $EUID -ne 0 ]] || {
@@ -13,8 +17,8 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 }
 # shellcheck source=/dev/null
 source /etc/os-release
-[[ $ID == ubuntu ]] || {
-	printf 'This setup requires Ubuntu.\n' >&2
+[[ $ID == ubuntu || ($mode == shell && $ID == debian) ]] || {
+	printf 'This setup requires Ubuntu (or Debian with --shell-only).\n' >&2
 	exit 1
 }
 
@@ -56,11 +60,11 @@ install_archive() {
 	link "$destination/$executable" "$HOME/.local/bin/${executable##*/}"
 }
 
+packages=(ca-certificates curl git gh openssh-client rsync tmux neovim zsh ripgrep fd-find jq
+	build-essential pkg-config libssl-dev git-delta git-lfs fzf direnv unzip ncurses-term)
+[[ $mode == shell ]] || packages+=(nodejs npm golang-go rustup tree-sitter-cli chromium-browser)
 sudo apt-get update -qq
-sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-	ca-certificates curl git gh openssh-client rsync tmux neovim zsh ripgrep fd-find jq \
-	build-essential pkg-config libssl-dev git-delta git-lfs fzf direnv unzip \
-	nodejs npm golang-go rustup tree-sitter-cli ncurses-term chromium-browser
+sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${packages[@]}"
 
 staging=$(mktemp -d)
 trap 'rm -rf "$staging"' EXIT
@@ -88,13 +92,23 @@ link "$repo/nvim" "$HOME/.config/nvim"
 for script in pi-lean runbg dos2unix; do
 	link "$repo/bin/$script" "$HOME/bin/$script"
 done
+sudo usermod --shell /usr/bin/zsh "$(id -un)"
+
+if [[ $mode == shell ]]; then
+	state="$HOME/.local/state/home-setup"
+	mkdir -p "$state"
+	timeout --kill-after=10s 600s nvim --headless '+Lazy! restore' +qa >"$state/neovim-install.log" 2>&1 ||
+		printf 'Neovim plugin restore failed; see %s\n' "$state/neovim-install.log" >&2
+	printf '\nInstalled shell environment (--shell-only).\n'
+	printf 'Backups, if needed: %s\n' "$backup_dir"
+	exit 0
+fi
 
 npm config set prefix "$HOME/.local"
 npm install --global --ignore-scripts @earendil-works/pi-coding-agent@1.1.0
 rustup set profile minimal
 rustup default stable
 rustup component add rust-analyzer rustfmt clippy
-sudo usermod --shell /usr/bin/zsh "$(id -un)"
 
 # Snap Chromium cannot write profiles under hidden home directories.
 browser_profile="$HOME/snap/chromium/common/pi-profile"

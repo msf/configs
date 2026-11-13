@@ -4,7 +4,7 @@ Two boxes, split by what each backend can do (measured 2026-11-12, M5 Max, macOS
 
 | Box | Backend | Use for | Memory |
 |---|---|---|---|
-| `dev` | OrbStack machine, Debian 13 arm64 (`orb-dev-setup.sh`) | builds (native + amd64 cross), editing, userspace tests, io_uring | freed memory returns to macOS within ~90 s |
+| `dev` | OrbStack machine, Debian 13 arm64 (`orb-dev-setup.sh`, then `linux/setup-home.sh --shell-only`); `shlinux` | interactive Linux shell with git (forwarded SSH agent), builds (native + amd64 cross), userspace tests, io_uring | freed memory returns to macOS within ~90 s |
 | `golden-<tag>`, `t-*`, `lab` | Lima VZ VMs (`vmlab`) | anything needing its own kernel: KVM guests, ZFS, ublk, loop, LVM/dm-thin, kernel A/B | held until the VM stops |
 
 OrbStack machines share OrbStack's kernel (7.2.x): no `/dev/kvm` (nested KVM is
@@ -12,6 +12,10 @@ unsupported), no out-of-tree modules (no ZFS), no dm-thin, and isolated machines
 get no ublk/loop/dm devices. Lima VZ has nested KVM and boots any kernel, but
 Virtualization.framework never returns touched guest memory (no free-page
 reporting), so keep Lima VMs short-lived and stop `lab` when idle.
+
+`dev` is isolated (`orb create --isolated --forward-ssh-agent --mount <dir>:<guest-dir>`):
+no `/mnt/mac`, no Mac commands, but the Mac's SSH agent is forwarded, so any process
+in it can use your keys while it runs. Don't run untrusted code there.
 
 ## Golden image
 
