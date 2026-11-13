@@ -1,9 +1,13 @@
 # Ubuntu development VM
 
-> **Legacy (2026-11-12).** Builds moved to the OrbStack machine `dev` and kernel,
-> KVM and block-device tests to disposable Lima VMs (`vmlab`); see
-> [vmlab/README.md](vmlab/README.md). The `linux-vm` skill no longer uses this VM.
-> It stays only for interactive use and Pi-in-Linux until those move.
+> **Retired 2026-11-13; the instance and its `linux-scratch` disk are deleted.**
+> The Linux shell (`shlinux`/`linuxsh`) and builds are the OrbStack machine `dev`;
+> kernel, KVM and block-device tests use disposable Lima VMs (`vmlab`); see
+> [vmlab/README.md](vmlab/README.md). Guest-only work was saved to
+> `~/.local/state/linux-dev/retired-2026-11-13/` on the Mac: `--all` git bundles of
+> `~/configs` (3 commits that were never pushed) and `~/play/msfblkdev`, plus its
+> untracked files. `sync-pi-config.sh`/`sync-pi-auth.sh` still need a Lima instance
+> name if Pi-in-Linux returns. The rest of this page is history.
 
 `darwin/linux-dev.yaml` defines a persistent Ubuntu 26.04 ARM64 VM for Linux
 storage development. Lima is already in `darwin/packages.nix`. The VZ backend
